@@ -603,10 +603,10 @@ function SavingsProjection({ className = '' }: { className?: string }) {
           return (
             <li
               key={years}
-              className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-2 text-center sm:p-3"
+              className="rounded-xl border border-emerald-100 bg-emerald-50/60 px-1 py-2 text-center sm:px-3 sm:py-3"
             >
               <p className="text-[10px] font-bold uppercase tracking-wide text-muted">{years} Tahun</p>
-              <p className="mt-0.5 text-xs font-bold whitespace-nowrap tabular-nums text-emerald-800 sm:text-sm">
+              <p className="mt-0.5 text-[10px] font-bold whitespace-nowrap tracking-tighter tabular-nums text-emerald-800 xs:text-[11px] sm:text-sm">
                 Rp{total.toLocaleString('id-ID')}
               </p>
               <p className="mt-0.5 text-[10px] font-semibold tabular-nums text-muted">
