@@ -596,17 +596,17 @@ function SavingsProjection({ className = '' }: { className?: string }) {
         <span>Rp{PROJECTION_MAX.toLocaleString('id-ID')}</span>
       </div>
 
-      <ul className="mt-3 grid grid-cols-3 gap-2">
+      <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
         {PROJECTION_HORIZONS.map(years => {
           const total = projectSavings(daily, years);
           const gain = Math.max(0, total - contribution);
           return (
             <li
               key={years}
-              className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-2 text-center"
+              className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3 text-center"
             >
               <p className="text-[10px] font-bold uppercase tracking-wide text-muted">{years} Tahun</p>
-              <p className="mt-0.5 text-xs font-black tabular-nums wrap-break-word text-brand">
+              <p className="mt-0.5 text-sm font-black tabular-nums break-words text-brand sm:text-xs">
                 Rp{total.toLocaleString('id-ID')}
               </p>
               <p className="mt-0.5 text-[10px] font-semibold tabular-nums text-muted">
@@ -1249,7 +1249,7 @@ export default function AsetaApp() {
             <h1 className="truncate text-xl font-black tracking-tight text-forest sm:text-2xl">
               Halo, {mascot.name} menunggumu 👋
             </h1>
-            <p className="mt-0.5 text-xs text-muted sm:text-sm">
+            <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
               Yuk, putar receh hari ini jadi aset yang tumbuh.
             </p>
           </div>
@@ -1993,7 +1993,7 @@ export default function AsetaApp() {
             type="button"
             onClick={() => setActiveTab('home')}
             aria-current={activeTab === 'home' ? 'page' : undefined}
-            className={`flex flex-1 flex-col items-center gap-0.5 rounded-xl py-1.5 text-[11px] font-semibold transition-colors ${activeTab === 'home' ? 'bg-emerald-50 text-brand' : 'text-muted'}`}
+            className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[11px] font-semibold transition-colors ${activeTab === 'home' ? 'bg-emerald-50 text-brand' : 'text-muted'}`}
           >
             <Home className="h-5 w-5" aria-hidden />
             Beranda
@@ -2003,7 +2003,7 @@ export default function AsetaApp() {
             onClick={() => setActiveTab('scan')}
             data-tour="scan-nav"
             aria-current={activeTab === 'scan' ? 'page' : undefined}
-            className={`flex flex-1 flex-col items-center gap-0.5 rounded-xl py-1.5 text-[11px] font-semibold transition-colors ${isTourActive && tourStep === 3 ? 'relative z-50 ring-4 ring-emerald-400 ring-offset-2 bg-white' : ''} ${activeTab === 'scan' ? 'bg-emerald-50 text-brand' : 'text-muted'}`}
+            className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[11px] font-semibold transition-colors ${isTourActive && tourStep === 3 ? 'relative z-50 ring-4 ring-emerald-400 ring-offset-2 bg-white' : ''} ${activeTab === 'scan' ? 'bg-emerald-50 text-brand' : 'text-muted'}`}
           >
             <QrCode className="h-5 w-5" aria-hidden />
             Scan
@@ -2012,7 +2012,7 @@ export default function AsetaApp() {
             type="button"
             onClick={() => setActiveTab('history')}
             aria-current={activeTab === 'history' ? 'page' : undefined}
-            className={`flex flex-1 flex-col items-center gap-0.5 rounded-xl py-1.5 text-[11px] font-semibold transition-colors ${activeTab === 'history' ? 'bg-emerald-50 text-brand' : 'text-muted'}`}
+            className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[11px] font-semibold transition-colors ${activeTab === 'history' ? 'bg-emerald-50 text-brand' : 'text-muted'}`}
           >
             <History className="h-5 w-5" aria-hidden />
             Riwayat
@@ -2021,7 +2021,7 @@ export default function AsetaApp() {
             type="button"
             onClick={() => setActiveTab('evolve')}
             aria-current={activeTab === 'evolve' ? 'page' : undefined}
-            className={`flex flex-1 flex-col items-center gap-0.5 rounded-xl py-1.5 text-[11px] font-semibold transition-colors ${activeTab === 'evolve' ? 'bg-emerald-50 text-brand' : 'text-muted'}`}
+            className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[11px] font-semibold transition-colors ${activeTab === 'evolve' ? 'bg-emerald-50 text-brand' : 'text-muted'}`}
           >
             <Sparkles className="h-5 w-5" aria-hidden />
             Evolusi
