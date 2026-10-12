@@ -553,7 +553,7 @@ function SavingsProjection({ className = '' }: { className?: string }) {
 
   return (
     <section
-      className={`flex h-full flex-col rounded-2xl border border-line bg-white p-6 shadow-sm transition-shadow hover:shadow-md ${className}`}
+      className={`flex h-full min-w-0 flex-col rounded-2xl border border-line bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:p-6 ${className}`}
     >
       {/* Header: ikon gradien emerald→teal + pill imbal hasil, sejajar dengan
           badge ikon berwarna di "Transaksi Cepat" agar ritme visual sama. */}
@@ -603,10 +603,10 @@ function SavingsProjection({ className = '' }: { className?: string }) {
           return (
             <li
               key={years}
-              className="rounded-xl border border-emerald-100 bg-emerald-50/60 px-1 py-2 text-center sm:px-3 sm:py-3"
+              className="min-w-0 rounded-xl border border-emerald-100 bg-emerald-50/60 px-1.5 py-2 text-center sm:px-3 sm:py-3"
             >
               <p className="text-[10px] font-bold uppercase tracking-wide text-muted">{years} Tahun</p>
-              <p className="mt-0.5 text-[10px] font-bold whitespace-nowrap tracking-tighter tabular-nums text-emerald-800 xs:text-[11px] sm:text-sm">
+              <p className="mt-0.5 text-[10px] font-bold whitespace-nowrap tracking-tighter tabular-nums text-emerald-800 sm:text-[11px] lg:text-sm">
                 Rp{total.toLocaleString('id-ID')}
               </p>
               <p className="mt-0.5 text-[10px] font-semibold tabular-nums text-muted">
