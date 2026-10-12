@@ -450,7 +450,7 @@ function GrowthChart({ series }: { series: number[] }) {
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}
-      className="h-16 w-full"
+      className="h-12 w-full sm:h-16"
       role="img"
       aria-label="Grafik pertumbuhan portofolio 7 hari terakhir"
       preserveAspectRatio="none"
@@ -616,10 +616,6 @@ function SavingsProjection({ className = '' }: { className?: string }) {
           );
         })}
       </ul>
-      <p className="mt-2 text-[11px] leading-snug text-muted">
-        Simulasi bunga majemuk +4,2% p.a dari setoran Rp{daily.toLocaleString('id-ID')}/hari (Rp
-        {contribution.toLocaleString('id-ID')}/tahun) — bukan hasil investasi nyata.
-      </p>
     </section>
   );
 }
@@ -1217,19 +1213,13 @@ export default function AsetaApp() {
 
       {/* ===== Kolom Konten (mobile: satu kolom, desktop: di kanan sidebar) ===== */}
       <div className="relative flex min-h-screen w-full min-w-0 flex-col">
-        {/* Bar mobile tipis: streak & level (sidebar tersembunyi di mobile) */}
-        <header className="sticky top-0 z-40 flex items-center justify-between gap-2 border-b border-line bg-ivory/90 px-4 py-2.5 backdrop-blur-md md:hidden">
+        {/* Bar mobile tipis: hanya logo + nama brand. Badge streak & level
+            sengaja dihapus agar bar tetap ringan dan tidak berdesakan
+            dengan judul salam di bawahnya. */}
+        <header className="sticky top-0 z-40 flex items-center border-b border-line bg-ivory/90 px-4 py-2.5 backdrop-blur-md md:hidden">
           <div className="flex items-center gap-2">
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand text-xs font-black text-white">A</span>
             <span className="text-base font-black tracking-tight text-forest">ASETA</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-700 ring-1 ring-inset ring-amber-200">
-              🔥 {displayStreak} Hari
-            </span>
-            <span className="rounded-full bg-gold px-2.5 py-1 text-[11px] font-black text-forest ring-1 ring-inset ring-amber-300/60">
-              Lv. {mascot.level}
-            </span>
           </div>
         </header>
 
@@ -1246,7 +1236,7 @@ export default function AsetaApp() {
             giants yang "terlempar" sendirian di dasar halaman). --- */}
         <div className="mb-5 flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="truncate text-xl font-black tracking-tight text-forest sm:text-2xl">
+            <h1 className="truncate text-lg font-black tracking-tight text-forest sm:text-2xl">
               Halo, {mascot.name} menunggumu 👋
             </h1>
             <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
@@ -1388,7 +1378,7 @@ export default function AsetaApp() {
             {/* Status maskot: 3 tag kecil (Sehat · Bahagia · Kenyang/Lapar).
                 Diperkecil & diberi jarak lega agar terbaca sebagai tag,
                 bukan dinding teks di bawah judul maskot. */}
-            <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5">
+            <div className="mb-3 mt-2 flex flex-wrap items-center justify-center gap-1.5">
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                 {petHealthy ? '🟢 Sehat' : '🌱 Sehat'}
               </span>
