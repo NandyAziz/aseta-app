@@ -596,20 +596,20 @@ function SavingsProjection({ className = '' }: { className?: string }) {
         <span>Rp{PROJECTION_MAX.toLocaleString('id-ID')}</span>
       </div>
 
-      <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+      <ul className="mt-3 grid grid-cols-3 gap-1.5 sm:gap-3">
         {PROJECTION_HORIZONS.map(years => {
           const total = projectSavings(daily, years);
           const gain = Math.max(0, total - contribution);
           return (
             <li
               key={years}
-              className="min-w-0 rounded-xl border border-emerald-100 bg-emerald-50/60 px-1.5 py-2 text-center sm:px-3 sm:py-3"
+              className="px-1 py-2 sm:px-3 sm:py-3 text-center min-w-0 flex flex-col justify-center items-center overflow-hidden rounded-xl border border-emerald-100 bg-emerald-50/60"
             >
               <p className="text-[10px] font-bold uppercase tracking-wide text-muted">{years} Tahun</p>
-              <p className="mt-0.5 text-[10px] font-bold whitespace-nowrap tracking-tighter tabular-nums text-emerald-800 sm:text-[11px] lg:text-sm">
+              <p className="mt-0.5 text-[9px] min-[380px]:text-[10px] sm:text-xs lg:text-sm font-extrabold tracking-tighter tabular-nums text-emerald-800 whitespace-nowrap leading-tight">
                 Rp{total.toLocaleString('id-ID')}
               </p>
-              <p className="mt-0.5 text-[10px] font-semibold tabular-nums text-muted">
+              <p className="mt-0.5 text-[8px] min-[380px]:text-[9px] sm:text-[10px] font-semibold tabular-nums text-muted whitespace-nowrap">
                 +{gain.toLocaleString('id-ID')} hasil
               </p>
             </li>
