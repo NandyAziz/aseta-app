@@ -2256,8 +2256,12 @@ export default function AsetaApp() {
             className="fixed bottom-12 left-1/2 z-60 w-[90%] max-w-sm -translate-x-1/2 rounded-2xl border border-line bg-white p-5 shadow-sm"
           >
             <div className="flex items-start gap-3">
+              {/* Pakai `mascot.gif` yang sama persis dengan kartu utama — sebelumnya
+                  hardcode `level >= 2 ? baby : egg` sehingga maskot Lv 7+
+                  (Aseta Mandiri / naga dewasa) tetap tampil sebagai bayi
+                  di tooltip tour. */}
               <Image
-                src={mascot.level >= 2 ? '/mascot-baby.gif' : '/mascot-egg.gif'}
+                src={mascot.gif}
                 alt=""
                 width={48}
                 height={48}
