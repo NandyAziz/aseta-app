@@ -4,10 +4,12 @@ import { useState, useSyncExternalStore, useRef, useEffect, useCallback } from '
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { Coffee, ShoppingBasket, Utensils, Wallet, TrendingUp, ShieldCheck, BookOpen, HelpCircle, Home, QrCode, History, X, RotateCcw, Sparkles, Search } from "lucide-react";
+import { CameraOff, Coffee, ShoppingBasket, Utensils, Wallet, TrendingUp, ShieldCheck, BookOpen, HelpCircle, Home, QrCode, History, X, RotateCcw, Sparkles, Search } from "lucide-react";
 import confetti from 'canvas-confetti';
+import jsQR from 'jsqr';
 import { calculateRoundUp, getMascotLevel, getXpProgress, MAX_LEVEL, LEVEL_TARGETS, LEVEL_TITLES, GREET_TAP_TARGET } from '@/utils/aseta';
 import { playTapSound, playCoinSound, playLevelUpSound, playLimitSound } from '@/utils/sound';
+import { parseQrPayload } from '@/utils/qris';
 import type { MascotExpression } from '@/utils/aseta';
 import { mascotAura, MascotEvolutionMotes } from '@/components/MascotAura';
 import type { Transaction, SavingsState } from '@/types';
@@ -77,6 +79,14 @@ const PET_LINES = [
 ] as const;
 
 const GOLD_GRAM_PRICE = 1_200_000; // simulasi harga emas Rp/gram
+
+// --- Parameter loop pemindaian QR ---
+// Decoding dibatasi ~6 fps: cukup untuk menangkap QR yang dipegang statis,
+// tapi tidak mengunci CPU saat kamera menyala.
+const SCAN_INTERVAL_MS = 160;
+// Sisi terpanjang frame yang di-decode. Resolusi penuh kamera (1080p+)
+// mahal dan tidak menambah peluang deteksi yang berarti.
+const SCAN_MAX_EDGE = 480;
 
 // ============================================================
 // Proyeksi tabungan (bunga majemuk harian) — fungsi murni
@@ -471,8 +481,34 @@ export default function AsetaApp() {
   const [mascotMood, setMascotMood] = useState<MascotExpression>('idle');
   const [mascotSpeech, setMascotSpeech] = useState<string | null>(null);
   const moodTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [isScanning, setIsScanning] = useState<boolean>(false);
-  const scanTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // --- Kamera sungguhan (getUserMedia) ---
+  // Siklus hidup: idle → starting → live, atau idle → denied/error (fallback).
+  // Demo mode dipisah dari kamera: tidak pernah menyentuh state keuangan,
+  // hanya menampilkan toast konfirmasi strut tiruan.
+  type CameraState = 'idle' | 'starting' | 'live' | 'denied' | 'unsupported';
+  const [cameraState, setCameraState] = useState<CameraState>('idle');
+  const [cameraError, setCameraError] = useState<string>('');
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  // Canvas off-screen khusus grabs frame kamera untuk decoding jsQR.
+  const scanCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const scanRafRef = useRef<number | null>(null);
+  const lastScanAtRef = useRef<number>(0);
+  // Hasil scan terakhir (payload mentah + hasil parse) untuk ditampilkan di modal.
+  const [scanResult, setScanResult] = useState<{ amount: number | null; merchantName: string | null } | null>(null);
+  const [showScanModal, setShowScanModal] = useState<boolean>(false);
+  // Kilatan singkat saat QR berhasil tertangkap.
+  const [scanFlash, setScanFlash] = useState<boolean>(false);
+  /** Matikan stream kamera, batalkan loop decoding, dan lepaskan resource-nya. */
+  const stopCamera = useCallback(() => {
+    if (scanRafRef.current !== null) {
+      cancelAnimationFrame(scanRafRef.current);
+      scanRafRef.current = null;
+    }
+    streamRef.current?.getTracks().forEach(track => track.stop());
+    streamRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
+  }, []);
   const petLineIndex = useRef<number>(0);
   // Bertambah tiap tap → dipakai sebagai `key` untuk memutar ulang animasi
   // partikel "+50 XP" yang melayang keluar dari maskot.
@@ -713,12 +749,15 @@ export default function AsetaApp() {
   // dibuka telah DIHAPUS — semua penambahan aset hanya terjadi saat user
   // secara eksplisit menekan tombol (preset / Simpan & Tabungkan).
 
-  // Cleanup timer scan saat unmount
+  // Matikan kamera saat komponen di-unmount ATAU pengguna pindah tab —
+  // tanpa ini, LED kamera terus menyala setelah tab Scan ditinggalkan.
   useEffect(() => {
-    return () => {
-      if (scanTimer.current) clearTimeout(scanTimer.current);
-    };
-  }, []);
+    if (activeTab !== 'scan') stopCamera();
+  }, [activeTab, stopCamera]);
+
+  useEffect(() => {
+    return () => stopCamera();
+  }, [stopCamera]);
 
   // Perbarui "waktu sekarang" untuk filter Riwayat. setState ditunda via setTimeout
   // agar tidak sinkron di dalam effect (hindari cascading render), sesuai pola lint.
@@ -823,15 +862,162 @@ export default function AsetaApp() {
     }
   }
 
-  // Simulasi pemindaian AMAN: TIDAK menyentuh state keuangan apa pun.
-  function handleScan() {
-    if (isScanning) return;
-    setIsScanning(true);
-    if (scanTimer.current) clearTimeout(scanTimer.current);
-    scanTimer.current = setTimeout(() => {
-      setIsScanning(false);
-      showToast('Struk tidak terdeteksi — pakai preset di bawah ya!');
-    }, 1800);
+  /**
+   * QR tertangkap → parse payload → flash + getaran singkat → buka modal.
+   *
+   * Tidak pernah menyentuh state keuangan: modal hanya menampilkan hasil baca
+   * dan meng-prefill input nominal. Penabung tetap harus dikonfirmasi user.
+   */
+  const handleQrDetected = useCallback((payload: string) => {
+    const parsed = parseQrPayload(payload);
+    setScanResult({ amount: parsed.amount, merchantName: parsed.merchantName });
+
+    // Flash + haptic: konfirmasi taktil singkat bahwa QR terbaca.
+    setScanFlash(true);
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      navigator.vibrate(60);
+    }
+    playCoinSound();
+
+    // Beri jeda singkat agar kilatan terlihat, lalu buka modal.
+    setTimeout(() => {
+      setScanFlash(false);
+      setShowScanModal(true);
+    }, 420);
+
+    // Pre-fill input manual + merchant supaya alur bersambung.
+    if (parsed.amount) setAmountInput(String(parsed.amount));
+    if (parsed.merchantName) setMerchantInput(parsed.merchantName);
+  }, []);
+
+  /**
+   * Loop pemindaian: grabs frame dari <video> ke canvas off-screen lalu
+   * meneruskannya ke jsQR. Dijalankan via requestAnimationFrame.
+   *
+   * Mode `attemptBoth` dicoba — sebagian QRIS tercetak terang di atas gelap, sebagian
+   * sebaliknya, jadi dua mode diwahyuan agar peluang deteksi tinggi.
+   *
+   * Pembatasan: decoding dibatasi ~6 fps (lihat SCAN_INTERVAL_MS) supaya CPU
+   * tidak terjebak 100% saat kamera aktif. Setelah payload valid tertangkap,
+   * loop berhenti supaya satu QR tidak memicu berulang kali.
+   *
+   * Bergantung pada `handleQrDetected` yang dideklarasikan DI ATAS-nya.
+   */
+  const startDecodeLoop = useCallback(() => {
+    const video = videoRef.current;
+    const canvas = scanCanvasRef.current;
+    if (!video || !canvas) return;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return;
+
+    const tick = () => {
+      const now = Date.now();
+      if (video.readyState === video.HAVE_ENOUGH_DATA && now - lastScanAtRef.current >= SCAN_INTERVAL_MS) {
+        lastScanAtRef.current = now;
+        // Batasi resolusi grabs — cukup untuk decode, jauh lebih murah.
+        const w = Math.min(video.videoWidth || 0, SCAN_MAX_EDGE);
+        const h = Math.min(video.videoHeight || 0, SCAN_MAX_EDGE);
+        if (w > 0 && h > 0) {
+          canvas.width = w;
+          canvas.height = h;
+          ctx.drawImage(video, 0, 0, w, h);
+          let imageData: ImageData;
+          try {
+            imageData = ctx.getImageData(0, 0, w, h);
+          } catch {
+            // Cross-origin / tainted canvas — abaikan frame ini saja.
+            imageData = null as unknown as ImageData;
+          }
+          if (imageData) {
+            const found =
+              jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' }) ??
+              jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'attemptBoth' });
+            if (found?.data) {
+              handleQrDetected(found.data);
+              return; // loop berhenti; pengguna yang memutuskan selanjutnya
+            }
+          }
+        }
+      }
+      scanRafRef.current = requestAnimationFrame(tick);
+    };
+
+    scanRafRef.current = requestAnimationFrame(tick);
+  }, [handleQrDetected]);
+
+  /**
+   * "Mulai Scan" — meminta akses kamera sungguhan lewat `getUserMedia`.
+   *
+   * Tidak memakai library pihak ketiga (html5-qrcode dsb.) agar tidak menambah
+   * dependensi; API ini sudah tersedia di browser modern.
+   *
+   * Kegagalan ditangani eksplisit: kamera tidak ada / konteks tidak aman /
+   * izin ditolak → state `denied` atau `unsupported` → frame menampilkan
+   * fallback dengan tombol "Gunakan Mode Demo", sehingga alur uji tidak pernah
+   * buntu. Tidak ada mutasi state keuangan di fungsi ini.
+   */
+  async function handleScan() {
+    if (cameraState === 'starting' || cameraState === 'live') return;
+    setCameraError('');
+
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+      setCameraState('unsupported');
+      setCameraError(
+        typeof window !== 'undefined' && !window.isSecureContext
+          ? 'Kamera hanya bisa diakses lewat HTTPS atau di localhost.'
+          : 'Browser ini tidak mendukung akses kamera.'
+      );
+      return;
+    }
+
+    setCameraState('starting');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: false,
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        // play() bisa reject bila belum ada interaksi pengguna — abaikan saja;
+        // video tetap menampilkan frame pertama setelah pengguna berinteraksi.
+        await videoRef.current.play().catch(() => undefined);
+      }
+      setCameraState('live');
+      startDecodeLoop();
+    } catch (err) {
+      stopCamera();
+      const name = err instanceof DOMException ? err.name : '';
+      if (name === 'NotAllowedError' || name === 'SecurityError') {
+        setCameraState('denied');
+        setCameraError('Izin kamera ditolak. Izinkan akses kamera di pengaturan browser lalu coba lagi.');
+      } else if (name === 'NotFoundError' || name === 'OverconstrainedError') {
+        setCameraState('denied');
+        setCameraError('Tidak ada kamera yang bisa diakses di perangkat ini.');
+      } else {
+        setCameraState('denied');
+        setCameraError('Kamera gagal dimuat. Coba lagi atau lanjutkan dengan mode demo.');
+      }
+    }
+  }
+
+  /** Berhenti kamera & kembali ke frame idle. */
+  function handleStopCamera() {
+    stopCamera();
+    setCameraState('idle');
+    setCameraError('');
+  }
+
+  /**
+   * Mode demo — simulasi pemindaian murni yang TIDAK menyentuh kamera maupun
+   * state keuangan apa pun. Tetap tersedia saat kamera ditolak agar fitur
+   * utama (alur tabung) tetap bisa dicoba.
+   */
+  function handleDemoScan() {
+    stopCamera();
+    setCameraState('idle');
+    setCameraError('');
+    showToast('Mode demo — strut tiruan terbaca. Pilih preset untuk menabung.');
   }
 
   // Klaim hadiah misi harian → tambah XP ke balance (maskot).
@@ -1482,40 +1668,114 @@ export default function AsetaApp() {
           <div className="rounded-2xl border border-line bg-white p-5">
             <h2 className="text-base font-bold text-forest">Scan QRIS</h2>
             <p className="text-xs text-muted">
-              Arahkan kamera ke struk QRIS merchant, atau pakai preset di bawah.
+              Arahkan kamera ke struk QRIS merchant. Kamera hanya aktif selama tombol
+              di bawah ditekan — preset belanja tidak pernah membuka kamera.
             </p>
 
-            {/* Kamera mockup — murni visual, tidak mengubah state keuangan */}
+            {/* Frame scanner: menampilkan feed kamera sungguhan, atau fallback
+                yang bersih ketika izin kamera ditolak / tidak didukung. */}
             <div className="relative mt-4 flex aspect-4/3 w-full items-center justify-center overflow-hidden rounded-2xl bg-slate-900">
-              <div className="absolute inset-6 rounded-xl border-2 border-dashed border-emerald-400/60" aria-hidden />
-              <QrCode className="h-16 w-16 text-emerald-300/70" aria-hidden />
-              {isScanning && (
+              {/* Canvas off-screen untuk grabs frame → jsQR. Tidak terlihat. */}
+              <canvas ref={scanCanvasRef} className="hidden" aria-hidden />
+              {/* Feed kamera — selalu di-mount agar ref stabil; visibilitas
+                  dikendalikan opacity agar tidak berkedip saat state berubah. */}
+              <video
+                ref={videoRef}
+                playsInline
+                muted
+                autoPlay
+                aria-label="Pratinjau kamera"
+                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
+                  cameraState === 'live' ? 'opacity-100' : 'opacity-0'
+                }`}
+              />
+
+              {cameraState !== 'live' && (
+                <>
+                  {/* Fallback kamera ditolak / tidak didukung */}
+                  {(cameraState === 'denied' || cameraState === 'unsupported') && (
+                    <div className="relative z-10 flex max-w-xs flex-col items-center px-6 text-center">
+                      <CameraOff className="h-8 w-8 text-emerald-300/70" aria-hidden />
+                      <p className="mt-2 text-xs leading-snug text-emerald-100">{cameraError}</p>
+                      <button
+                        type="button"
+                        onClick={handleDemoScan}
+                        className="mt-3 min-h-11 rounded-xl bg-emerald-500 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-emerald-600 sm:min-h-0"
+                      >
+                        Gunakan Mode Demo
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Idle / sedang meminta izin */}
+                  {cameraState !== 'denied' && cameraState !== 'unsupported' && (
+                    <>
+                      <div className="absolute inset-6 rounded-xl border-2 border-dashed border-emerald-400/60" aria-hidden />
+                      <QrCode
+                        className={`h-16 w-16 text-emerald-300/70 ${cameraState === 'starting' ? 'animate-pulse' : ''}`}
+                        aria-hidden
+                      />
+                      <span className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-3 py-1 text-[11px] font-medium text-emerald-200">
+                        {cameraState === 'starting' ? 'Meminta izin kamera...' : 'Kamera belum aktif'}
+                      </span>
+                    </>
+                  )}
+                </>
+              )}
+
+              {/* Bingkai + garis laser pemindaian — tetap tampil di atas feed live. */}
+              <div className="pointer-events-none absolute inset-6 rounded-xl border-2 border-dashed border-emerald-400/60" aria-hidden />
+              {(cameraState === 'live' || cameraState === 'starting') && (
                 <div
                   aria-hidden
                   className="absolute inset-x-6 top-1/2 h-0.5 bg-emerald-400 shadow-[0_0_12px_2px_rgba(16,185,129,0.7)]"
                 />
               )}
-              <span className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-3 py-1 text-[11px] font-medium text-emerald-200">
-                {isScanning ? 'Memindai...' : 'Mode demo — tidak memakai kamera asli'}
-              </span>
+              {cameraState === 'live' && (
+                <span className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-3 py-1 text-[11px] font-medium text-emerald-200">
+                  Kamera aktif — arahkan ke QRIS
+                </span>
+              )}
+              {/* Kilatan putih singkat saat QR berhasil tertangkap. */}
+              {scanFlash && (
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 z-20 animate-scan-flash bg-white/70"
+                />
+              )}
             </div>
 
             <div className="mt-4 flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={handleScan}
-                disabled={isScanning}
-                className="w-full rounded-xl bg-brand px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-brand-dark disabled:cursor-wait disabled:bg-emerald-400"
-              >
-                {isScanning ? 'Memindai...' : 'Mulai Scan'}
-              </button>
+              {cameraState === 'live' ? (
+                <button
+                  type="button"
+                  onClick={handleStopCamera}
+                  className="w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-bold text-forest transition-colors hover:bg-ivory"
+                >
+                  Hentikan Kamera
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleScan}
+                  disabled={cameraState === 'starting'}
+                  className="w-full rounded-xl bg-brand px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-brand-dark disabled:cursor-wait disabled:bg-slate-300"
+                >
+                  {cameraState === 'starting' ? 'Meminta izin...' : 'Mulai Scan'}
+                </button>
+              )}
               <p className="text-center text-[11px] text-muted">
+                Kamera hanya dipakai di frame ini. Preset Belanja di bawah langsung menabung
+                tanpa membuka kamera.
               </p>
             </div>
           </div>
-          {/* Preset belanja */}
+          {/* Preset belanja — pembayaran instan, tanpa kamera. */}
           <div className="mt-4 rounded-2xl border border-line bg-white p-5">
             <h3 className="mb-3 text-base font-bold text-forest">Preset Belanja</h3>
+            <p className="mb-3 text-xs text-muted">
+              Klik “Bayar” untuk langsung menabung recehnya — kamera tidak dipakai.
+            </p>
             <ul className="space-y-2">
               {QUICK_PRESETS.map(preset => (
                 <li
@@ -1868,6 +2128,86 @@ export default function AsetaApp() {
                   Ya, Reset
                 </button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* ===== Modal Hasil Scan QR =====
+          Menampilkan payload yang terbaca dari kamera. Modal INTI read-only:
+          tidak pernah menambah tabungan. Penabung tetap lewat tombol
+          "Simpan & Tabungkan" di bawahnya (atau preset). */}
+      <AnimatePresence>
+        {showScanModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+            onClick={() => setShowScanModal(false)}
+          >
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Hasil pemindaian QR"
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+              onClick={e => e.stopPropagation()}
+              className="w-full max-w-sm rounded-2xl border border-line bg-white p-6 shadow-sm"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h2 className="text-lg font-black text-forest">QR terbaca</h2>
+                  <p className="mt-0.5 text-xs text-muted">
+                    {scanResult?.merchantName ?? 'Merchant tidak terbaca'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowScanModal(false)}
+                  aria-label="Tutup"
+                  className="rounded-full p-1.5 text-muted transition-colors hover:bg-line"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {scanResult?.amount ? (
+                <>
+                  <p className="mt-4 text-2xl font-black tabular-nums text-forest">
+                    Rp{scanResult.amount.toLocaleString('id-ID')}
+                  </p>
+                  <p className="mt-1 text-xs text-muted">
+                    Round-up ke atas: +Rp
+                    {calculateRoundUp(scanResult.amount).toLocaleString('id-ID')}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowScanModal(false);
+                      handleSave();
+                    }}
+                    className="mt-4 w-full rounded-xl bg-brand px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-brand-dark"
+                  >
+                    Simpan &amp; Tabungkan
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="mt-4 rounded-xl border border-line bg-ivory p-3 text-xs leading-snug text-muted">
+                    QR ini tidak memuat nominal, jadi tidak bisa dihitung otomatis. Isi nominal
+                    manual di bawah, atau pilih preset.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowScanModal(false)}
+                    className="mt-4 w-full rounded-xl bg-brand px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-brand-dark"
+                  >
+                    Isi Manual
+                  </button>
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}

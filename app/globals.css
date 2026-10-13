@@ -146,6 +146,17 @@
   animation: sparkle-twinkle 3.2s ease-in-out infinite;
 }
 
+/* Kilatan singkat di atas frame scanner saat QR berhasil tertangkap.
+   Satu kali jalan (tanpa `infinite`) — elemen dihapus dari DOM segera
+   setelahnya, jadi animasi tidak pernah berulang. */
+@keyframes scan-flash {
+  0% { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+.animate-scan-flash {
+  animation: scan-flash 420ms ease-out 1 forwards;
+}
+
 
 /* Scrollbar tipis & premium untuk area konten dalam frame HP */
 .custom-scrollbar {
