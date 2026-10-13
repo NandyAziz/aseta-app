@@ -225,172 +225,14 @@ function normalizeState(parsed: SavingsState): SavingsState {
   };
 }
 
-// Aura progresif panggung maskot berdasarkan level (1-10).
-// Bersifat LEMBAB & natural: hanya backlight glow rendah-opacity, ring tipis,
-// dan scale sangat halus. Tidak ada garis kasar / stiker — menghormati ilustrasi.
-function mascotAura(level: number): {
-  glow: string;
-  glowAnim: string;
-  ring: string;
-  scale: string;
-  breathe: string;
-  imgShadow: string;
-} {
-  // Lv 10 — Sultan Aseta: backing emas menyatu + denyut lembut.
-  if (level >= 10) {
-    return {
-      glow: 'bg-gold/30 blur-2xl',
-      glowAnim: 'animate-aura-breathe',
-      ring: 'ring-1 ring-amber-200/50 ring-offset-2 ring-offset-white',
-      scale: '',
-      breathe: '',
-      imgShadow: 'drop-shadow-[0_0_14px_rgba(229,180,84,0.35)]',
-    };
-  }
-  // Lv 7-9 — Naga Dewasa: backlight Amber Gold, Lv 9 lebih terang + denyut.
-  if (level >= 7) {
-    const bright = level >= 9;
-    return {
-      glow: bright ? 'bg-gold/30 blur-2xl' : 'bg-gold/25 blur-xl',
-      glowAnim: bright ? 'animate-aura-breathe' : '',
-      ring: 'ring-1 ring-amber-200/40 ring-offset-2 ring-offset-white',
-      scale: '',
-      breathe: '',
-      imgShadow: 'drop-shadow-[0_0_10px_rgba(229,180,84,0.22)]',
-    };
-  }
-  // Lv 4-6 — Bayi Naga: backlight Emerald lembut; Lv 6 scale-[1.03].
-  if (level >= 4) {
-    const bigger = level >= 6;
-    return {
-      glow: 'bg-brand/20 blur-xl',
-      glowAnim: '',
-      ring: 'ring-1 ring-emerald-200/40 ring-offset-2 ring-offset-white',
-      scale: bigger ? 'scale-[1.03]' : '',
-      breathe: '',
-      imgShadow: 'drop-shadow-md',
-    };
-  }
-  // Lv 3 — Telur siap menetas: backlight lebih hangat + "bernapas".
-  if (level >= 3) {
-    return {
-      glow: 'bg-muted/20 blur-xl',
-      glowAnim: '',
-      ring: 'ring-1 ring-slate-200/50 ring-offset-2 ring-offset-white',
-      scale: '',
-      breathe: 'animate-egg-breathe',
-      imgShadow: 'drop-shadow-md',
-    };
-  }
-  // Lv 2 — Telur: backlight sage tipis + "bernapas" halus.
-  if (level >= 2) {
-    return {
-      glow: 'bg-sage/20 blur-xl',
-      glowAnim: '',
-      ring: 'ring-1 ring-line ring-offset-2 ring-offset-white',
-      scale: '',
-      breathe: 'animate-egg-breathe',
-      imgShadow: 'drop-shadow-md',
-    };
-  }
-  // Lv 1 — Telur utuh polos: ring & bayangan natural saja.
-  return {
-    glow: 'bg-slate-50/60 blur-xl',
-    glowAnim: '',
-    ring: 'ring-1 ring-line ring-offset-2 ring-offset-white',
-    scale: '',
-    breathe: '',
-    imgShadow: 'drop-shadow-md',
-  };
-}
-
-// Konstanta posisi debu atmosferik (module scope → lolos purity React Compiler).
-// Titik-titik kecil & sangat samar yang melayang lambat di BELAKANG maskot,
-// untuk membangkitkan kesan hidup tanpa menutupi ilustrasi.
-const AURA_DUST = [
-  { id: 'd1', left: '10%', bottom: '16%', size: 4, delay: 0 },
-  { id: 'd2', left: '26%', bottom: '30%', size: 3, delay: 0.9 },
-  { id: 'd3', left: '70%', bottom: '22%', size: 4, delay: 1.6 },
-  { id: 'd4', left: '86%', bottom: '38%', size: 3, delay: 0.5 },
-  { id: 'd5', left: '46%', bottom: '12%', size: 3, delay: 2.1 },
-  { id: 'd6', left: '58%', bottom: '44%', size: 3, delay: 1.2 },
-] as const;
-
-// Titik "percikan" sangat lembut untuk telur siap menetas (Lv 3).
-const EMBER_SPARKS = [
-  { id: 's1', left: '18%', bottom: '26%', size: 3, delay: 0 },
-  { id: 's2', left: '78%', bottom: '34%', size: 2, delay: 0.7 },
-  { id: 's3', left: '52%', bottom: '18%', size: 3, delay: 1.3 },
-  { id: 's4', left: '34%', bottom: '52%', size: 2, delay: 1.9 },
-] as const;
-
-// Warna debu atmosferik per rentang level.
-type DustTone = 'sage' | 'emerald' | 'gold';
-function dustToneForLevel(level: number): DustTone | null {
-  if (level >= 7) return 'gold';   // Lv 7-10 — naga dewasa: debu emas hangat
-  if (level >= 5) return 'emerald'; // Lv 5-6 — bayi naga: partikel emerald
-  if (level === 3) return 'sage';   // Lv 3 — telur siap menetas: percikan sage/silver
-  return null;                      // Lv 1, 2, 4 — tanpa debu tambahan
-}
-
-// Lapisan atmosferik evolusi maskot — komponen presentasional murni.
-// HANYA menghasilkan efek lembut di BELAKANG karakter (backlight & debu
-// rendah-opacity). TIDAK PERNAH menimpa ilustrasi: tanpa retakan, badge,
-// stiker, atau garis kasar. Seluruh opacity dijaga 0.2-0.4 agar natural.
-function MascotEvolutionMotes({ level }: { level: number }) {
-  const tone = dustToneForLevel(level);
-  // Percikan telur (Lv 3) memakai animasi kedip lembut; sisanya melayang naik.
-  if (level === 3) {
-    return (
-      <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
-        {EMBER_SPARKS.map((s) => (
-          <span
-            key={s.id}
-            className="animate-sparkle-twinkle absolute rounded-full bg-sage"
-            style={{
-              left: s.left,
-              bottom: s.bottom,
-              width: s.size,
-              height: s.size,
-              opacity: 0.3,
-              animationDelay: `${s.delay}s`,
-              boxShadow: '0 0 5px 1px rgba(163,181,138,0.35)',
-            }}
-          />
-        ))}
-      </div>
-    );
-  }
-  if (!tone) return null;
-  const dotColor =
-    tone === 'emerald' ? 'bg-emerald-500' : tone === 'gold' ? 'bg-amber-400' : 'bg-sage';
-  const glow =
-    tone === 'emerald'
-      ? '0 0 5px 1px rgba(16,185,129,0.25)'
-      : tone === 'gold'
-        ? '0 0 5px 1px rgba(251,191,36,0.25)'
-        : '0 0 5px 1px rgba(163,181,138,0.25)';
-  return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
-      {AURA_DUST.map((p) => (
-        <motion.span
-          key={p.id}
-          className={`absolute rounded-full ${dotColor}`}
-          style={{
-            left: p.left,
-            bottom: p.bottom,
-            width: p.size,
-            height: p.size,
-            boxShadow: glow,
-          }}
-          // Melayang perlahan ke atas, muncul & menghilang samar (opacity ≤ 0.35).
-          animate={{ y: [0, -14, -30], opacity: [0, 0.35, 0] }}
-          transition={{ duration: 6.5, repeat: Infinity, delay: p.delay, ease: 'easeInOut' }}
-        />
-      ))}
-    </div>
-  );
-}
+// Panggung maskot sengaja dibuat DATAR dan netral di semua level.
+// Sebelumnya tiap level mendapat backlight berlapis (blur + glow + denyut)
+// plus debu atmosferik; semua itu dihapus agar ilustrasi tampil apa adanya
+// dan tidak tertutup efek. Yang tersisa hanyalah satu border sangat tipis.
+const MASCOT_STAGE = {
+  ring: 'rounded-full ring-1 ring-slate-100',
+  imgShadow: 'drop-shadow-sm',
+} as const;
 
 const TOUR_STORAGE_KEY = 'aseta_tour_completed';
 
@@ -456,41 +298,26 @@ function GrowthChart({ series }: { series: number[] }) {
       preserveAspectRatio="none"
     >
       <defs>
-        {/* Isian area: gradien emerald→teal dengan opacity lebih pekat
-            supaya tren pertumbuhan terasa hidup & premium. */}
+        {/* Isian area: satu nada emerald transparan yang sangat halus.
+            Tanpa gradien berlapis / mesh agar tren tetap terbaca namun
+            tidak mencolok seperti grafik high-contrast. */}
         <linearGradient id="growthFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#10b981" stopOpacity="0.55" />
-          <stop offset="55%" stopColor="#14b8a6" stopOpacity="0.22" />
-          <stop offset="100%" stopColor="#0d9488" stopOpacity="0" />
+          <stop offset="0%" stopColor="#10b981" stopOpacity="0.16" />
+          <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
         </linearGradient>
-        {/* Garis: emerald→teal untuk gradasi arah pertumbuhan. */}
-        <linearGradient id="growthStroke" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#34d399" />
-          <stop offset="100%" stopColor="#0d9488" />
-        </linearGradient>
-        {/* Halo lembut di sekitar garis & titik akhir. */}
-        <filter id="growthGlow" x="-30%" y="-60%" width="160%" height="220%">
-          <feGaussianBlur stdDeviation="3" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
       </defs>
       <path d={areaPath} fill="url(#growthFill)" />
       <path
         d={linePath}
         fill="none"
-        stroke="url(#growthStroke)"
-        strokeWidth="2.5"
+        stroke="#0d9488"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        filter="url(#growthGlow)"
         vectorEffect="non-scaling-stroke"
       />
-      {/* Titik akhir: cincin luar + inti, memberi kesan "live". */}
-      <circle cx={last.x} cy={last.y} r="5.5" fill="#10b981" opacity="0.25" />
-      <circle cx={last.x} cy={last.y} r="3.5" fill="#0d9488" stroke="#ffffff" strokeWidth="1.5" />
+      {/* Titik akhir sederhana: satu inti kecil, tanpa cincin luar glowing. */}
+      <circle cx={last.x} cy={last.y} r="3" fill="#0d9488" />
     </svg>
   );
 }
@@ -553,7 +380,7 @@ function SavingsProjection({ className = '' }: { className?: string }) {
 
   return (
     <section
-      className={`flex h-full min-w-0 flex-col rounded-2xl border border-line bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:p-6 ${className}`}
+      className={`flex h-full min-w-0 flex-col rounded-2xl border border-slate-100 bg-white p-4 sm:p-6 ${className}`}
     >
       {/* Header: ikon gradien emerald→teal + pill imbal hasil, sejajar dengan
           badge ikon berwarna di "Transaksi Cepat" agar ritme visual sama. */}
@@ -1135,7 +962,6 @@ export default function AsetaApp() {
   const xpHint = mascot.level >= MAX_LEVEL
     ? `${mascot.title} — Aseta telah mencapai evolusi terakhir`
     : `${mascot.title} · ke level berikutnya`;
-  const aura = mascotAura(mascot.level);
 
   // --- Status maskot (Sehat / Bahagia / Lapar) — murni dari state, di-guard isMounted ---
   // Kesehatan: ada nabung hari ini & dompet masih cukup. Bahagia: streak aktif & aset tumbuh.
@@ -1267,30 +1093,23 @@ export default function AsetaApp() {
             menempel snug di dasar kartu tanpa mendorong layout meluber. --- */}
         <section
           data-tour="hero-mascot"
-          className={`flex h-full flex-col space-y-2.5 rounded-2xl border border-line bg-white p-5 shadow-sm transition-shadow hover:shadow-md lg:col-span-4 lg:row-span-2 ${isTourActive && tourStep === 0 ? 'relative z-50 ring-4 ring-emerald-400 ring-offset-2' : ''}`}
+          className={`flex h-full flex-col space-y-2.5 rounded-2xl border border-slate-100 bg-white p-5 lg:col-span-4 lg:row-span-2 ${isTourActive && tourStep === 0 ? 'relative z-50 ring-4 ring-emerald-400 ring-offset-2' : ''}`}
         >
-          {/* Header: streak + badge level */}
-          <div className="flex items-center justify-between gap-2">
-            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 ring-1 ring-inset ring-amber-200">
-              🔥 {displayStreak} Hari
-            </span>
-            <span className="rounded-full bg-gold px-2.5 py-1 text-xs font-black text-forest ring-1 ring-inset ring-amber-300/60" title={mascot.title}>
-              Lv. {mascot.level}
-            </span>
+          {/* Streak & level — satu baris teks kecil netral, bukan dua pill berwarna. */}
+          <div className="flex items-center justify-between gap-2 text-[11px] font-medium text-muted">
+            <span>{displayStreak} hari berturut-turut</span>
+            <span title={mascot.title}>Lv. {mascot.level}</span>
           </div>
 
-          {/* Panggung maskot 3D interaktif: tilt mengikuti kursor + melayang
-              lembut. Aura glow & ring berubah progresif sesuai level. */}
+          {/* Panggung maskot interaktif: tilt ringan mengikuti kursor +
+              melayang pelan. Tanpa glow, aura, atau partikel — ilustrasi
+              berdiri sendiri di atas latar polos kartu. */}
           <div
             className="relative flex justify-center py-1"
             style={{ perspective: 800 }}
             onMouseMove={handleTiltMove}
             onMouseLeave={handleTiltLeave}
           >
-            <div
-              aria-hidden
-              className={`absolute top-1/2 h-28 w-28 -translate-y-1/2 rounded-full sm:h-32 sm:w-32 ${aura.glow} ${aura.glowAnim}`}
-            />
             <AnimatePresence>
               {mascotSpeech && (
                 <motion.div
@@ -1299,7 +1118,7 @@ export default function AsetaApp() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.85 }}
                   transition={{ type: 'spring', stiffness: 320, damping: 22 }}
-                  className="absolute -top-1 left-1/2 z-10 max-w-[85%] -translate-x-1/2 rounded-2xl rounded-b-sm border border-line bg-white px-3.5 py-2 text-center text-xs font-medium leading-snug text-forest shadow-md"
+                  className="absolute -top-1 left-1/2 z-10 max-w-[85%] -translate-x-1/2 rounded-xl border border-slate-100 bg-ivory px-3 py-2 text-center text-xs font-medium leading-snug text-slate-600"
                   role="status"
                 >
                   {mascotSpeech}
@@ -1317,7 +1136,6 @@ export default function AsetaApp() {
               animate={{ y: [0, -8, 0] }}
               transition={{ type: 'tween', duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
               style={{ rotateX: tiltRotateX, rotateY: tiltRotateY, transformStyle: 'preserve-3d' }}
-              className={`rounded-full ${aura.ring}`}
             >
               <motion.button
                 type="button"
@@ -1325,23 +1143,17 @@ export default function AsetaApp() {
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                 aria-label={`Sapa ${mascot.name}`}
-                className="relative rounded-full outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                className={`relative block rounded-full outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 ${MASCOT_STAGE.ring}`}
               >
-                {/* Debu atmosferik lembut — SELALU di belakang ilustrasi maskot */}
-                <MascotEvolutionMotes level={mascot.level} />
-                {/* Pembungkus "bernapas" (Lv 2-3) memisahkan animasi scale dari
-                    animasi ketuk pada gambar agar tidak saling bentrok. */}
-                <span className={`relative z-10 block ${aura.breathe}`}>
-                  <Image
-                    src={mascot.gif}
-                    alt={mascot.name}
-                    width={144}
-                    height={144}
-                    unoptimized
-                    priority
-                    className={`relative block h-28 w-28 object-contain sm:h-32 sm:w-32 ${aura.scale} ${aura.imgShadow} ${mascotMood !== 'idle' ? 'animate-mascot-tap' : ''}`}
-                  />
-                </span>
+                <Image
+                  src={mascot.gif}
+                  alt={mascot.name}
+                  width={144}
+                  height={144}
+                  unoptimized
+                  priority
+                  className={`relative block h-28 w-28 object-contain sm:h-32 sm:w-32 ${MASCOT_STAGE.imgShadow} ${mascotMood !== 'idle' ? 'animate-mascot-tap' : ''}`}
+                />
               </motion.button>
             </motion.div>
             </div>
@@ -1352,7 +1164,7 @@ export default function AsetaApp() {
               <motion.span
                 key={xpBurstId}
                 aria-hidden
-                className="pointer-events-none absolute left-1/2 top-6 z-20 -translate-x-1/2 rounded-full bg-gold px-2.5 py-1 text-[11px] font-black whitespace-nowrap text-forest shadow-md"
+                className="pointer-events-none absolute left-1/2 top-6 z-20 -translate-x-1/2 rounded-full border border-slate-100 bg-white px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap text-slate-600"
                 initial={{ opacity: 0, y: 0, scale: 0.6 }}
                 animate={{ opacity: [0, 1, 1, 0], y: [0, -18, -46, -60], scale: [0.6, 1.1, 1, 0.9] }}
                 transition={{ duration: 1.15, repeat: 0, ease: 'easeOut' }}
@@ -1368,42 +1180,31 @@ export default function AsetaApp() {
             <p className="mt-0.5 text-xs font-bold uppercase tracking-wide text-amber-600">
               {mascot.title}
             </p>
-            {/* Level Maksimal Lv 10 — label teks UI di bawah nama, BUKAN
-                overlay di atas ilustrasi naga agar artwork tetap terjaga. */}
+            {/* Level Maksimal Lv 10 — label teks polos, bukan pill bergradien. */}
             {mascot.level >= 10 && (
-              <p className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-gold/20 px-2.5 py-1 text-[11px] font-black tracking-wide text-amber-700 ring-1 ring-inset ring-amber-300/60">
-                Level Maksimal 🏆
+              <p className="mt-1.5 text-[11px] font-medium text-muted">
+                Level maksimal tercapai
               </p>
             )}
-            {/* Status maskot: 3 tag kecil (Sehat · Bahagia · Kenyang/Lapar).
-                Diperkecil & diberi jarak lega agar terbaca sebagai tag,
-                bukan dinding teks di bawah judul maskot. */}
-            <div className="mb-3 mt-2 flex flex-wrap items-center justify-center gap-1.5">
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                {petHealthy ? '🟢 Sehat' : '🌱 Sehat'}
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-                {petHappy ? '😊 Bahagia' : '🙂 Bahagia'}
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-semibold text-rose-700">
-                {petHungry ? '🥗 Lapar' : '😋 Kenyang'}
-              </span>
-            </div>
+            {/* Status maskot digabung jadi SATU baris teks kecil netral.
+                Sebelumnya tiga pill berwarna (hijau/amber/merah + emoji)
+                berebut perhatian dan membuat kartu terasa ramai. */}
+            <p className="mb-3 mt-2 text-[11px] text-muted">
+              {petHealthy ? 'Sehat' : 'Bertumbuh'} · {petHappy ? 'Bahagia' : 'Tenang'} ·{' '}
+              {petHungry ? 'Lapar' : 'Kenyang'}
+            </p>
           </div>
 
-          {/* Total Aset: nominal utama + breakdown (Tabungan · Dompet · Imbal hasil) */}
-          <div className="flex flex-col gap-1 overflow-hidden rounded-2xl border border-line bg-ivory p-2.5">
-            <div className="flex flex-wrap items-center justify-center gap-1.5">
-              <span className="text-xs font-semibold text-muted">Total Aset Saya</span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-brand ring-1 ring-inset ring-emerald-200">
-                <ShieldCheck className="h-3 w-3" /> Diinvestasikan Otomatis
-              </span>
-            </div>
-            <p className="text-center text-xl font-black tabular-nums whitespace-nowrap text-brand sm:text-2xl lg:text-3xl">
+          {/* Total Aset: nominal utama + breakdown (Tabungan · Dompet · Imbal hasil).
+              Tanpa badge "Diinvestasikan Otomatis" — tipografi saja sudah
+              cukup menjelaskan konteksnya. */}
+          <div className="flex flex-col gap-1 rounded-xl border border-slate-100 p-2.5">
+            <p className="text-center text-xs font-medium text-muted">Total Aset Saya</p>
+            <p className="text-center text-xl font-black tabular-nums whitespace-nowrap text-forest sm:text-2xl lg:text-3xl">
               Rp{totalWealth.toLocaleString('id-ID')}
             </p>
-            <p className="text-center text-[11px] font-semibold text-brand">
-              🟢 +Rp{monthlyReturn.toLocaleString('id-ID')} (+4.2% p.a) bulan ini
+            <p className="text-center text-[11px] font-medium text-muted">
+              +Rp{monthlyReturn.toLocaleString('id-ID')} (+4,2% p.a) bulan ini
             </p>
             {/* Breakdown 3 baris — sengaja diturunkan hierarkinya (label
                 slate-500 + nominal lebih redup) agar nominal utama
@@ -1454,40 +1255,30 @@ export default function AsetaApp() {
               <span>XP Evolusi</span>
               <span className="tabular-nums text-forest">{xpLabel}</span>
             </div>
-            {/* Rel XP: lebih tebal + glow emerald lembut + kilau(subtle)
-                agar terbaca sebagai elemen premium, bukan sekadar garis. */}
-            <div className="relative h-6 w-full rounded-full bg-slate-100 ring-1 ring-inset ring-slate-200/80">
+            {/* Rel XP: isi emerald solid di atas rel abu-abu. Tanpa sapuan kilau,
+                tanpa lapisan gloss, tanpa bayangan berwarna. */}
+            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
               <div
-                className="relative h-full overflow-hidden rounded-full bg-linear-to-r from-emerald-500 via-brand to-teal-600 shadow-[0_0_12px_-2px_rgba(4,120,87,0.45)] transition-all duration-700 ease-out"
+                className="h-full rounded-full bg-brand transition-all duration-700 ease-out"
                 style={{ width: `${xpPercent}%` }}
-              >
-                {/* Kilau atas + sapuan cahaya bergerak */}
-                <span aria-hidden className="absolute inset-x-0 top-0 h-1/2 rounded-t-full bg-white/25" />
-                <span aria-hidden className="animate-shine-sweep absolute inset-y-0 left-0 w-8 bg-white/35 blur-[2px]" />
-              </div>
+              />
             </div>
             <p className="mt-1 text-center text-[11px] font-medium text-muted">
               {xpHint}
             </p>
           </div>
 
-          {/* Kutipan motivasi khas Aseta — tetap TERLETAK di dalam kartu
-              Mascot/Aset (mt-auto → menempel snug di dasar kartu), bukan
-              melayang sebagai kartu terpisah. */}
-          <div
-            className="mt-auto rounded-2xl border border-emerald-100/60 bg-linear-to-b from-emerald-50 to-emerald-50/40 p-2.5 text-center"
-            role="status"
-          >
-            <p className="text-xs font-medium leading-snug text-slate-600">
-              💬 {motivationQuote}
-            </p>
-          </div>
+          {/* Kutipan motivasi — teks polos tanpa kotak, agar tidak terbaca
+              sebagai kartu keempat yang berdesakan di dalam kartu ini. */}
+          <p className="mt-auto text-center text-[11px] leading-snug text-muted" role="status">
+            {motivationQuote}
+          </p>
         </section>
 
         {/* --- Alokasi Portofolio: 2 dari 3 kolom visual (8 dari 12) --- */}
         <section
           data-tour="portfolio"
-          className={`flex h-full flex-col rounded-2xl border border-line bg-white p-6 shadow-sm transition-shadow hover:shadow-md lg:col-span-8 ${isTourActive && tourStep === 1 ? 'relative z-50 ring-4 ring-emerald-400 ring-offset-2' : ''}`}
+          className={`flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-6 lg:col-span-8 ${isTourActive && tourStep === 1 ? 'relative z-50 ring-4 ring-emerald-400 ring-offset-2' : ''}`}
         >
           <div className="mb-3 flex items-center justify-between gap-2">
             <div>
@@ -1500,7 +1291,7 @@ export default function AsetaApp() {
                 setShowLiquidateModal(true);
                 setLiquidateAmount('');
               }}
-              className="shrink-0 rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-medium text-slate-700 shadow-2xs transition-all duration-200 active:scale-95 hover:border-emerald-300 hover:bg-emerald-50/50 hover:text-brand min-h-11 sm:min-h-0"
+              className="shrink-0 rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-medium text-slate-700 transition-all duration-200 active:scale-95 hover:border-emerald-300 hover:bg-emerald-50/50 hover:text-brand min-h-11 sm:min-h-0"
             >
               Cairkan Aset
             </button>
@@ -1551,7 +1342,7 @@ export default function AsetaApp() {
         <SavingsProjection className="lg:col-span-8" />
 
         {/* --- Misi Hari Ini --- */}
-        <section className="flex h-full flex-col rounded-2xl border border-line bg-white p-6 shadow-sm transition-shadow hover:shadow-md lg:col-span-4">
+        <section className="flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-6 lg:col-span-4">
           <div className="mb-3">
             <h2 className="text-base font-bold text-forest">Misi Hari Ini</h2>
             <p className="text-xs text-muted">Selesaikan misi, klaim XP untuk maskotmu</p>
@@ -1588,7 +1379,7 @@ export default function AsetaApp() {
         </section>
 
         {/* --- Transaksi Cepat --- */}
-        <section className="flex h-full flex-col rounded-2xl border border-line bg-white p-6 shadow-sm transition-shadow hover:shadow-md lg:col-span-4">
+        <section className="flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-6 lg:col-span-4">
           <div className="mb-3">
             <h2 className="text-base font-bold text-forest">Transaksi Cepat</h2>
             <p className="text-xs text-muted">Simulasi bayar & recehnya langsung ditabung</p>
@@ -1631,16 +1422,16 @@ export default function AsetaApp() {
             `justify-between` distribute 3 blok (header · ringkasan ·
             input) ke atas/tengah/bawah, sehingga bagian tengah kartu tidak
             terlihat seperti rongga putih dibanding kartu tetangganya. */}
-        <section className="flex h-full flex-col justify-between gap-4 rounded-2xl border border-line bg-white p-6 shadow-sm transition-shadow hover:shadow-md lg:col-span-4">
+        <section className="flex h-full flex-col justify-between gap-4 rounded-2xl border border-slate-100 bg-white p-6 lg:col-span-4">
           <div>
             <h2 className="text-base font-bold text-forest">Batas Harian</h2>
             <p className="text-xs text-muted">Batas tabungan maksimal per hari</p>
           </div>
 
           <div>
-            <div className="mb-3 h-2.5 w-full overflow-hidden rounded-full bg-slate-100 ring-1 ring-inset ring-slate-200/80">
+            <div className="mb-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
               <div
-                className="h-full rounded-full bg-linear-to-r from-emerald-500 to-teal-600 shadow-[0_0_10px_-2px_rgba(4,120,87,0.4)] transition-all duration-500"
+                className="h-full rounded-full bg-brand transition-all duration-500"
                 style={{ width: `${capPercent}%` }}
               />
             </div>
@@ -1691,7 +1482,7 @@ export default function AsetaApp() {
       {/* ===== Tab Scan (QRIS) — tampilan bersih, tanpa mutasi state ===== */}
       {activeTab === 'scan' && (
         <main className="mx-auto max-w-2xl px-4 py-6 pb-28 sm:px-6 md:pb-10">
-          <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-slate-100 bg-white p-5">
             <h2 className="text-base font-bold text-forest">Scan QRIS</h2>
             <p className="text-xs text-muted">
               Arahkan kamera ke struk QRIS merchant, atau pakai preset di bawah.
@@ -1728,7 +1519,7 @@ export default function AsetaApp() {
             </div>
           </div>
           {/* Preset belanja */}
-          <div className="mt-4 rounded-2xl border border-line bg-white p-5 shadow-sm">
+          <div className="mt-4 rounded-2xl border border-slate-100 bg-white p-5">
             <h3 className="mb-3 text-base font-bold text-forest">Preset Belanja</h3>
             <ul className="space-y-2">
               {QUICK_PRESETS.map(preset => (
@@ -1761,7 +1552,7 @@ export default function AsetaApp() {
           </div>
 
           {/* Input manual */}
-          <div className="mt-4 rounded-2xl border border-line bg-white p-5 shadow-sm">
+          <div className="mt-4 rounded-2xl border border-slate-100 bg-white p-5">
             <h3 className="mb-3 text-base font-bold text-forest">Input Manual</h3>
             <div className="flex flex-col gap-2 sm:flex-row">
               <input
@@ -1797,7 +1588,7 @@ export default function AsetaApp() {
       {/* ===== Tab Riwayat — filter pencarian & rentang hari ===== */}
       {activeTab === 'history' && (
         <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 py-6 pb-28 sm:px-6 md:pb-10">
-          <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-slate-100 bg-white p-5">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-base font-bold text-forest">Riwayat Transaksi</h2>
@@ -1919,7 +1710,7 @@ export default function AsetaApp() {
           </div>
 
           {/* Daftar 10 level */}
-          <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-slate-100 bg-white p-5">
             <h3 className="mb-3 text-sm font-bold text-forest">Rincian 10 Level</h3>
             <ul className="space-y-2">
               {LEVEL_TITLES.map((title, idx) => {
@@ -1976,7 +1767,7 @@ export default function AsetaApp() {
       {/* ===== Bottom Navigation — Mobile (md:hidden) ===== */}
       <nav
         aria-label="Navigasi bawah"
-        className="fixed bottom-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2 border-t border-line bg-white/95 shadow-[0_-4px_16px_rgba(15,23,42,0.06)] backdrop-blur-md md:hidden"
+        className="fixed bottom-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2 border-t border-line bg-white/95 backdrop-blur-md md:hidden"
       >
         <div className="flex items-stretch justify-around px-2 py-1.5">
           <button
@@ -2030,7 +1821,7 @@ export default function AsetaApp() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-            className="fixed left-1/2 top-5 z-50 flex max-w-[90vw] -translate-x-1/2 items-center gap-2 rounded-2xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-xl"
+            className="fixed left-1/2 top-5 z-50 flex max-w-[90vw] -translate-x-1/2 items-center gap-2 rounded-2xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm"
           >
             <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400" aria-hidden />
             <span className="truncate">{toastMessage}</span>
@@ -2056,7 +1847,7 @@ export default function AsetaApp() {
               exit={{ scale: 0.9, y: 20 }}
               transition={{ type: 'spring', stiffness: 320, damping: 24 }}
               onClick={e => e.stopPropagation()}
-              className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl"
+              className="w-full max-w-sm rounded-2xl border border-slate-100 bg-white p-6 shadow-sm"
             >
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-50">
                 <RotateCcw className="h-6 w-6 text-rose-500" aria-hidden />
@@ -2105,7 +1896,7 @@ export default function AsetaApp() {
               exit={{ scale: 0.9, y: 20 }}
               transition={{ type: 'spring', stiffness: 320, damping: 24 }}
               onClick={e => e.stopPropagation()}
-              className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl"
+              className="w-full max-w-sm rounded-2xl border border-slate-100 bg-white p-6 shadow-sm"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -2189,7 +1980,7 @@ export default function AsetaApp() {
           {tourRect && (
             <div
               aria-hidden
-              className="pointer-events-none fixed z-55 rounded-3xl ring-4 ring-emerald-400 ring-offset-2 ring-offset-slate-900 shadow-2xl transition-all duration-300 ease-out"
+              className="pointer-events-none fixed z-55 rounded-2xl ring-4 ring-emerald-400 ring-offset-2 ring-offset-slate-900 transition-all duration-300 ease-out"
               style={{
                 left: tourRect.left - 6,
                 top: tourRect.top - 6,
@@ -2204,7 +1995,7 @@ export default function AsetaApp() {
             role="dialog"
             aria-modal="true"
             aria-label={`Panduan langkah ${tourStep + 1} dari ${TOUR_STEPS.length}`}
-            className="fixed bottom-12 left-1/2 z-60 w-[90%] max-w-sm -translate-x-1/2 rounded-3xl border border-line bg-white p-5 shadow-2xl"
+            className="fixed bottom-12 left-1/2 z-60 w-[90%] max-w-sm -translate-x-1/2 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"
           >
             <div className="flex items-start gap-3">
               <Image
