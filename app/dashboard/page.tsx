@@ -111,11 +111,6 @@ const PET_LINES_LIMIT = [
   'Oke, cukup sapa buat hari ini. Yuk, tabung receh! 🐉',
 ] as const;
 
-// Quotes motivasi khas Aseta untuk speech bubble (diputar ringan saat idle).
-const MOTIVATION_QUOTES = [
-  'Receh hari ini, aset besar nanti! 🐉'
-] as const;
-
 // Konfigurasi stage evolusi maskot (3 fase × 10 level).
 // gif mengikuti aset yang sudah ada di proyek (tidak diganti).
 const EVOLUTION_STAGES = [
@@ -963,22 +958,10 @@ export default function AsetaApp() {
     ? `${mascot.title} — Aseta telah mencapai evolusi terakhir`
     : `${mascot.title} · ke level berikutnya`;
 
-  // --- Status maskot (Sehat / Bahagia / Lapar) — murni dari state, di-guard isMounted ---
-  // Kesehatan: ada nabung hari ini & dompet masih cukup. Bahagia: streak aktif & aset tumbuh.
-  // Lapar: belum ada round-up hari ini. Semua tampil relevan & menenangkan, bukan menghakimi.
-  const petHealthy = isMounted && (state.todaySavings > 0 || state.streak > 0);
-  const petHappy = isMounted && state.streak >= 1 && displayBalance > 0;
-  const petHungry = isMounted && state.todaySavings === 0;
-
   // --- Breakdown "Total Aset": Tabungan (portofolio) + Saldo Dompet + imbal hasil bulan ini ---
   const walletPortion = displayWallet;                       // saldo dompet (belum diinvestasikan)
   const investedPortion = displayBalance;                    // sudah diputar ke portofolio
   const totalWealth = walletPortion + investedPortion;       // total kekayaan tampil
-
-  // --- Quote motivasi ringan (stabil per-mount, hanya di klien) ---
-  const motivationQuote = isMounted
-    ? MOTIVATION_QUOTES[Math.min(state.history.length, MOTIVATION_QUOTES.length - 1)]
-    : MOTIVATION_QUOTES[0];
 
   // --- Riwayat: filter pencarian & rentang hari ---
   // "Sekarang" (nowTs) diisi via effect agar render tetap pure (lolos React Compiler).
@@ -1186,13 +1169,6 @@ export default function AsetaApp() {
                 Level maksimal tercapai
               </p>
             )}
-            {/* Status maskot digabung jadi SATU baris teks kecil netral.
-                Sebelumnya tiga pill berwarna (hijau/amber/merah + emoji)
-                berebut perhatian dan membuat kartu terasa ramai. */}
-            <p className="mb-3 mt-2 text-[11px] text-muted">
-              {petHealthy ? 'Sehat' : 'Bertumbuh'} · {petHappy ? 'Bahagia' : 'Tenang'} ·{' '}
-              {petHungry ? 'Lapar' : 'Kenyang'}
-            </p>
           </div>
 
           {/* Total Aset: nominal utama + breakdown (Tabungan · Dompet · Imbal hasil).
@@ -1267,12 +1243,6 @@ export default function AsetaApp() {
               {xpHint}
             </p>
           </div>
-
-          {/* Kutipan motivasi — teks polos tanpa kotak, agar tidak terbaca
-              sebagai kartu keempat yang berdesakan di dalam kartu ini. */}
-          <p className="mt-auto text-center text-[11px] leading-snug text-muted" role="status">
-            {motivationQuote}
-          </p>
         </section>
 
         {/* --- Alokasi Portofolio: 2 dari 3 kolom visual (8 dari 12) --- */}
