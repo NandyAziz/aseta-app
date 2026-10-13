@@ -6,7 +6,7 @@ import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from
 import { CameraOff, Coffee, ShoppingBasket, Utensils, Wallet, TrendingUp, ShieldCheck, HelpCircle, Home, QrCode, History, X, RotateCcw, Sparkles, Search } from "lucide-react";
 import confetti from 'canvas-confetti';
 import jsQR from 'jsqr';
-import { calculateRoundUp, getMascotLevel, getXpProgress, MAX_LEVEL, LEVEL_TARGETS, GREET_TAP_TARGET } from '@/utils/aseta';
+import { calculateRoundUp, getMascotLevel, getXpProgress, formatRupiah, clampDailyCap, MAX_DAILY_CAP, MAX_LEVEL, LEVEL_TARGETS, GREET_TAP_TARGET } from '@/utils/aseta';
 import { playTapSound, playCoinSound, playLevelUpSound, playLimitSound } from '@/utils/sound';
 import { parseQrPayload } from '@/utils/qris';
 import type { MascotExpression } from '@/utils/aseta';
@@ -211,7 +211,7 @@ function normalizeState(parsed: SavingsState): SavingsState {
     ...INITIAL_STATE,
     ...parsed,
     balance: Math.max(0, num(parsed.balance, 0)),
-    dailyCap: Math.max(0, num(parsed.dailyCap, INITIAL_STATE.dailyCap)),
+    dailyCap: clampDailyCap(num(parsed.dailyCap, INITIAL_STATE.dailyCap)),
     todaySavings: Math.max(0, num(parsed.todaySavings, 0)),
     walletBalance: Math.max(0, num(parsed.walletBalance, DEFAULT_WALLET_BALANCE)),
     quests: { ...INITIAL_STATE.quests, ...(parsed.quests ?? {}) },
@@ -1076,10 +1076,10 @@ export default function AsetaApp() {
   }
 
   function handleSaveDailyCap() {
-    const value = Math.max(0, Math.floor(Number(dailyCapDraft) || 0));
+    const value = clampDailyCap(Number(dailyCapDraft));
     setState(prev => ({ ...prev, dailyCap: value }));
     setDailyCapDraft(value);
-    showToast(`Batas harian diperbarui: Rp${value.toLocaleString('id-ID')}`);
+    showToast(`Batas harian diperbarui: Rp${formatRupiah(value)}`);
   }
 
   function handleReset() {
@@ -1604,22 +1604,24 @@ export default function AsetaApp() {
                 style={{ width: `${capPercent}%` }}
               />
             </div>
-            <p className="text-xs font-medium text-muted">
-              Terpakai Rp{displayToday.toLocaleString('id-ID')} dari{' '}
-              Rp{displayCap.toLocaleString('id-ID')}
+            <p className="truncate text-xs font-medium text-muted">
+              Terpakai Rp{formatRupiah(displayToday)} dari Rp{formatRupiah(displayCap)}
             </p>
 
             {/* Ringkasan tengah: sisa kuota yang masih bisa ditabung hari
-                ini. Bukan dekorasi — angkanya ikut terisi real-time. */}
-            <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-emerald-100/60 bg-emerald-50/50 px-3.5 py-3">
+                ini. Bukan dekorasi — angkanya ikut terisi real-time.
+                `overflow-hidden` + `truncate` menjaga agar nominal panjang
+                tetap terpotong rapi di dalam kartu, tidak pernah meluber. */}
+            <div className="mt-3 flex max-w-full items-center justify-between gap-2 overflow-hidden rounded-xl border border-emerald-100/60 bg-emerald-50/50 px-3.5 py-3">
               <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-slate-600">
                 <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-brand" aria-hidden />
-                <span className="truncate">Sisa Limit Tabungan</span>
+                <span className="max-w-full truncate">Sisa Limit Tabungan</span>
               </span>
               <span
-                className={`shrink-0 text-sm font-black tabular-nums ${capExhausted ? 'text-rose-600' : 'text-brand'}`}
+                className={`min-w-0 max-w-full truncate text-sm font-black tabular-nums ${capExhausted ? 'text-rose-600' : 'text-brand'}`}
+                title={`Rp${formatRupiah(capRemaining)}`}
               >
-                Rp{capRemaining.toLocaleString('id-ID')}
+                Rp{formatRupiah(capRemaining)}
               </span>
             </div>
           </div>
@@ -1628,10 +1630,15 @@ export default function AsetaApp() {
             <input
               type="number"
               min={0}
+              max={MAX_DAILY_CAP}
+              // `maxLength` diabaikan browser untuk `type="number"`; pembatas
+              // sesungguhnya ditegakkan `clampDailyCap` di onChange + `max`.
+              maxLength={8}
               inputMode="numeric"
               aria-label="Nominal batas harian"
+              aria-describedby="daily-cap-hint"
               value={dailyCapDraft}
-              onChange={e => setDailyCapDraft(Math.max(0, Number(e.target.value) || 0))}
+              onChange={e => setDailyCapDraft(clampDailyCap(Number(e.target.value)))}
               className="min-w-0 flex-1 rounded-xl border border-line bg-white px-3 py-2.5 text-sm tabular-nums text-forest outline-none transition-colors focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
             />
             <button
@@ -1643,6 +1650,9 @@ export default function AsetaApp() {
               Simpan
             </button>
           </div>
+          <p id="daily-cap-hint" className="-mt-2 text-[11px] text-muted">
+            Maksimal Rp10.000.000 per hari.
+          </p>
         </section>
       </div>
       </main>

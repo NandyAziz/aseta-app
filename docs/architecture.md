@@ -19,7 +19,8 @@ aseta-app/
 ├── components/
 │   ├── HeroMascot3D.tsx     # Panggung hero 3D: Telur Aseta (fallback) + Spline opsional
 │   └── QrisRoundUpSimulator.tsx  # Simulator round-up interaktif di landing
-├── utils/aseta.ts           # Logika murni: calculateRoundUp, getMascotLevel, getXpProgress
+├── utils/aseta.ts           # Logika murni: calculateRoundUp, getMascotLevel, getXpProgress,
+│                            #   formatRupiah, clampDailyCap, MAX_DAILY_CAP
 ├── utils/sound.ts           # Efek suara sintetis Web Audio API (dipakai dashboard & hero)
 ├── types/index.ts           # Tipe: Transaction, QuestState, SavingsState
 ├── public/
@@ -116,7 +117,7 @@ dengan 4 langkah: hero-mascot → portfolio → xp-bar → scan-nav).
 | Field | Tipe | Default (`INITIAL_STATE`) | Keterangan |
 |---|---|---|---|
 | `balance` | number | `0` | Total tabungan **sekaligus XP kumulatif** maskot |
-| `dailyCap` | number | `20000` | Batas round-up per hari |
+| `dailyCap` | number | `20000` | Batas round-up per hari (plafon `MAX_DAILY_CAP` = 10.000.000) |
 | `todaySavings` | number | `0` | Akumulasi round-up hari ini |
 | `history` | `Transaction[]` | `[]` | Maks **50** entri terbaru (indeks 0 = terbaru) |
 | `walletBalance` | number | `2500000` | Saldo dompet simulasi |
@@ -267,6 +268,9 @@ Semua flag reset otomatis saat `quests.date` ≠ hari ini.
 
 - `dailyCap` default **20000**: round-up ditolak bila
   `todaySavings + roundUp > dailyCap` (ubah via input + "Simpan").
+  Dijepit ke rentang `[0, MAX_DAILY_CAP]` = **10.000.000** oleh
+  `clampDailyCap()` — dipakai pada `onChange` input, `handleSaveDailyCap()`,
+  dan `normalizeState()` (agar state lama di localStorage ikut heals).
 - Round-up ditolak bila `roundUp > walletBalance` (dompet tidak boleh negatif).
 - Preset transaksi cepat: Kopi Kenangan **18200**, Indomaret **43500**,
   Makan Siang **12100** (ketiganya juga dipakai sebagai preset simulator).

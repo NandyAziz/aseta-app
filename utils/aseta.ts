@@ -8,6 +8,43 @@ export function calculateRoundUp(amount: number): number {
   return remainder === 0 ? 0 : 5000 - remainder;
 }
 
+/**
+ * Plafon atas batas harian yang boleh disetel pengguna: Rp10.000.000.
+ * Nilai di atas ini tidak realistis untuk simulasi round-up harian dan membuat
+ * angka pada kartu "Batas Harian" meluber keluar batas kartu.
+ */
+export const MAX_DAILY_CAP = 10_000_000;
+
+/**
+ * Mengubah nominal menjadi teks rupiah format Indonesia dengan penjaga:
+ * nilai tidak valid (NaN/Infinity/bolong) menjadi "0", nilai negatif dijepit
+ * ke 0, dan nominal sangat besar (≥ 1 triliun) ditulis ringkas
+ * (contoh: "Rp1,2 T") agar tidak pernah memanjangkan teks di UI.
+ *
+ * Dipakai seluruh tampilan nominal — termasuk kartu "Batas Harian".
+ */
+export function formatRupiah(value: number): string {
+  if (!Number.isFinite(value)) return '0';
+  const safe = Math.max(0, Math.round(value));
+  if (safe >= 1_000_000_000_000) {
+    return new Intl.NumberFormat('id-ID', {
+      notation: 'compact',
+      maximumFractionDigits: 1,
+    }).format(safe);
+  }
+  return safe.toLocaleString('id-ID');
+}
+
+/**
+ * Menjepit nilai input batas harian ke rentang [0, MAX_DAILY_CAP] dan
+ * membulatkan ke bilangan bulat. Satu-satunya pintu masuk untuk nilai
+ * `dailyCap` dari UI maupun state tersimpan.
+ */
+export function clampDailyCap(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.min(MAX_DAILY_CAP, Math.max(0, Math.floor(value)));
+}
+
 // ============================================================
 // Sistem level eksponensial Aseta — 10 level (multiplier 2x).
 // Target XP per level: Lv1 5.000 → Lv10 2.560.000 (MAX).
