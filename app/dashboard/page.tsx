@@ -220,14 +220,172 @@ function normalizeState(parsed: SavingsState): SavingsState {
   };
 }
 
-// Panggung maskot sengaja dibuat DATAR dan netral di semua level.
-// Sebelumnya tiap level mendapat backlight berlapis (blur + glow + denyut)
-// plus debu atmosferik; semua itu dihapus agar ilustrasi tampil apa adanya
-// dan tidak tertutup efek. Yang tersisa hanyalah satu border sangat tipis.
-const MASCOT_STAGE = {
-  ring: 'rounded-full ring-1 ring-slate-100',
-  imgShadow: 'drop-shadow-sm',
-} as const;
+// Aura progresif panggung maskot berdasarkan level (1-10).
+// Bersifat LEMBAB & natural: hanya backlight glow rendah-opacity, ring tipis,
+// dan scale sangat halus. Tidak ada garis kasar / stiker — menghormati ilustrasi.
+function mascotAura(level: number): {
+  glow: string;
+  glowAnim: string;
+  ring: string;
+  scale: string;
+  breathe: string;
+  imgShadow: string;
+} {
+  // Lv 10 — Sultan Aseta: backing emas menyatu + denyut lembut.
+  if (level >= 10) {
+    return {
+      glow: 'bg-gold/30 blur-2xl',
+      glowAnim: 'animate-aura-breathe',
+      ring: 'ring-1 ring-amber-200/50 ring-offset-2 ring-offset-white',
+      scale: '',
+      breathe: '',
+      imgShadow: 'drop-shadow-[0_0_14px_rgba(229,180,84,0.35)]',
+    };
+  }
+  // Lv 7-9 — Naga Dewasa: backlight Amber Gold, Lv 9 lebih terang + denyut.
+  if (level >= 7) {
+    const bright = level >= 9;
+    return {
+      glow: bright ? 'bg-gold/30 blur-2xl' : 'bg-gold/25 blur-xl',
+      glowAnim: bright ? 'animate-aura-breathe' : '',
+      ring: 'ring-1 ring-amber-200/40 ring-offset-2 ring-offset-white',
+      scale: '',
+      breathe: '',
+      imgShadow: 'drop-shadow-[0_0_10px_rgba(229,180,84,0.22)]',
+    };
+  }
+  // Lv 4-6 — Bayi Naga: backlight Emerald lembut; Lv 6 scale-[1.03].
+  if (level >= 4) {
+    const bigger = level >= 6;
+    return {
+      glow: 'bg-brand/20 blur-xl',
+      glowAnim: '',
+      ring: 'ring-1 ring-emerald-200/40 ring-offset-2 ring-offset-white',
+      scale: bigger ? 'scale-[1.03]' : '',
+      breathe: '',
+      imgShadow: 'drop-shadow-md',
+    };
+  }
+  // Lv 3 — Telur siap menetas: backlight lebih hangat + "bernapas".
+  if (level >= 3) {
+    return {
+      glow: 'bg-muted/20 blur-xl',
+      glowAnim: '',
+      ring: 'ring-1 ring-slate-200/50 ring-offset-2 ring-offset-white',
+      scale: '',
+      breathe: 'animate-egg-breathe',
+      imgShadow: 'drop-shadow-md',
+    };
+  }
+  // Lv 2 — Telur: backlight sage tipis + "bernapas" halus.
+  if (level >= 2) {
+    return {
+      glow: 'bg-sage/20 blur-xl',
+      glowAnim: '',
+      ring: 'ring-1 ring-line ring-offset-2 ring-offset-white',
+      scale: '',
+      breathe: 'animate-egg-breathe',
+      imgShadow: 'drop-shadow-md',
+    };
+  }
+  // Lv 1 — Telur utuh polos: ring & bayangan natural saja.
+  return {
+    glow: 'bg-slate-50/60 blur-xl',
+    glowAnim: '',
+    ring: 'ring-1 ring-line ring-offset-2 ring-offset-white',
+    scale: '',
+    breathe: '',
+    imgShadow: 'drop-shadow-md',
+  };
+}
+
+// Konstanta posisi debu atmosferik (module scope → lolos purity React Compiler).
+// Titik-titik kecil & sangat samar yang melayang lambat di BELAKANG maskot,
+// untuk membangkitkan kesan hidup tanpa menutupi ilustrasi.
+const AURA_DUST = [
+  { id: 'd1', left: '10%', bottom: '16%', size: 4, delay: 0 },
+  { id: 'd2', left: '26%', bottom: '30%', size: 3, delay: 0.9 },
+  { id: 'd3', left: '70%', bottom: '22%', size: 4, delay: 1.6 },
+  { id: 'd4', left: '86%', bottom: '38%', size: 3, delay: 0.5 },
+  { id: 'd5', left: '46%', bottom: '12%', size: 3, delay: 2.1 },
+  { id: 'd6', left: '58%', bottom: '44%', size: 3, delay: 1.2 },
+] as const;
+
+// Titik "percikan" sangat lembut untuk telur siap menetas (Lv 3).
+const EMBER_SPARKS = [
+  { id: 's1', left: '18%', bottom: '26%', size: 3, delay: 0 },
+  { id: 's2', left: '78%', bottom: '34%', size: 2, delay: 0.7 },
+  { id: 's3', left: '52%', bottom: '18%', size: 3, delay: 1.3 },
+  { id: 's4', left: '34%', bottom: '52%', size: 2, delay: 1.9 },
+] as const;
+
+// Warna debu atmosferik per rentang level.
+type DustTone = 'sage' | 'emerald' | 'gold';
+function dustToneForLevel(level: number): DustTone | null {
+  if (level >= 7) return 'gold';   // Lv 7-10 — naga dewasa: debu emas hangat
+  if (level >= 5) return 'emerald'; // Lv 5-6 — bayi naga: partikel emerald
+  if (level === 3) return 'sage';   // Lv 3 — telur siap menetas: percikan sage/silver
+  return null;                      // Lv 1, 2, 4 — tanpa debu tambahan
+}
+
+// Lapisan atmosferik evolusi maskot — komponen presentasional murni.
+// HANYA menghasilkan efek lembut di BELAKANG karakter (backlight & debu
+// rendah-opacity). TIDAK PERNAH menimpa ilustrasi: tanpa retakan, badge,
+// stiker, atau garis kasar. Seluruh opacity dijaga 0.2-0.4 agar natural.
+function MascotEvolutionMotes({ level }: { level: number }) {
+  const tone = dustToneForLevel(level);
+  // Percikan telur (Lv 3) memakai animasi kedip lembut; sisanya melayang naik.
+  if (level === 3) {
+    return (
+      <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
+        {EMBER_SPARKS.map((s) => (
+          <span
+            key={s.id}
+            className="animate-sparkle-twinkle absolute rounded-full bg-sage"
+            style={{
+              left: s.left,
+              bottom: s.bottom,
+              width: s.size,
+              height: s.size,
+              opacity: 0.3,
+              animationDelay: `${s.delay}s`,
+              boxShadow: '0 0 5px 1px rgba(163,181,138,0.35)',
+            }}
+          />
+        ))}
+      </div>
+    );
+  }
+  if (!tone) return null;
+  const dotColor =
+    tone === 'emerald' ? 'bg-emerald-500' : tone === 'gold' ? 'bg-amber-400' : 'bg-sage';
+  const glow =
+    tone === 'emerald'
+      ? '0 0 5px 1px rgba(16,185,129,0.25)'
+      : tone === 'gold'
+        ? '0 0 5px 1px rgba(251,191,36,0.25)'
+        : '0 0 5px 1px rgba(163,181,138,0.25)';
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
+      {AURA_DUST.map((p) => (
+        <motion.span
+          key={p.id}
+          className={`absolute rounded-full ${dotColor}`}
+          style={{
+            left: p.left,
+            bottom: p.bottom,
+            width: p.size,
+            height: p.size,
+            boxShadow: glow,
+          }}
+          // Melayang perlahan ke atas, muncul & menghilang samar (opacity ≤ 0.35).
+          animate={{ y: [0, -14, -30], opacity: [0, 0.35, 0] }}
+          transition={{ duration: 6.5, repeat: Infinity, delay: p.delay, ease: 'easeInOut' }}
+        />
+      ))}
+    </div>
+  );
+}
 
 const TOUR_STORAGE_KEY = 'aseta_tour_completed';
 
@@ -957,6 +1115,7 @@ export default function AsetaApp() {
   const xpHint = mascot.level >= MAX_LEVEL
     ? `${mascot.title} — Aseta telah mencapai evolusi terakhir`
     : `${mascot.title} · ke level berikutnya`;
+  const aura = mascotAura(mascot.level);
 
   // --- Breakdown "Total Aset": Tabungan (portofolio) + Saldo Dompet + imbal hasil bulan ini ---
   const walletPortion = displayWallet;                       // saldo dompet (belum diinvestasikan)
@@ -1078,21 +1237,29 @@ export default function AsetaApp() {
           data-tour="hero-mascot"
           className={`flex h-full flex-col space-y-2.5 rounded-2xl border border-slate-100 bg-white p-5 lg:col-span-4 lg:row-span-2 ${isTourActive && tourStep === 0 ? 'relative z-50 ring-4 ring-emerald-400 ring-offset-2' : ''}`}
         >
-          {/* Streak & level — satu baris teks kecil netral, bukan dua pill berwarna. */}
-          <div className="flex items-center justify-between gap-2 text-[11px] font-medium text-muted">
-            <span>{displayStreak} hari berturut-turut</span>
-            <span title={mascot.title}>Lv. {mascot.level}</span>
+          {/* Header: streak + badge level */}
+          <div className="flex items-center justify-between gap-2">
+            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 ring-1 ring-inset ring-amber-200">
+              🔥 {displayStreak} Hari
+            </span>
+            <span className="rounded-full bg-gold px-2.5 py-1 text-xs font-black text-forest ring-1 ring-inset ring-amber-300/60" title={mascot.title}>
+              Lv. {mascot.level}
+            </span>
           </div>
 
-          {/* Panggung maskot interaktif: tilt ringan mengikuti kursor +
-              melayang pelan. Tanpa glow, aura, atau partikel — ilustrasi
-              berdiri sendiri di atas latar polos kartu. */}
+          {/* Panggung maskot 3D interaktif: tilt mengikuti kursor + melayang
+              lembut. Aura glow & ring berubah progresif sesuai level. */}
           <div
             className="relative flex justify-center py-1"
             style={{ perspective: 800 }}
             onMouseMove={handleTiltMove}
             onMouseLeave={handleTiltLeave}
           >
+            {/* Backlight aura: blur + denyut, warna & intensitas mengikuti level. */}
+            <div
+              aria-hidden
+              className={`absolute top-1/2 h-28 w-28 -translate-y-1/2 rounded-full sm:h-32 sm:w-32 ${aura.glow} ${aura.glowAnim}`}
+            />
             <AnimatePresence>
               {mascotSpeech && (
                 <motion.div
@@ -1101,7 +1268,7 @@ export default function AsetaApp() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.85 }}
                   transition={{ type: 'spring', stiffness: 320, damping: 22 }}
-                  className="absolute -top-1 left-1/2 z-10 max-w-[85%] -translate-x-1/2 rounded-xl border border-slate-100 bg-ivory px-3 py-2 text-center text-xs font-medium leading-snug text-slate-600"
+                  className="absolute -top-1 left-1/2 z-10 max-w-[85%] -translate-x-1/2 rounded-2xl rounded-b-sm border border-line bg-white px-3.5 py-2 text-center text-xs font-medium leading-snug text-forest shadow-md"
                   role="status"
                 >
                   {mascotSpeech}
@@ -1119,6 +1286,7 @@ export default function AsetaApp() {
               animate={{ y: [0, -8, 0] }}
               transition={{ type: 'tween', duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
               style={{ rotateX: tiltRotateX, rotateY: tiltRotateY, transformStyle: 'preserve-3d' }}
+              className={`rounded-full ${aura.ring}`}
             >
               <motion.button
                 type="button"
@@ -1126,17 +1294,23 @@ export default function AsetaApp() {
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                 aria-label={`Sapa ${mascot.name}`}
-                className={`relative block rounded-full outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 ${MASCOT_STAGE.ring}`}
+                className="relative rounded-full outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
               >
-                <Image
-                  src={mascot.gif}
-                  alt={mascot.name}
-                  width={144}
-                  height={144}
-                  unoptimized
-                  priority
-                  className={`relative block h-28 w-28 object-contain sm:h-32 sm:w-32 ${MASCOT_STAGE.imgShadow} ${mascotMood !== 'idle' ? 'animate-mascot-tap' : ''}`}
-                />
+                {/* Debu atmosferik lembut — SELALU di belakang ilustrasi maskot */}
+                <MascotEvolutionMotes level={mascot.level} />
+                {/* Pembungkus "bernapas" (Lv 2-3) memisahkan animasi scale dari
+                    animasi ketuk pada gambar agar tidak saling bentrok. */}
+                <span className={`relative z-10 block ${aura.breathe}`}>
+                  <Image
+                    src={mascot.gif}
+                    alt={mascot.name}
+                    width={144}
+                    height={144}
+                    unoptimized
+                    priority
+                    className={`relative block h-28 w-28 object-contain sm:h-32 sm:w-32 ${aura.scale} ${aura.imgShadow} ${mascotMood !== 'idle' ? 'animate-mascot-tap' : ''}`}
+                  />
+                </span>
               </motion.button>
             </motion.div>
             </div>
@@ -1147,7 +1321,7 @@ export default function AsetaApp() {
               <motion.span
                 key={xpBurstId}
                 aria-hidden
-                className="pointer-events-none absolute left-1/2 top-6 z-20 -translate-x-1/2 rounded-full border border-slate-100 bg-white px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap text-slate-600"
+                className="pointer-events-none absolute left-1/2 top-6 z-20 -translate-x-1/2 rounded-full bg-gold px-2.5 py-1 text-[11px] font-black whitespace-nowrap text-forest shadow-md"
                 initial={{ opacity: 0, y: 0, scale: 0.6 }}
                 animate={{ opacity: [0, 1, 1, 0], y: [0, -18, -46, -60], scale: [0.6, 1.1, 1, 0.9] }}
                 transition={{ duration: 1.15, repeat: 0, ease: 'easeOut' }}
