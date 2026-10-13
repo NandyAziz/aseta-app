@@ -596,14 +596,14 @@ function SavingsProjection({ className = '' }: { className?: string }) {
         <span>Rp{PROJECTION_MAX.toLocaleString('id-ID')}</span>
       </div>
 
-      <ul className="mt-3 grid grid-cols-3 gap-1.5 sm:gap-3">
+      <ul className="mt-3 grid grid-cols-3 gap-1 sm:gap-3">
         {PROJECTION_HORIZONS.map(years => {
           const total = projectSavings(daily, years);
           const gain = Math.max(0, total - contribution);
           return (
             <li
               key={years}
-              className="px-1 py-2 sm:px-3 sm:py-3 text-center min-w-0 flex flex-col justify-center items-center overflow-hidden rounded-xl border border-emerald-100 bg-emerald-50/60"
+              className="min-w-0 flex flex-col items-center justify-center overflow-hidden rounded-xl border border-emerald-100 bg-emerald-50/60 px-1 py-2 text-center sm:px-3 sm:py-3"
             >
               <p className="text-[10px] font-bold uppercase tracking-wide text-muted">{years} Tahun</p>
               <p className="mt-0.5 text-[9px] min-[380px]:text-[10px] sm:text-xs lg:text-sm font-extrabold tracking-tighter tabular-nums text-emerald-800 whitespace-nowrap leading-tight">
