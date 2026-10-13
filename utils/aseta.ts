@@ -71,14 +71,44 @@ function stageForLevel(level: number): { name: string; gif: string } {
   return { name: 'Aseta Mandiri', gif: '/mascot-adult.gif' };
 }
 
+/**
+ * Resolusi `MascotInfo` dari SUATU level — dipakai `getMascotLevel()` di bawah
+ * dan halaman panduan (`app/guide/page.tsx`) untuk memamerkan evolusi Lv 1-10.
+ *
+ * Dipisah agar tidak ada lagi salinan `stageForLevel()` / `LEVEL_TITLES[]` di
+ * luar modul ini: GIF, nama tahap, dan rank dijamin berasal dari satu sumber.
+ *
+ * Level di-clamp ke rentang 1..MAX_LEVEL supaya input di luar jangkauan
+ * (mis. slider di halaman panduan atau data localStorage rusak) tidak pernah
+ * menyentuh indeks array yang tidak ada.
+ */
+export function mascotInfoForLevel(level: number): MascotInfo {
+  const clamped = Math.min(MAX_LEVEL, Math.max(1, Math.floor(level) || 1));
+  const stage = stageForLevel(clamped);
+  return {
+    level: clamped,
+    name: stage.name,
+    title: LEVEL_TITLES[clamped - 1],
+    gif: stage.gif,
+  };
+}
+
+/**
+ * Total XP kumulatif yang dibutuhkan untuk mencapai `level` (indeks 0 = Lv 1).
+ * Untuk level di luar rentang, nilai dikembalikan apa adanya.
+ */
+export function cumulativeXpForLevel(level: number): number {
+  const idx = Math.min(MAX_LEVEL, Math.max(1, Math.floor(level) || 1)) - 1;
+  return LEVEL_CUMULATIVE[idx];
+}
+
 export function getMascotLevel(balance: number): MascotInfo {
   const safe = Math.max(0, Math.floor(balance) || 0);
   let level = 1;
   while (level < MAX_LEVEL && safe >= LEVEL_CUMULATIVE[level - 1]) {
     level += 1;
   }
-  const stage = stageForLevel(level);
-  return { level, name: stage.name, title: LEVEL_TITLES[level - 1], gif: stage.gif };
+  return mascotInfoForLevel(level);
 }
 
 export function getXpProgress(balance: number): { current: number; next: number; percent: number } {
