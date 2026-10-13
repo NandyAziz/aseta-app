@@ -367,7 +367,6 @@ function QuestRow({
  */
 function SavingsProjection({ className = '' }: { className?: string }) {
   const [daily, setDaily] = useState<number>(PROJECTION_DEFAULT);
-  const contribution = daily * DAYS_PER_YEAR;
 
   return (
     <section
@@ -417,6 +416,10 @@ function SavingsProjection({ className = '' }: { className?: string }) {
       <ul className="mt-3 grid grid-cols-3 gap-1 sm:gap-3">
         {PROJECTION_HORIZONS.map(years => {
           const total = projectSavings(daily, years);
+          // Total setoran penuh untuk horizon ini (bukan hanya 1 tahun):
+          // daily × 365 × years. Tanpa faktor `years`, hasil 3 dan 5 tahun
+          // menjadi negatif lalu di-clamp ke 0.
+          const contribution = daily * DAYS_PER_YEAR * years;
           const gain = Math.max(0, total - contribution);
           return (
             <li
