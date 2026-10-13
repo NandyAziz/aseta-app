@@ -73,7 +73,7 @@ function stageForLevel(level: number): { name: string; gif: string } {
 
 /**
  * Resolusi `MascotInfo` dari SUATU level — dipakai `getMascotLevel()` di bawah
- * dan halaman panduan (`app/guide/page.tsx`) untuk memamerkan evolusi Lv 1-10.
+ * dan tab "Evolusi & Panduan" di dashboard untuk memamerkan evolusi Lv 1-10.
  *
  * Dipisah agar tidak ada lagi salinan `stageForLevel()` / `LEVEL_TITLES[]` di
  * luar modul ini: GIF, nama tahap, dan rank dijamin berasal dari satu sumber.

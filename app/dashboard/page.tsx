@@ -2,16 +2,16 @@
 
 import { useState, useSyncExternalStore, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { CameraOff, Coffee, ShoppingBasket, Utensils, Wallet, TrendingUp, ShieldCheck, BookOpen, HelpCircle, Home, QrCode, History, X, RotateCcw, Sparkles, Search } from "lucide-react";
+import { CameraOff, Coffee, ShoppingBasket, Utensils, Wallet, TrendingUp, ShieldCheck, HelpCircle, Home, QrCode, History, X, RotateCcw, Sparkles, Search } from "lucide-react";
 import confetti from 'canvas-confetti';
 import jsQR from 'jsqr';
-import { calculateRoundUp, getMascotLevel, getXpProgress, MAX_LEVEL, LEVEL_TARGETS, LEVEL_TITLES, GREET_TAP_TARGET } from '@/utils/aseta';
+import { calculateRoundUp, getMascotLevel, getXpProgress, MAX_LEVEL, LEVEL_TARGETS, GREET_TAP_TARGET } from '@/utils/aseta';
 import { playTapSound, playCoinSound, playLevelUpSound, playLimitSound } from '@/utils/sound';
 import { parseQrPayload } from '@/utils/qris';
 import type { MascotExpression } from '@/utils/aseta';
 import { mascotAura, MascotEvolutionMotes } from '@/components/MascotAura';
+import EvolveGuideView from '@/components/EvolveGuideView';
 import type { Transaction, SavingsState } from '@/types';
 
 type TabId = 'home' | 'scan' | 'history' | 'evolve';
@@ -121,14 +121,6 @@ const PET_LINES_LIMIT = [
   'Aku udah kekenjangan sapa hari ini, deh! 😴',
   'Batas sapa hari ini habis — tapi maskotmu tetap senang kok!',
   'Oke, cukup sapa buat hari ini. Yuk, tabung receh! 🐉',
-] as const;
-
-// Konfigurasi stage evolusi maskot (3 fase × 10 level).
-// gif mengikuti aset yang sudah ada di proyek (tidak diganti).
-const EVOLUTION_STAGES = [
-  { stage: 'Telur Aseta', range: 'Lv 1 – 3', gif: '/mascot-egg.gif', emoji: '🥚', tint: 'bg-amber-50 text-amber-600', minLevel: 1, maxLevel: 3 },
-  { stage: 'Bayi Naga', range: 'Lv 4 – 6', gif: '/mascot-baby.gif', emoji: '🐣', tint: 'bg-emerald-50 text-brand', minLevel: 4, maxLevel: 6 },
-  { stage: 'Naga Dewasa', range: 'Lv 7 – 9', gif: '/mascot-adult.gif', emoji: '🐉', tint: 'bg-sky-50 text-sky-600', minLevel: 7, maxLevel: 9 },
 ] as const;
 
 function isValidSavingsState(obj: unknown): obj is SavingsState {
@@ -843,7 +835,7 @@ export default function AsetaApp() {
     }
     return true;
   }
-  // Preset transaksi cepat — hanya dipanggil saat tombol "Tabung →" diklik.
+  // Preset transaksi cepat — hanya dipanggil saat tombol "Tabung" diklik.
   function handleQuickSave(preset: { merchant: string; amount: number }) {
     commitSavings(preset.merchant, preset.amount);
   }
@@ -1173,7 +1165,7 @@ export default function AsetaApp() {
             { id: 'home', label: 'Beranda', Icon: Home },
             { id: 'scan', label: 'Scan', Icon: QrCode },
             { id: 'history', label: 'Riwayat', Icon: History },
-            { id: 'evolve', label: 'Evolusi', Icon: Sparkles },
+            { id: 'evolve', label: 'Evolusi & Panduan', Icon: Sparkles },
           ] as const).map(item => (
             <button
               key={item.id}
@@ -1188,25 +1180,19 @@ export default function AsetaApp() {
           ))}
         </nav>
 
-        {/* Tombol bawah sidebar: tour singkat (overlay) + panduan lengkap
-            (halaman /guide berisi slider evolusi Lv 1-10). */}
+        {/* Tombol bawah sidebar: memutar ulang onboarding tour (overlay modal).
+            Panduan lengkap sudah tersedia sebagai tab "Evolusi & Panduan"
+            di navigasi utama, jadi tidak ada lagi route /guide terpisah. */}
         <div className="mt-auto p-3">
           <button
             type="button"
             onClick={restartTour}
             title="Ulangi Panduan"
-            aria-label="Ulangi panduan tour"
-            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-muted transition-colors hover:bg-ivory hover:text-brand"
+            aria-label="Ulangi panduan onboarding"
+            className="flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-muted transition-colors hover:bg-ivory hover:text-brand"
           >
             <HelpCircle className="h-4 w-4" /> Ulangi Panduan
           </button>
-          <Link
-            href="/guide"
-            title="Panduan lengkap"
-            className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-muted transition-colors hover:bg-ivory hover:text-brand"
-          >
-            <BookOpen className="h-4 w-4" /> Panduan Lengkap
-          </Link>
         </div>
       </aside>
 
@@ -1589,9 +1575,9 @@ export default function AsetaApp() {
                 <button
                   type="button"
                   onClick={() => handleQuickSave(preset)}
-                  className="shrink-0 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold whitespace-nowrap text-white transition-all duration-200 active:scale-95 hover:bg-emerald-700 min-h-11 sm:min-h-0"
+                  className="inline-flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-white transition-transform duration-150 hover:bg-brand-dark active:scale-95 sm:min-h-0"
                 >
-                  Tabung →
+                  Tabung
                 </button>
               </li>
             ))}
@@ -1668,8 +1654,7 @@ export default function AsetaApp() {
           <div className="rounded-2xl border border-line bg-white p-5">
             <h2 className="text-base font-bold text-forest">Scan QRIS</h2>
             <p className="text-xs text-muted">
-              Arahkan kamera ke struk QRIS merchant. Kamera hanya aktif selama tombol
-              di bawah ditekan — preset belanja tidak pernah membuka kamera.
+              Arahkan kamera ke struk QRIS merchant.
             </p>
 
             {/* Frame scanner: menampilkan feed kamera sungguhan, atau fallback
@@ -1774,7 +1759,7 @@ export default function AsetaApp() {
           <div className="mt-4 rounded-2xl border border-line bg-white p-5">
             <h3 className="mb-3 text-base font-bold text-forest">Preset Belanja</h3>
             <p className="mb-3 text-xs text-muted">
-              Klik “Bayar” untuk langsung menabung recehnya — kamera tidak dipakai.
+              Klik “Bayar” untuk langsung menabung recehnya.
             </p>
             <ul className="space-y-2">
               {QUICK_PRESETS.map(preset => (
@@ -1797,9 +1782,9 @@ export default function AsetaApp() {
                   <button
                     type="button"
                     onClick={() => handleQuickSave(preset)}
-                    className="ml-auto w-24 shrink-0 rounded-lg bg-brand px-3 py-2 text-center text-xs font-bold text-white transition-all duration-200 active:scale-95 hover:bg-brand-dark min-h-11 sm:min-h-0"
+                    className="inline-flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-white transition-transform duration-150 hover:bg-brand-dark active:scale-95 sm:min-h-0"
                   >
-                    Bayar →
+                    Bayar
                   </button>
                 </li>
               ))}
@@ -1923,101 +1908,9 @@ export default function AsetaApp() {
           </div>
         </main>
       )}
-      {/* ===== Tab Evolusi — perjalanan Level 1 → 10 ===== */}
-      {activeTab === 'evolve' && (
-        <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 py-6 pb-28 sm:px-6 md:pb-10">
-          <div className="mb-4">
-            <h2 className="text-lg font-black tracking-tight text-forest">Perjalanan Evolusi Aseta</h2>
-            <p className="text-xs text-muted">
-           
-            </p>
-          </div>
 
-          {/* Tiga fase evolusi (stage) */}
-          <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-            {EVOLUTION_STAGES.map(stage => {
-              const reached = mascot.level >= stage.minLevel;
-              return (
-                <div
-                  key={stage.stage}
-                  className={`flex items-center gap-3 rounded-2xl border p-4 transition-shadow ${reached ? 'border-line bg-white shadow-sm' : 'border-dashed border-line bg-ivory/60 opacity-60'}`}
-                >
-                  <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${stage.tint}`}>
-                    <Image
-                      src={stage.gif}
-                      alt={stage.stage}
-                      width={48}
-                      height={48}
-                      unoptimized
-                      className={`h-11 w-11 object-contain ${reached ? '' : 'grayscale'}`}
-                    />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-forest">{stage.stage}</p>
-                    <p className="text-[11px] font-semibold text-muted">{stage.range}</p>
-                    {reached && (
-                      <p className="mt-0.5 text-[10px] font-bold text-brand">✓ Tercapai</p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Daftar 10 level */}
-          <div className="rounded-2xl border border-line bg-white p-5">
-            <h3 className="mb-3 text-sm font-bold text-forest">Rincian 10 Level</h3>
-            <ul className="space-y-2">
-              {LEVEL_TITLES.map((title, idx) => {
-                const lv = idx + 1;
-                const reached = mascot.level >= lv;
-                const current = mascot.level === lv;
-                const needXp = LEVEL_TARGETS[idx];
-                const stageEmoji =
-                  lv <= 3 ? '🥚' : lv <= 6 ? '🐣' : lv === 10 ? '🏆' : '🐉';
-                return (
-                  <li
-                    key={lv}
-                    className={`flex items-center gap-3 rounded-xl border p-3 ${
-                      current
-                        ? 'border-emerald-300 bg-emerald-50/60 ring-1 ring-inset ring-emerald-200'
-                        : reached
-                        ? 'border-line bg-ivory/60'
-                        : 'border-line bg-white'
-                    }`}
-                  >
-                    <span
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-black ${
-                        current ? 'bg-brand text-white' : reached ? 'bg-sage/30 text-forest' : 'bg-line text-muted'
-                      }`}
-                    >
-                      {lv}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold text-forest">
-                        {stageEmoji} {title}
-                      </p>
-                      <p className="text-[11px] tabular-nums text-muted">
-                        Butuh {needXp.toLocaleString('id-ID')} XP · {lv === 10 ? 'Level Maksimal' : `Lulus di ${LEVEL_TARGETS[idx].toLocaleString('id-ID')} XP level ini`}
-                      </p>
-                    </div>
-                    {current && (
-                      <span className="shrink-0 rounded-full bg-brand px-2.5 py-1 text-[10px] font-bold text-white">
-                        Sekarang
-                      </span>
-                    )}
-                    {reached && !current && (
-                      <span className="shrink-0 text-brand" aria-label="Tercapai">
-                        ✓
-                      </span>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        </main>
-      )}
+      {/* ===== Tab Evolusi & Panduan — pratinjau level 1-10 + walkthrough fitur ===== */}
+      {activeTab === 'evolve' && <EvolveGuideView />}
 
       {/* ===== Bottom Navigation — Mobile (md:hidden) ===== */}
       <nav

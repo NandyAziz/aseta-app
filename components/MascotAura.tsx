@@ -7,7 +7,7 @@ import { MAX_LEVEL } from '@/utils/aseta';
  * Panggung maskot: backlight aura + partikel atmosferik.
  *
  * Dipisah dari `app/dashboard/page.tsx` ke modul sendiri supaya halaman
- * panduan (`app/guide/page.tsx`) bisa memakai efek yang PERSIS SAMA tanpa
+ * tab "Evolusi & Panduan" di dashboard bisa memakai efek yang PERSIS SAMA tanpa
  * menduplikasi tabel level. Satu sumber kebenaran untuk efek visual.
  *
  * Aturan(maintained dari versi awal):
