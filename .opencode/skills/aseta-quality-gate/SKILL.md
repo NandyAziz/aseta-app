@@ -26,21 +26,27 @@ Simulasi frontend murni — tanpa backend, tanpa uang asli.
   kunci localStorage (`aseta-savings-state`, `aseta_last_active_date`,
   `aseta_tour_completed`), atau semantik reset harian/streak tanpa izin user.
 
-## 2. Grid 3 kolom tetap seimbang (hanya relevan untuk tab Beranda)
+## 2. Grid tab Beranda: 2 kolom desktop, ringkas di mobile
 
 - Struktur utama `app/dashboard/page.tsx`: `main` = grid 12 kolom
-  (`lg:grid-cols-12`), tiga wrapper kolom `lg:col-span-3` / `lg:col-span-6` /
-  `lg:col-span-3`.
-- Wrapper kolom WAJIB `flex flex-col space-y-6` (atau `gap-6` yang konsisten di
-  seluruh kolom) — jangan campur `gap-4` dan `gap-6`.
-- Kartu seragam: `rounded-2xl border border-line bg-white p-4 ... sm:p-5`.
-- DILARANG ada elemen yang "melayang" di luar kartu (mis. badge kutipan di bawah
-  kartu) atau whitespace putih menggantung di dasar kolom.
-- Widget baru yang tergolong tinggi (kalkulator, grafik, tabel) TIDAK boleh
-  memanjangkan kolom tengah — jadikan modal atau tab tersendiri, atau letakkan
-  di kolom yang memang paling kosong.
-- Setelah edit, cek mental: 3 kolom tetap sejajar dan tidak ada celah putih
+  (`lg:grid-cols-12`) dengan DUA wrapper kolom — `lg:col-span-7` (kiri) dan
+  `lg:col-span-5` (kanan). Auto-placement per kartu (tanpa wrapper) DILARANG
+  karena bikin kartu melintasi baris.
+- Wrapper kolom WAJIB `flex flex-col gap-6` — jangan campur `gap-4` dan `gap-6`.
+- Grid memakai `items-start` supaya tinggi tiap kolom mengikuti isinya sendiri.
+- Isi kolom:
+  - Kiri: kartu hero maskot (panggung + total aset + XP bar), Alokasi Portofolio.
+  - Kanan: Transaksi Cepat, Misi Hari Ini, Proyeksi Tabungan, Batas Harian.
+- Kartu seragam: `rounded-2xl border border-line bg-white p-4 sm:p-5`.
+- DILARANG ada elemen yang "melayang" di luar kartu atau whitespace putih
   menggantung di dasar kolom.
+- Konten yang hanya untuk satu breakpoint dibungkus `<div className="hidden lg:block">`
+  atau `lg:hidden` — jangan menumpuk `hidden` dengan `flex` pada elemen yang sama
+  (urutan CSS utility tidak bisa diprediksi).
+- Mobile: analitik digabung jadi widget 2-tab (`AnalyticsTabs`), transaksi cepat
+  jadi chip geser horizontal, batas harian jadi akordeon tertutup.
+- Kartu presentasional tinggal di `components/dashboard/` (murni props), bukan
+  dikembalikan ke `page.tsx`.
 
 ## 3. Hydration safety: `isMounted` wajib ada
 

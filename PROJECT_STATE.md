@@ -66,9 +66,28 @@
 - [x] **Tap Micro-interaksi Maskot** — `whileTap` scale-95, bounce CSS
       `animate-mascot-tap`, dan partikel "+50 XP" melayang tiap tap.
 - [x] **Widget Proyeksi Tabungan** — kalkulator bunga majemuk harian
-      (Rp5.000–Rp50.000/hari) dengan estimasi 1/3/5 tahun @ +4,2% p.a.
+      (Rp5.000–Rp50.000/hari) dengan estimasi 1/3/5 tahun @ +4,2% p.a;
+      subteks "hasil" mengurangi setoran kumulatif `daily × 365 × years`.
 - [x] **Audio Terpusat** — semua SFX Web Audio API dipindah ke `utils/sound.ts`
       (dipakai bersama oleh landing & dashboard).
+
+### Layout Responsif (Terbaru)
+- [x] **Grid desktop 2 kolom** — `lg:grid-cols-12`: kolom kiri 7 (kartu hero
+      maskot + total aset + Alokasi Portofolio), kolom kanan 5 (Transaksi Cepat
+      → Misi Hari Ini → Proyeksi Tabungan → Batas Harian).
+- [x] **Kartu-kartu diekstrak ke `components/dashboard/`** —
+      `TotalAssetsSummary`, `PortfolioAllocation`, `SavingsProjection`,
+      `AnalyticsTabs`, `QuickTransactions`, `DailyMissions`, `DailyLimit`,
+      `GrowthChart`. `app/dashboard/page.tsx` kini hanya memegang state,
+      animasi maskot, kamera/QR, modal, dan tour.
+- [x] **Widget analitik 2-tab (mobile)** — "Portofolio" dan "Proyeksi" digabung
+      ke satu kartu tab agar feed utama tidak perlu digulir jauh.
+- [x] **Transaksi Cepat ringkas di mobile** — chip aksi geser horizontal,
+      label "Tabung" / "Bayar" tanpa panah teks.
+- [x] **Batas Harian jadi akordeon di mobile** — tertutup secara default,
+      ringkasan pemakaian tetap terlihat di header.
+- [x] **Input batas harian tervalidasi** — `maxLength={8}`, hanya digit,
+      dijepit `clampDailyCap()`; tidak pernah meluber keluar kartu.
 
 ## 📋 Daftar Tugas Selanjutnya (Roadmap)
 

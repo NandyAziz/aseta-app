@@ -1,17 +1,25 @@
-'use client';
+﻿'use client';
 
 import { useState, useSyncExternalStore, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { CameraOff, Coffee, ShoppingBasket, Utensils, Wallet, TrendingUp, ShieldCheck, HelpCircle, Home, QrCode, History, X, RotateCcw, Sparkles, Search } from "lucide-react";
+import { CameraOff, HelpCircle, Home, QrCode, History, X, RotateCcw, Sparkles, Search } from "lucide-react";
 import confetti from 'canvas-confetti';
 import jsQR from 'jsqr';
-import { calculateRoundUp, getMascotLevel, getXpProgress, formatRupiah, clampDailyCap, MAX_DAILY_CAP, MAX_LEVEL, LEVEL_TARGETS, GREET_TAP_TARGET } from '@/utils/aseta';
+import { calculateRoundUp, getMascotLevel, getXpProgress, formatRupiah, clampDailyCap, MAX_LEVEL, LEVEL_TARGETS, GREET_TAP_TARGET } from '@/utils/aseta';
 import { playTapSound, playCoinSound, playLevelUpSound, playLimitSound } from '@/utils/sound';
 import { parseQrPayload } from '@/utils/qris';
 import type { MascotExpression } from '@/utils/aseta';
 import { mascotAura, MascotEvolutionMotes } from '@/components/MascotAura';
 import EvolveGuideView from '@/components/EvolveGuideView';
+import AnalyticsTabs from '@/components/dashboard/AnalyticsTabs';
+import DailyLimit from '@/components/dashboard/DailyLimit';
+import DailyMissions from '@/components/dashboard/DailyMissions';
+import PortfolioAllocation from '@/components/dashboard/PortfolioAllocation';
+import QuickTransactions from '@/components/dashboard/QuickTransactions';
+import type { QuickPreset } from '@/components/dashboard/QuickTransactions';
+import SavingsProjection from '@/components/dashboard/SavingsProjection';
+import TotalAssetsSummary from '@/components/dashboard/TotalAssetsSummary';
 import type { Transaction, SavingsState } from '@/types';
 
 type TabId = 'home' | 'scan' | 'history' | 'evolve';
@@ -39,36 +47,6 @@ const INITIAL_STATE: SavingsState = {
   growth: [],
 };
 
-// Preset transaksi cepat. `tone` memberi tiap merchant badge ikon berwarna
-// sendiri (kopi amber, ritel biru, kuliner oranye) supaya daftar tidak
-// monoton seragam hijau dan mudah dibedakan sekilas.
-const QUICK_PRESETS = [
-  {
-    id: 'kopi',
-    label: 'Kopi Kenangan',
-    merchant: 'Kopi Kenangan',
-    amount: 18200,
-    Icon: Coffee,
-    tone: 'bg-amber-100 text-amber-800 border border-amber-200/60 shadow-2xs',
-  },
-  {
-    id: 'indomaret',
-    label: 'Indomaret',
-    merchant: 'Indomaret',
-    amount: 43500,
-    Icon: ShoppingBasket,
-    tone: 'bg-blue-100 text-blue-700 border border-blue-200/60 shadow-2xs',
-  },
-  {
-    id: 'makan',
-    label: 'Makan Siang',
-    merchant: 'Makan Siang',
-    amount: 12100,
-    Icon: Utensils,
-    tone: 'bg-orange-100 text-orange-700 border border-orange-200/60 shadow-2xs',
-  },
-] as const;
-
 // Pesan dynamic pet speech bubble — diputar saat maskot di-tap
 const PET_LINES = [
   'Uang kembalianmu udah aku putar ke Emas Digital ya! 🐉✨',
@@ -87,33 +65,6 @@ const SCAN_INTERVAL_MS = 160;
 // Sisi terpanjang frame yang di-decode. Resolusi penuh kamera (1080p+)
 // mahal dan tidak menambah peluang deteksi yang berarti.
 const SCAN_MAX_EDGE = 480;
-
-// ============================================================
-// Proyeksi tabungan (bunga majemuk harian) — fungsi murni
-// ============================================================
-const ANNUAL_RETURN = 0.042; // 4,2% p.a — sama dengan label imbal hasil
-const DAYS_PER_YEAR = 365;
-const PROJECTION_MIN = 5000;
-const PROJECTION_MAX = 50000;
-const PROJECTION_STEP = 1000;
-const PROJECTION_DEFAULT = 10000;
-const PROJECTION_HORIZONS = [1, 3, 5] as const;
-
-/**
- * Estimasi total aset setelah `years` tahun bila menyetor `daily` rupiah tiap
- * hari dengan bunga `rate` p.a. Setoran dianggap terjadi di awal setiap hari
- * (annuity due), sehingga hasil sedikit lebih tinggi daripada asumsi sederhana.
- * Fungsi murni: aman dipanggil saat render.
- */
-function projectSavings(daily: number, years: number, rate: number = ANNUAL_RETURN): number {
-  const safeDaily = Math.max(0, Number.isFinite(daily) ? daily : 0);
-  const safeYears = Math.max(0, Number.isFinite(years) ? years : 0);
-  const dailyRate = rate / DAYS_PER_YEAR;
-  const days = Math.round(safeYears * DAYS_PER_YEAR);
-  if (days === 0) return 0;
-  const growth = Math.pow(1 + dailyRate, days);
-  return Math.round(safeDaily * ((growth - 1) / dailyRate) * (1 + dailyRate));
-}
 
 // Balasan maskot saat tap harian sudah melewati batas GREET_TAP_TARGET —
 // tetap ramah, tidak menghakimi, dan memberi arahan tastyuk berikutnya.
@@ -254,191 +205,6 @@ const TOUR_STEPS = [
 function subscribe(callback: () => void) {
   window.addEventListener('storage', callback);
   return () => window.removeEventListener('storage', callback);
-}
-
-// ============================================================
-// Komponen presentasional: GrowthChart & QuestRow
-// (murni dari props → aman dari hydration mismatch)
-// ============================================================
-
-// Mini grafik garis SVG responsif untuk pertumbuhan portofolio.
-function GrowthChart({ series }: { series: number[] }) {
-  const W = 280;
-  const H = 72;
-  const pad = 6;
-  const data = series.length >= 2 ? series : [0, 0];
-  const max = Math.max(...data, 1);
-  const min = Math.min(...data, 0);
-  const range = max - min || 1;
-  const stepX = (W - pad * 2) / (data.length - 1);
-  const points = data.map((v, i) => {
-    const x = pad + i * stepX;
-    const y = H - pad - ((v - min) / range) * (H - pad * 2);
-    return { x, y };
-  });
-  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-  const areaPath = `${linePath} L${points[points.length - 1].x.toFixed(1)},${H - pad} L${points[0].x.toFixed(1)},${H - pad} Z`;
-  const last = points[points.length - 1];
-
-  return (
-    <svg
-      viewBox={`0 0 ${W} ${H}`}
-      className="h-12 w-full sm:h-16"
-      role="img"
-      aria-label="Grafik pertumbuhan portofolio 7 hari terakhir"
-      preserveAspectRatio="none"
-    >
-      <defs>
-        {/* Isian area: satu nada emerald transparan yang sangat halus.
-            Tanpa gradien berlapis / mesh agar tren tetap terbaca namun
-            tidak mencolok seperti grafik high-contrast. */}
-        <linearGradient id="growthFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#10b981" stopOpacity="0.16" />
-          <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={areaPath} fill="url(#growthFill)" />
-      <path
-        d={linePath}
-        fill="none"
-        stroke="#0d9488"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        vectorEffect="non-scaling-stroke"
-      />
-      {/* Titik akhir sederhana: satu inti kecil, tanpa cincin luar glowing. */}
-      <circle cx={last.x} cy={last.y} r="3" fill="#0d9488" />
-    </svg>
-  );
-}
-
-// Satu baris misi harian dengan checkbox & tombol klaim XP.
-function QuestRow({
-  emoji,
-  title,
-  xp,
-  done,
-  claimed,
-  onClaim,
-}: {
-  emoji: string;
-  title: string;
-  xp: number;
-  done: boolean;
-  claimed: boolean;
-  onClaim: () => void;
-}) {
-  return (
-    <li className="flex items-center gap-3 rounded-lg border border-line bg-ivory/70 p-3">
-      <span className="text-lg leading-none" aria-hidden>
-        {emoji}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-forest wrap-break-word">{title}</p>
-        <p className="text-[11px] font-semibold text-brand">+{xp} XP</p>
-      </div>
-      {claimed ? (
-        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-brand ring-1 ring-inset ring-emerald-200">
-          ✓ Diklaim
-        </span>
-      ) : (
-        <button
-          type="button"
-          onClick={onClaim}
-          disabled={!done}
-          className="shrink-0 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-all duration-200 active:scale-95 hover:bg-brand-dark disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-muted min-h-11 sm:min-h-0"
-        >
-          Klaim XP
-        </button>
-      )}
-    </li>
-  );
-}
-
-/**
- * Widget "Proyeksi Tabungan" — kalkulator bunga majemuk sederhana.
- * State lokal slider saja (tidak menyentuh state keuangan aplikasi), nilai
- * awal berasal dari konstanta sehingga render server & klien identik.
- *
- * `className` dipakai pemanggil untuk mengatur lebar kolom di grid 12 kolom
- * (lintang 2 dari 3 kolom visual) sehingga proporsinya seimbang dengan
- * kartu-kartu lain dan tidak menyisakan celah putih.
- */
-function SavingsProjection({ className = '' }: { className?: string }) {
-  const [daily, setDaily] = useState<number>(PROJECTION_DEFAULT);
-
-  return (
-    <section
-      className={`flex h-full min-w-0 flex-col rounded-2xl border border-line bg-white p-4 sm:p-6 ${className}`}
-    >
-      {/* Header: ikon gradien emerald→teal + pill imbal hasil, sejajar dengan
-          badge ikon berwarna di "Transaksi Cepat" agar ritme visual sama. */}
-      <div className="mb-3 flex items-center gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 p-2.5 text-white shadow-sm shadow-emerald-500/20">
-          <TrendingUp className="h-4.5 w-4.5" aria-hidden />
-        </span>
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-base font-bold text-forest">Proyeksi Tabungan</h2>
-            <span className="rounded-full border border-emerald-200/50 bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
-              +4,2% p.a
-            </span>
-          </div>
-          <p className="text-xs text-muted">Kalau kamu tabung tiap hari</p>
-        </div>
-      </div>
-
-      <div className="mb-1 flex items-baseline justify-between gap-2">
-        <label htmlFor="proyeksi-harian" className="text-xs font-bold uppercase tracking-wider text-muted">
-          Setoran harian
-        </label>
-        <span className="text-sm font-black tabular-nums text-brand">
-          Rp{daily.toLocaleString('id-ID')}
-        </span>
-      </div>
-      <input
-        id="proyeksi-harian"
-        type="range"
-        min={PROJECTION_MIN}
-        max={PROJECTION_MAX}
-        step={PROJECTION_STEP}
-        value={daily}
-        onChange={event => setDaily(Number(event.target.value))}
-        aria-label="Geser untuk mengatur setoran harian proyeksi"
-        className="h-11 w-full cursor-pointer accent-brand sm:h-5"
-      />
-      <div className="flex justify-between text-[11px] font-medium text-muted">
-        <span>Rp{PROJECTION_MIN.toLocaleString('id-ID')}</span>
-        <span>Rp{PROJECTION_MAX.toLocaleString('id-ID')}</span>
-      </div>
-
-      <ul className="mt-3 grid grid-cols-3 gap-1 sm:gap-3">
-        {PROJECTION_HORIZONS.map(years => {
-          const total = projectSavings(daily, years);
-          // Total setoran penuh untuk horizon ini (bukan hanya 1 tahun):
-          // daily × 365 × years. Tanpa faktor `years`, hasil 3 dan 5 tahun
-          // menjadi negatif lalu di-clamp ke 0.
-          const contribution = daily * DAYS_PER_YEAR * years;
-          const gain = Math.max(0, total - contribution);
-          return (
-            <li
-              key={years}
-              className="min-w-0 flex flex-col items-center justify-center overflow-hidden rounded-xl border border-emerald-100 bg-emerald-50/60 px-1 py-2 text-center sm:px-3 sm:py-3"
-            >
-              <p className="text-[10px] font-bold uppercase tracking-wide text-muted">{years} Tahun</p>
-              <p className="mt-0.5 text-[9px] min-[380px]:text-[10px] sm:text-xs lg:text-sm font-extrabold tracking-tighter tabular-nums text-emerald-800 whitespace-nowrap leading-tight">
-                Rp{total.toLocaleString('id-ID')}
-              </p>
-              <p className="mt-0.5 text-[8px] min-[380px]:text-[9px] sm:text-[10px] font-semibold tabular-nums text-muted whitespace-nowrap">
-                +{gain.toLocaleString('id-ID')} hasil
-              </p>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
-  );
 }
 
 export default function AsetaApp() {
@@ -839,7 +605,7 @@ export default function AsetaApp() {
     return true;
   }
   // Preset transaksi cepat — hanya dipanggil saat tombol "Tabung" diklik.
-  function handleQuickSave(preset: { merchant: string; amount: number }) {
+  function handleQuickSave(preset: QuickPreset) {
     commitSavings(preset.merchant, preset.amount);
   }
 
@@ -1078,8 +844,15 @@ export default function AsetaApp() {
     setLiquidateAmount('');
   }
 
+  /** Buka modal pencairan dengan nominal kosong — dipakai oleh kartu
+   *  "Alokasi Portofolio" baik di desktop maupun di dalam tab mobile. */
+  function handleOpenLiquidate() {
+    setShowLiquidateModal(true);
+    setLiquidateAmount('');
+  }
+
   function handleSaveDailyCap() {
-    const value = clampDailyCap(Number(dailyCapDraft));
+    const value = clampDailyCap(dailyCapDraft);
     setState(prev => ({ ...prev, dailyCap: value }));
     setDailyCapDraft(value);
     showToast(`Batas harian diperbarui: Rp${formatRupiah(value)}`);
@@ -1243,25 +1016,26 @@ export default function AsetaApp() {
           </button>
         </div>
 
-        {/* --- Grid kartu: 3 kolom visual pada desktop (12 kolom dasar).
-            Semua kartu memakai `h-full` + `p-6` seragam sehingga batas
-            bawah tiap baris sejajar rapi tanpa celah putih. --- */}
-      <div className="grid flex-1 grid-cols-1 gap-6 lg:grid-cols-12">
-        {/* --- Hero Mascot: kartu utama, mengisi 2 baris (4 dari 12 kolom).
-            Padding & jarak internal sengaja lebih rapat dibanding kartu lain
-            (p-5, space-y-2.5, maskot h-28 / sm:h-32) karena kolom ini
-            menampung paling banyak blok: nama + tag status, Total Aset +
-            sub-metrik, XP Evolusi, dan kutipan. Badge kutipan (mt-auto)
-            menempel snug di dasar kartu tanpa mendorong layout meluber. --- */}
+        {/* --- Grid utama: dua kolom pada desktop (kiri 7 dari 12, kanan 5
+            dari 12). Pada mobile semuanya menjadi satu kolom dengan urutan:
+            hero → analitik gabungan → transaksi cepat → misi harian →
+            batas harian (akordeon tertutup). --- */}
+      <div className="grid flex-1 grid-cols-1 items-start gap-6 lg:grid-cols-12">
+        {/* ===== Kolom kiri (desktop): hero maskot, total aset, alokasi ===== */}
+        <div className="flex flex-col gap-6 lg:col-span-7">
+        {/* --- Hero Maskot: fokus visual utama aplikasi. Di desktop isinya
+            dibagi dua kolom internal (panggung maskot | ringkasan aset + XP)
+            supaya kartu selebar 7 kolom tidak menyisakan rongga putih. --- */}
         <section
           data-tour="hero-mascot"
-          className={`flex h-full flex-col space-y-2.5 rounded-2xl border border-line bg-white p-5 lg:col-span-4 lg:row-span-2 ${isTourActive && tourStep === 0 ? 'relative z-50 ring-4 ring-emerald-400 ring-offset-2' : ''}`}
+          className={`flex flex-col gap-3 rounded-2xl border border-line bg-white p-4 sm:p-5 ${isTourActive && tourStep === 0 ? 'relative z-50 ring-4 ring-emerald-400 ring-offset-2' : ''}`}
         >
           {/* Header: streak + badge level */}
           <div className="flex items-center justify-between gap-2">
             <span className="inline-flex items-center gap-1 rounded-full border border-amber-200/70 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
               🔥 {displayStreak} Hari
             </span>
+            {/* Badges level */}
             <span
               className="inline-flex items-center gap-1 rounded-full border border-amber-300/60 bg-gold px-2.5 py-1 text-xs font-black text-forest"
               title={mascot.title}
@@ -1270,6 +1044,11 @@ export default function AsetaApp() {
             </span>
           </div>
 
+          {/* Badan kartu: dua kolom internal pada desktop. Pada mobile tetap
+              satu kolom sehingga maskot → total aset → XP tetap berurutan
+              vertikal dan fokus utama ada di paling atas. */}
+          <div className="flex flex-col gap-3 lg:grid lg:grid-cols-2 lg:items-center lg:gap-6">
+            <div className="flex flex-col items-center gap-2">
           {/* Panggung maskot 3D interaktif: tilt mengikuti kursor + melayang
               lembut. Aura glow & ring berubah progresif sesuai level. */}
           <div
@@ -1372,57 +1151,18 @@ export default function AsetaApp() {
               </p>
             )}
           </div>
-
-          {/* Total Aset: nominal utama + breakdown (Tabungan · Dompet · Imbal hasil).
-              Tanpa badge "Diinvestasikan Otomatis" — tipografi saja sudah
-              cukup menjelaskan konteksnya. */}
-          <div className="flex flex-col gap-1 rounded-xl border border-line bg-ivory/60 p-2.5">
-            <p className="text-center text-xs font-medium text-muted">Total Aset Saya</p>
-            <p className="text-center text-xl font-black tabular-nums whitespace-nowrap text-forest sm:text-2xl lg:text-3xl">
-              Rp{totalWealth.toLocaleString('id-ID')}
-            </p>
-            <p className="text-center text-[11px] font-medium text-muted">
-              +Rp{monthlyReturn.toLocaleString('id-ID')} (+4,2% p.a) bulan ini
-            </p>
-            {/* Breakdown 3 baris — sengaja diturunkan hierarkinya (label
-                slate-500 + nominal lebih redup) agar nominal utama
-                "Total Aset" tetap satu-satunya yang menonjol. */}
-            <div className="mt-1.5 flex flex-col gap-1 border-t border-line/70 pt-2">
-              <div className="flex items-center justify-between gap-2">
-                <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-muted">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-emerald-50">
-                    <TrendingUp className="h-3 w-3 text-brand" aria-hidden />
-                  </span>
-                  <span className="truncate">Tabungan</span>
-                </span>
-                <span className="shrink-0 text-xs font-semibold tabular-nums text-forest">
-                  +Rp{investedPortion.toLocaleString('id-ID')}
-                </span>
-              </div>
-              <div className="flex items-center justify-between gap-2">
-                <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-muted">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-sky-50">
-                    <Wallet className="h-3 w-3 text-sky-500" aria-hidden />
-                  </span>
-                  <span className="truncate">Saldo Dompet</span>
-                </span>
-                <span className="shrink-0 text-xs font-semibold tabular-nums text-forest">
-                  Rp{walletPortion.toLocaleString('id-ID')}
-                </span>
-              </div>
-              <div className="flex items-center justify-between gap-2">
-                <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-muted">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-amber-50">
-                    <Sparkles className="h-3 w-3 text-amber-500" aria-hidden />
-                  </span>
-                  <span className="truncate">Hari Ini</span>
-                </span>
-                <span className="shrink-0 text-xs font-semibold tabular-nums text-brand">
-                  +Rp{displayToday.toLocaleString('id-ID')}
-                </span>
-              </div>
             </div>
-          </div>
+
+            <div className="flex flex-col gap-3">
+            {/* Total Aset: nominal utama + breakdown (Tabungan · Dompet · Imbal
+              hasil). Blok ini mengisi kolom kanan dari badan kartu hero. */}
+          <TotalAssetsSummary
+            totalWealth={totalWealth}
+            monthlyReturn={monthlyReturn}
+            invested={investedPortion}
+            wallet={walletPortion}
+            today={displayToday}
+          />
 
           {/* XP Progress Bar */}
           <div
@@ -1445,218 +1185,91 @@ export default function AsetaApp() {
               {xpHint}
             </p>
           </div>
-        </section>
-
-        {/* --- Alokasi Portofolio: 2 dari 3 kolom visual (8 dari 12) --- */}
-        <section
-          data-tour="portfolio"
-          className={`flex h-full flex-col rounded-2xl border border-line bg-white p-6 lg:col-span-8 ${isTourActive && tourStep === 1 ? 'relative z-50 ring-4 ring-emerald-400 ring-offset-2' : ''}`}
-        >
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <div>
-              <h2 className="text-base font-bold text-forest">Alokasi Portofolio</h2>
-              <p className="text-xs text-muted">Pembagian otomatis dari total asetmu</p>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setShowLiquidateModal(true);
-                setLiquidateAmount('');
-              }}
-              className="shrink-0 rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-medium text-slate-700 transition-all duration-200 active:scale-95 hover:border-emerald-300 hover:bg-emerald-50/50 hover:text-brand min-h-11 sm:min-h-0"
-            >
-              Cairkan Aset
-            </button>
-          </div>
-
-          {/* Split bar 60/40 */}
-          <div
-            className="flex h-3 w-full overflow-hidden rounded-full ring-1 ring-inset ring-line"
-            role="img"
-            aria-label="Alokasi aset: Emas Digital 60 persen, Reksadana Pasar Uang 40 persen"
-          >
-            <div className="h-full bg-amber-400" style={{ width: '60%' }} />
-            <div className="h-full w-0.5 bg-white" />
-            <div className="h-full flex-1 bg-emerald-500" />
-          </div>
-
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-3">
-              <p className="text-[11px] font-bold text-amber-700">🟡 Emas Digital (60%)</p>
-              <p className="mt-0.5 text-sm font-black tabular-nums wrap-break-word text-forest">
-                Rp{goldValue.toLocaleString('id-ID')}
-              </p>
-              <p className="text-[11px] text-muted">~{goldGrams.toLocaleString('id-ID', { maximumFractionDigits: 4 })} gram</p>
-            </div>
-            <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3">
-              <p className="text-[11px] font-bold text-brand">🟢 Reksadana (40%)</p>
-              <p className="mt-0.5 text-sm font-black tabular-nums wrap-break-word text-forest">
-                Rp{reksaValue.toLocaleString('id-ID')}
-              </p>
-              <p className="text-[11px] text-muted">Pasar Uang · likuid</p>
-            </div>
-          </div>
-
-          {/* Grafik pertumbuhan 7 hari */}
-          <div className="mt-4 rounded-xl bg-ivory p-3">
-            <div className="mb-1 flex items-center justify-between">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-muted">
-                Pertumbuhan Aset · 7 Hari
-              </p>
-              <TrendingUp className="h-3.5 w-3.5 text-brand" aria-hidden />
-            </div>
-            <GrowthChart series={growthSeries} />
           </div>
         </section>
 
-        {/* --- Proyeksi Tabungan: melintasi 2 dari 3 kolom visual
-            (8 dari 12 kolom), tepat di bawah Alokasi Portofolio --- */}
-        <SavingsProjection className="lg:col-span-8" />
+        {/* --- Alokasi Portofolio sebagai kartu penuh (desktop, kolom kiri).
+            Pada mobile kartu ini disembunyikan karena isinya sudah tampil di
+            dalam tab "Portofolio" widget analitik gabungan. --- */}
+        <div className="hidden lg:block">
+          <PortfolioAllocation
+            highlight={isTourActive && tourStep === 1}
+            goldValue={goldValue}
+            reksaValue={reksaValue}
+            goldGrams={goldGrams}
+            growthSeries={growthSeries}
+            onLiquidate={handleOpenLiquidate}
+          />
+        </div>
 
-        {/* --- Misi Hari Ini --- */}
-        <section className="flex h-full flex-col rounded-2xl border border-line bg-white p-6 lg:col-span-4">
-          <div className="mb-3">
-            <h2 className="text-base font-bold text-forest">Misi Hari Ini</h2>
-            <p className="text-xs text-muted">Selesaikan misi, klaim XP untuk maskotmu</p>
+        {/* --- Widget analitik gabungan (khusus mobile): "Alokasi Portofolio"
+            dan "Proyeksi Tabungan" menjadi satu kartu dua tab supaya feed
+            utama tidak perlu digulir lebih dari dua layar. --- */}
+        <AnalyticsTabs
+          className="lg:hidden"
+          highlight={isTourActive && tourStep === 1}
+          goldValue={goldValue}
+          reksaValue={reksaValue}
+          goldGrams={goldGrams}
+          growthSeries={growthSeries}
+          onLiquidate={handleOpenLiquidate}
+        />
+        </div>
+
+        {/* ===== Kolom kanan: transaksi cepat, misi harian, proyeksi, dan
+            batas harian. Pada mobile kolom ini tampil setelah widget
+            analitik gabungan. ===== */}
+        <div className="flex flex-col gap-6 lg:col-span-5">
+          {/* Deretan chip aksi yang bisa digeser horizontal di mobile. */}
+          <QuickTransactions onSave={handleQuickSave} />
+
+          <DailyMissions
+            qrisDone={qrisDone}
+            qrisClaimed={qrisClaimed}
+            depositDone={depositDone}
+            depositClaimed={depositClaimed}
+            greetDone={greetDone}
+            greetClaimed={greetClaimed}
+            greetTapsUsed={greetTapsUsed}
+            onClaim={claimQuest}
+          />
+
+          {/* Proyeksi Tabungan sebagai kartu penuh — hanya desktop. */}
+          <div className="hidden lg:block">
+            <SavingsProjection />
           </div>
-          <ul className="space-y-2">
-            <QuestRow
-              emoji="☕"
-              title="Lakukan 1x Pembulatan QRIS"
-              xp={100}
-              done={qrisDone}
-              claimed={qrisClaimed}
-              onClaim={() => claimQuest('qris')}
+
+          {/* Batas Harian: kartu terbuka penuh di desktop. */}
+          <div className="hidden lg:block">
+            <DailyLimit
+              today={displayToday}
+              cap={displayCap}
+              remaining={capRemaining}
+              percent={capPercent}
+              exhausted={capExhausted}
+              draft={dailyCapDraft}
+              onDraftChange={setDailyCapDraft}
+              onSave={handleSaveDailyCap}
             />
-            <QuestRow
-              emoji="🪙"
-              title="Tabung minimal Rp5.000 hari ini"
-              xp={200}
-              done={depositDone}
-              claimed={depositClaimed}
-              onClaim={() => claimQuest('deposit')}
+          </div>
+
+          {/* Batas Harian versi mobile: akordeon tertutup secara default
+              supaya isi feed utama tetap di bawah dua guliran. */}
+          <div className="lg:hidden">
+            <DailyLimit
+              collapsible
+              today={displayToday}
+              cap={displayCap}
+              remaining={capRemaining}
+              percent={capPercent}
+              exhausted={capExhausted}
+              draft={dailyCapDraft}
+              onDraftChange={setDailyCapDraft}
+              onSave={handleSaveDailyCap}
             />
-            <QuestRow
-              emoji="🐉"
-              title={`Sapa Aseta (Tap Maskot ${greetTapsUsed}/${GREET_TAP_TARGET})`}
-              xp={50}
-              done={greetDone}
-              claimed={greetClaimed}
-              onClaim={() => claimQuest('greet')}
-            />
-          </ul>
-          {/* Spacer fleksibel agar baris misi tetap menempel ke bawah kartu,
-              menyamakan garis basal dengan kartu tetangganya. */}
-          <div aria-hidden className="flex-1" />
-        </section>
-
-        {/* --- Transaksi Cepat --- */}
-        <section className="flex h-full flex-col rounded-2xl border border-line bg-white p-6 lg:col-span-4">
-          <div className="mb-3">
-            <h2 className="text-base font-bold text-forest">Transaksi Cepat</h2>
-            <p className="text-xs text-muted">Simulasi bayar & recehnya langsung ditabung</p>
           </div>
-          <ul className="space-y-2">
-            {QUICK_PRESETS.map(preset => (
-              <li
-                key={preset.id}
-                className="flex items-center gap-3 rounded-xl border border-line bg-ivory/70 p-2.5 transition-colors hover:border-emerald-200 hover:bg-emerald-50/40"
-              >
-                {/* Badge ikon berwarna per merchant — non-monochrome,
-                    dengan hover scale halus agar terasa hidup. */}
-                <span
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 hover:scale-105 ${preset.tone}`}
-                >
-                  <preset.Icon className="h-4.5 w-4.5" aria-hidden />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-forest truncate">{preset.label}</p>
-                  <p className="text-xs tabular-nums text-muted">
-                    Rp{preset.amount.toLocaleString('id-ID')}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleQuickSave(preset)}
-                  className="inline-flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-white transition-transform duration-150 hover:bg-brand-dark active:scale-95 sm:min-h-0"
-                >
-                  Tabung
-                </button>
-              </li>
-            ))}
-          </ul>
-          {/* Spacer fleksibel — menyamakan garis basal kartu ini dengan
-              "Misi Hari Ini" dan "Batas Harian". */}
-          <div aria-hidden className="flex-1" />
-        </section>
-
-        {/* --- Batas Harian ---
-            `justify-between` distribute 3 blok (header · ringkasan ·
-            input) ke atas/tengah/bawah, sehingga bagian tengah kartu tidak
-            terlihat seperti rongga putih dibanding kartu tetangganya. */}
-        <section className="flex h-full flex-col justify-between gap-4 rounded-2xl border border-line bg-white p-6 lg:col-span-4">
-          <div>
-            <h2 className="text-base font-bold text-forest">Batas Harian</h2>
-            <p className="text-xs text-muted">Batas tabungan maksimal per hari</p>
-          </div>
-
-          <div>
-            <div className="mb-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-              <div
-                className="h-full rounded-full bg-brand transition-all duration-500"
-                style={{ width: `${capPercent}%` }}
-              />
-            </div>
-            <p className="truncate text-xs font-medium text-muted">
-              Terpakai Rp{formatRupiah(displayToday)} dari Rp{formatRupiah(displayCap)}
-            </p>
-
-            {/* Ringkasan tengah: sisa kuota yang masih bisa ditabung hari
-                ini. Bukan dekorasi — angkanya ikut terisi real-time.
-                `overflow-hidden` + `truncate` menjaga agar nominal panjang
-                tetap terpotong rapi di dalam kartu, tidak pernah meluber. */}
-            <div className="mt-3 flex max-w-full items-center justify-between gap-2 overflow-hidden rounded-xl border border-emerald-100/60 bg-emerald-50/50 px-3.5 py-3">
-              <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-slate-600">
-                <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-brand" aria-hidden />
-                <span className="max-w-full truncate">Sisa Limit Tabungan</span>
-              </span>
-              <span
-                className={`min-w-0 max-w-full truncate text-sm font-black tabular-nums ${capExhausted ? 'text-rose-600' : 'text-brand'}`}
-                title={`Rp${formatRupiah(capRemaining)}`}
-              >
-                Rp{formatRupiah(capRemaining)}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <input
-              type="number"
-              min={0}
-              max={MAX_DAILY_CAP}
-              // `maxLength` diabaikan browser untuk `type="number"`; pembatas
-              // sesungguhnya ditegakkan `clampDailyCap` di onChange + `max`.
-              maxLength={8}
-              inputMode="numeric"
-              aria-label="Nominal batas harian"
-              aria-describedby="daily-cap-hint"
-              value={dailyCapDraft}
-              onChange={e => setDailyCapDraft(clampDailyCap(Number(e.target.value)))}
-              className="min-w-0 flex-1 rounded-xl border border-line bg-white px-3 py-2.5 text-sm tabular-nums text-forest outline-none transition-colors focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
-            />
-            <button
-              type="button"
-              onClick={handleSaveDailyCap}
-              disabled={dailyCapDraft === displayCap}
-              className="shrink-0 rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-white transition-all duration-200 active:scale-95 hover:bg-brand-dark disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-muted min-h-11 sm:min-h-0"
-            >
-              Simpan
-            </button>
-          </div>
-          <p id="daily-cap-hint" className="-mt-2 text-[11px] text-muted">
-            Maksimal Rp10.000.000 per hari.
-          </p>
-        </section>
+        </div>
       </div>
       </main>
       )}
@@ -1768,40 +1381,15 @@ export default function AsetaApp() {
               </p>
             </div>
           </div>
-          {/* Preset belanja — pembayaran instan, tanpa kamera. */}
-          <div className="mt-4 rounded-2xl border border-line bg-white p-5">
-            <h3 className="mb-3 text-base font-bold text-forest">Preset Belanja</h3>
-            <p className="mb-3 text-xs text-muted">
-              Klik “Bayar” untuk langsung menabung recehnya.
-            </p>
-            <ul className="space-y-2">
-              {QUICK_PRESETS.map(preset => (
-                <li
-                  key={preset.id}
-                  className="flex items-center gap-3 rounded-xl border border-line bg-ivory/70 p-3"
-                >
-                  {/* Badge warna per merchant — konsisten dengan tab Beranda */}
-                  <span
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 hover:scale-105 ${preset.tone}`}
-                  >
-                    <preset.Icon className="h-4.5 w-4.5" aria-hidden />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-forest">{preset.label}</p>
-                    <p className="text-xs tabular-nums text-muted">
-                      Rp{preset.amount.toLocaleString('id-ID')}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleQuickSave(preset)}
-                    className="inline-flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-white transition-transform duration-150 hover:bg-brand-dark active:scale-95 sm:min-h-0"
-                  >
-                    Bayar
-                  </button>
-                </li>
-              ))}
-            </ul>
+          {/* Preset belanja — pembayaran instan, tanpa kamera. Komponen yang
+              sama dengan tab Beranda, hanya label tombolnya "Bayar". */}
+          <div className="mt-4">
+            <QuickTransactions
+              title="Preset Belanja"
+              subtitle="Klik “Bayar” untuk langsung menabung recehnya."
+              actionLabel="Bayar"
+              onSave={handleQuickSave}
+            />
           </div>
 
           {/* Input manual */}

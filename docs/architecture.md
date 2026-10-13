@@ -15,10 +15,21 @@ aseta-app/
 │   ├── page.tsx             # Landing page (server component): hero, simulator, cara kerja
 │   ├── globals.css          # Tailwind v4 (@import "tailwindcss") + token @theme
 │   ├── favicon.ico
-│   └── dashboard/page.tsx   # Dashboard penuh ('use client', ±2.050 baris) — MASIH DIPAKAI
+│   └── dashboard/page.tsx   # Dashboard penuh ('use client', ±1.930 baris) — MASIH DIPAKAI
 ├── components/
 │   ├── HeroMascot3D.tsx     # Panggung hero 3D: Telur Aseta (fallback) + Spline opsional
-│   └── QrisRoundUpSimulator.tsx  # Simulator round-up interaktif di landing
+│   ├── QrisRoundUpSimulator.tsx  # Simulator round-up interaktif di landing
+│   ├── EvolveGuideView.tsx  # Tab "Evolusi & Panduan" (pratinjau Lv 1–10)
+│   ├── MascotAura.tsx       # Peta aura/glow maskot per level + partikel evolusi
+│   └── dashboard/           # Kartu presentasional tab Beranda (murni props)
+│       ├── TotalAssetsSummary.tsx   # Blok "Total Aset Saya" + breakdown 3 baris
+│       ├── PortfolioAllocation.tsx  # Split bar 60/40, porsi emas/reksa, grafik, Cairkan
+│       ├── SavingsProjection.tsx    # Kalkulator bunga majemuk + konstanta proyeksi
+│       ├── AnalyticsTabs.tsx         # Widget 2-tab MOBILE (Portofolio | Proyeksi)
+│       ├── QuickTransactions.tsx     # Kartu transaksi cepat + QUICK_PRESETS
+│       ├── DailyMissions.tsx         # Kartu misi harian + QuestRow
+│       ├── DailyLimit.tsx            # Kartu batas harian (akordeon di mobile)
+│       └── GrowthChart.tsx           # Grafik garis SVG 7 hari
 ├── utils/aseta.ts           # Logika murni: calculateRoundUp, getMascotLevel, getXpProgress,
 │                            #   formatRupiah, clampDailyCap, MAX_DAILY_CAP
 ├── utils/sound.ts           # Efek suara sintetis Web Audio API (dipakai dashboard & hero)
@@ -102,11 +113,39 @@ Alur data:
    `getMascotLevel()`, `getXpProgress()`, split 60/40, `monthlyReturn`,
    `mascotAura(level)`, filter pencarian & rentang riwayat.
 
-Komponen pendukung di file yang sama (presentasional, murni dari props):
-`GrowthChart` (grafik garis SVG 7 hari), `QuestRow` (baris misi harian),
-`SavingsProjection` (kalkulator proyeksi bunga majemuk, state lokal slider),
-`AuraDust` (partikel debu aura), plus konfigurasi onboarding tour (`TOUR_STEPS`
-dengan 4 langkah: hero-mascot → portfolio → xp-bar → scan-nav).
+Komponen pendukung dipisah ke `components/dashboard/` (semua presentasional,
+murni dari props → aman terhadap hydration mismatch):
+
+| Komponen | Isi | Dipakai di |
+|---|---|---|
+| `TotalAssetsSummary` | nominal utama "Total Aset Saya" + breakdown (Tabungan · Dompet · Hari Ini) | dalam kartu hero, kolom kiri |
+| `PortfolioAllocation` | split bar 60/40, dua kartu porsi, grafik 7 hari, tombol "Cairkan Aset" | kolom kiri (desktop, kartu penuh) **dan** tab "Portofolio" (`bare`) |
+| `SavingsProjection` | slider setoran harian + estimasi 1/3/5 tahun | kolom kanan (desktop, kartu penuh) **dan** tab "Proyeksi" (`bare`) |
+| `AnalyticsTabs` | widget 2-tab khusus mobile | hanya mobile (`lg:hidden`) |
+| `QuickTransactions` | chip aksi preset + `QUICK_PRESETS` | tab Beranda (label "Tabung") & tab Scan (label "Bayar") |
+| `DailyMissions` | 3 misi harian + `QuestRow` | kolom kanan |
+| `DailyLimit` | progres, sisa kuota, input batas harian | kolom kanan (desktop penuh · mobile akordeon) |
+| `GrowthChart` | grafik garis SVG 7 hari | dipakai `PortfolioAllocation` |
+
+Properti `bare` dipakai agar isi yang tampil di dalam tab tidak memakai chrome
+kartu lagi (tidak ada kartu bersarang). Konfigurasi onboarding tour
+(`TOUR_STEPS` dengan 4 langkah: hero-mascot → portfolio → xp-bar → scan-nav)
+tetap di `app/dashboard/page.tsx`; `data-tour="portfolio"` muncul di dua
+konteks (kartu desktop & widget mobile) dan tour memilih elemen yang terlihat.
+
+### Layout tab Beranda
+
+Grid utama `grid grid-cols-1 items-start gap-6 lg:grid-cols-12` dengan **dua
+wrapper kolom** (bukan auto-placement per kartu) agar tinggi tiap kolom
+mengikuti isinya sendiri dan tidak ada celah putih menggantung:
+
+| | Mobile (satu kolom) | Desktop `lg:` |
+|---|---|---|
+| Kolom kiri (`lg:col-span-7`) | kartu hero maskot (panggung maskot → total aset → XP bar), lalu widget analitik 2-tab | kartu hero maskot (badan kartu dibagi 2 kolom internal: panggung maskot \| ringkasan aset + XP), lalu Alokasi Portofolio |
+| Kolom kanan (`lg:col-span-5`) | Transaksi Cepat (chip geser horizontal) → Misi Hari Ini → Batas Harian (akordeon tertutup) | Transaksi Cepat (daftar vertikal) → Misi Hari Ini → Proyeksi Tabungan → Batas Harian (terbuka penuh) |
+
+Kartu khusus per breakpoint dibungkus `<div className="hidden lg:block">` /
+`lg:hidden`, bukan menumpuk `hidden` dengan `flex` pada elemen yang sama.
 
 ---
 
@@ -223,12 +262,15 @@ streak, dan growth **dipertahankan**.
 - `GOLD_GRAM_PRICE = 1_200_000` Rp/gram (angka simulasi) →
   `goldGrams = goldValue / GOLD_GRAM_PRICE` untuk tampilan gram emas.
 - Widget **Proyeksi Tabungan** (`SavingsProjection`) adalah kartu penuh di
-  **Kolom 2** (lebar 2 dari 3 kolom visual = kolom 4–9 pada grid 12), tepat di
-  bawah Alokasi Portofolio dan di atas Misi Hari Ini:
+  **kolom kanan** (5 dari 12 kolom) pada `lg:`, dan menjadi tab "Proyeksi"
+  di dalam `AnalyticsTabs` pada mobile:
   slider setoran harian `PROJECTION_MIN/MAX/STEP = 5000 / 50000 / 1000`,
   default `PROJECTION_DEFAULT = 10000`; helper murni `projectSavings(daily, years)`
   memakai bunga harian `0.042 / 365` dan model annuity-due (setoran di awal
   hari). Horizon tampilan: `PROJECTION_HORIZONS = [1, 3, 5]` tahun.
+  Subteks "hasil" = `total - projectContribution(daily, years)` dengan
+  `projectContribution = daily × 365 × years` — **faktor `years` wajib ikut**,
+  kalau tidak maka horizon 3 dan 5 tahun terlihat nol hasil.
   Angka **simulasi**, bukan imbal hasil nyata.
 
 ### Misi harian & hadiah XP — `claimQuest()`
@@ -244,9 +286,14 @@ Tiap tap maskot di dashboard juga memunculkan partikel "+50 XP" yang melayang
 
 ### Target sentuh & micro-interaksi
 
-- Tombol ringkas (preset, "Klaim XP", "Cairkan Aset", "Simpan", "Bayar →")
+- Tombol ringkas (preset, "Klaim XP", "Cairkan Aset", "Simpan", "Bayar")
   memakai `min-h-11 sm:min-h-0` → tinggi sentuh ≥ 44px di mobile, kembali
-  otomatis di desktop.
+  otomatis di desktop. Label memakai teks saja — **tanpa panah literal**
+  (`->` maupun `→`) di mana pun.
+- Input "Batas Harian" memakai `type="text" inputMode="numeric"`,
+  `maxLength={DAILY_CAP_MAX_DIGITS}` (8 digit = `MAX_DAILY_CAP`) plus
+  penyaringan non-digit dan `clampDailyCap()`. `maxLength` diabaikan browser
+  pada `type="number"`, jadi tipe `text` memang dipilih agar batasnya benar.
 - Slider (`input[type=range]`) memakai `h-11 sm:h-5` agar lua area sentuhnya
   layak di layar sentuh.
 - Tombol aksi utama memakai `transition-all duration-200 active:scale-95`; kartu
