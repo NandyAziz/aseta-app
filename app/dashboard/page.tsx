@@ -533,7 +533,7 @@ function SavingsProjection({ className = '' }: { className?: string }) {
 
   return (
     <section
-      className={`flex h-full min-w-0 flex-col rounded-2xl border border-slate-100 bg-white p-4 sm:p-6 ${className}`}
+      className={`flex h-full min-w-0 flex-col rounded-2xl border border-line bg-white p-4 sm:p-6 ${className}`}
     >
       {/* Header: ikon gradien emerald→teal + pill imbal hasil, sejajar dengan
           badge ikon berwarna di "Transaksi Cepat" agar ritme visual sama. */}
@@ -1112,9 +1112,11 @@ export default function AsetaApp() {
   const xpLabel = mascot.level >= MAX_LEVEL
     ? 'Level Maksimal 🏆'
     : `${xp.current.toLocaleString('id-ID')} / ${xp.next.toLocaleString('id-ID')} XP`;
+  // Rank sudah tampil di bawah ilustrasi maskot, jadi baris petunjuk XP
+  // menampilkan target level BERIKUTNYA — bukan mengulang rank yang sama.
   const xpHint = mascot.level >= MAX_LEVEL
-    ? `${mascot.title} — Aseta telah mencapai evolusi terakhir`
-    : `${mascot.title} · ke level berikutnya`;
+    ? 'Aseta telah mencapai evolusi terakhir'
+    : `${LEVEL_TARGETS[mascot.level].toLocaleString('id-ID')} XP lagi ke Lv. ${mascot.level + 1}`;
   const aura = mascotAura(mascot.level);
 
   // --- Breakdown "Total Aset": Tabungan (portofolio) + Saldo Dompet + imbal hasil bulan ini ---
@@ -1235,14 +1237,17 @@ export default function AsetaApp() {
             menempel snug di dasar kartu tanpa mendorong layout meluber. --- */}
         <section
           data-tour="hero-mascot"
-          className={`flex h-full flex-col space-y-2.5 rounded-2xl border border-slate-100 bg-white p-5 lg:col-span-4 lg:row-span-2 ${isTourActive && tourStep === 0 ? 'relative z-50 ring-4 ring-emerald-400 ring-offset-2' : ''}`}
+          className={`flex h-full flex-col space-y-2.5 rounded-2xl border border-line bg-white p-5 lg:col-span-4 lg:row-span-2 ${isTourActive && tourStep === 0 ? 'relative z-50 ring-4 ring-emerald-400 ring-offset-2' : ''}`}
         >
           {/* Header: streak + badge level */}
           <div className="flex items-center justify-between gap-2">
-            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 ring-1 ring-inset ring-amber-200">
+            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200/70 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
               🔥 {displayStreak} Hari
             </span>
-            <span className="rounded-full bg-gold px-2.5 py-1 text-xs font-black text-forest ring-1 ring-inset ring-amber-300/60" title={mascot.title}>
+            <span
+              className="inline-flex items-center gap-1 rounded-full border border-amber-300/60 bg-gold px-2.5 py-1 text-xs font-black text-forest"
+              title={mascot.title}
+            >
               Lv. {mascot.level}
             </span>
           </div>
@@ -1331,12 +1336,16 @@ export default function AsetaApp() {
             )}
           </div>
 
-          {/* Nama & gelar rank — tetap statis agar tidak tampil ganda dengan
-              nama tahap evolusi (mis. "Aseta Mandiri" / "ASETA LEGEND"). */}
+          {/* Nama tahap + gelar rank — keduanya berasal dari `getMascotLevel()`
+              sehingga ikut berubah mengikuti level: Lv 1-3 "Telur Aseta",
+              Lv 4-6 "Aseta Muda", Lv 7-10 "Aseta Mandiri", dengan rank
+              per-level ("Penabung Pemula" … "Sultan Aseta"). */}
           <div className="text-center">
-            <h2 className="text-lg font-black tracking-tight text-forest">Aseta</h2>
+            <h2 className="text-lg font-black tracking-tight text-forest">
+              {mascot.name}
+            </h2>
             <p className="text-xs font-bold tracking-wider text-amber-600 uppercase mt-0.5">
-              ASETA LEGEND
+              {mascot.title}
             </p>
             {/* Level Maksimal Lv 10 — label teks polos, bukan pill bergradien. */}
             {mascot.level >= 10 && (
@@ -1349,7 +1358,7 @@ export default function AsetaApp() {
           {/* Total Aset: nominal utama + breakdown (Tabungan · Dompet · Imbal hasil).
               Tanpa badge "Diinvestasikan Otomatis" — tipografi saja sudah
               cukup menjelaskan konteksnya. */}
-          <div className="flex flex-col gap-1 rounded-xl border border-slate-100 p-2.5">
+          <div className="flex flex-col gap-1 rounded-xl border border-line bg-ivory/60 p-2.5">
             <p className="text-center text-xs font-medium text-muted">Total Aset Saya</p>
             <p className="text-center text-xl font-black tabular-nums whitespace-nowrap text-forest sm:text-2xl lg:text-3xl">
               Rp{totalWealth.toLocaleString('id-ID')}
@@ -1362,29 +1371,29 @@ export default function AsetaApp() {
                 "Total Aset" tetap satu-satunya yang menonjol. */}
             <div className="mt-1.5 flex flex-col gap-1 border-t border-line/70 pt-2">
               <div className="flex items-center justify-between gap-2">
-                <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-slate-500">
+                <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-muted">
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-emerald-50">
                     <TrendingUp className="h-3 w-3 text-brand" aria-hidden />
                   </span>
                   <span className="truncate">Tabungan</span>
                 </span>
-                <span className="shrink-0 text-xs font-semibold tabular-nums text-slate-600">
+                <span className="shrink-0 text-xs font-semibold tabular-nums text-forest">
                   +Rp{investedPortion.toLocaleString('id-ID')}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-2">
-                <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-slate-500">
+                <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-muted">
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-sky-50">
                     <Wallet className="h-3 w-3 text-sky-500" aria-hidden />
                   </span>
                   <span className="truncate">Saldo Dompet</span>
                 </span>
-                <span className="shrink-0 text-xs font-semibold tabular-nums text-slate-600">
+                <span className="shrink-0 text-xs font-semibold tabular-nums text-forest">
                   Rp{walletPortion.toLocaleString('id-ID')}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-2">
-                <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-slate-500">
+                <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-muted">
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-amber-50">
                     <Sparkles className="h-3 w-3 text-amber-500" aria-hidden />
                   </span>
@@ -1423,7 +1432,7 @@ export default function AsetaApp() {
         {/* --- Alokasi Portofolio: 2 dari 3 kolom visual (8 dari 12) --- */}
         <section
           data-tour="portfolio"
-          className={`flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-6 lg:col-span-8 ${isTourActive && tourStep === 1 ? 'relative z-50 ring-4 ring-emerald-400 ring-offset-2' : ''}`}
+          className={`flex h-full flex-col rounded-2xl border border-line bg-white p-6 lg:col-span-8 ${isTourActive && tourStep === 1 ? 'relative z-50 ring-4 ring-emerald-400 ring-offset-2' : ''}`}
         >
           <div className="mb-3 flex items-center justify-between gap-2">
             <div>
@@ -1487,7 +1496,7 @@ export default function AsetaApp() {
         <SavingsProjection className="lg:col-span-8" />
 
         {/* --- Misi Hari Ini --- */}
-        <section className="flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-6 lg:col-span-4">
+        <section className="flex h-full flex-col rounded-2xl border border-line bg-white p-6 lg:col-span-4">
           <div className="mb-3">
             <h2 className="text-base font-bold text-forest">Misi Hari Ini</h2>
             <p className="text-xs text-muted">Selesaikan misi, klaim XP untuk maskotmu</p>
@@ -1524,7 +1533,7 @@ export default function AsetaApp() {
         </section>
 
         {/* --- Transaksi Cepat --- */}
-        <section className="flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-6 lg:col-span-4">
+        <section className="flex h-full flex-col rounded-2xl border border-line bg-white p-6 lg:col-span-4">
           <div className="mb-3">
             <h2 className="text-base font-bold text-forest">Transaksi Cepat</h2>
             <p className="text-xs text-muted">Simulasi bayar & recehnya langsung ditabung</p>
@@ -1543,7 +1552,7 @@ export default function AsetaApp() {
                   <preset.Icon className="h-4.5 w-4.5" aria-hidden />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-slate-800 truncate">{preset.label}</p>
+                  <p className="text-sm font-semibold text-forest truncate">{preset.label}</p>
                   <p className="text-xs tabular-nums text-muted">
                     Rp{preset.amount.toLocaleString('id-ID')}
                   </p>
@@ -1567,7 +1576,7 @@ export default function AsetaApp() {
             `justify-between` distribute 3 blok (header · ringkasan ·
             input) ke atas/tengah/bawah, sehingga bagian tengah kartu tidak
             terlihat seperti rongga putih dibanding kartu tetangganya. */}
-        <section className="flex h-full flex-col justify-between gap-4 rounded-2xl border border-slate-100 bg-white p-6 lg:col-span-4">
+        <section className="flex h-full flex-col justify-between gap-4 rounded-2xl border border-line bg-white p-6 lg:col-span-4">
           <div>
             <h2 className="text-base font-bold text-forest">Batas Harian</h2>
             <p className="text-xs text-muted">Batas tabungan maksimal per hari</p>
@@ -1627,7 +1636,7 @@ export default function AsetaApp() {
       {/* ===== Tab Scan (QRIS) — tampilan bersih, tanpa mutasi state ===== */}
       {activeTab === 'scan' && (
         <main className="mx-auto max-w-2xl px-4 py-6 pb-28 sm:px-6 md:pb-10">
-          <div className="rounded-2xl border border-slate-100 bg-white p-5">
+          <div className="rounded-2xl border border-line bg-white p-5">
             <h2 className="text-base font-bold text-forest">Scan QRIS</h2>
             <p className="text-xs text-muted">
               Arahkan kamera ke struk QRIS merchant, atau pakai preset di bawah.
@@ -1658,13 +1667,11 @@ export default function AsetaApp() {
                 {isScanning ? 'Memindai...' : 'Mulai Scan'}
               </button>
               <p className="text-center text-[11px] text-muted">
-                Pemindaian tidak menambah tabungan — pilih preset atau isi input di bawah
-                untuk menabung.
               </p>
             </div>
           </div>
           {/* Preset belanja */}
-          <div className="mt-4 rounded-2xl border border-slate-100 bg-white p-5">
+          <div className="mt-4 rounded-2xl border border-line bg-white p-5">
             <h3 className="mb-3 text-base font-bold text-forest">Preset Belanja</h3>
             <ul className="space-y-2">
               {QUICK_PRESETS.map(preset => (
@@ -1697,7 +1704,7 @@ export default function AsetaApp() {
           </div>
 
           {/* Input manual */}
-          <div className="mt-4 rounded-2xl border border-slate-100 bg-white p-5">
+          <div className="mt-4 rounded-2xl border border-line bg-white p-5">
             <h3 className="mb-3 text-base font-bold text-forest">Input Manual</h3>
             <div className="flex flex-col gap-2 sm:flex-row">
               <input
@@ -1733,7 +1740,7 @@ export default function AsetaApp() {
       {/* ===== Tab Riwayat — filter pencarian & rentang hari ===== */}
       {activeTab === 'history' && (
         <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 py-6 pb-28 sm:px-6 md:pb-10">
-          <div className="rounded-2xl border border-slate-100 bg-white p-5">
+          <div className="rounded-2xl border border-line bg-white p-5">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-base font-bold text-forest">Riwayat Transaksi</h2>
@@ -1855,7 +1862,7 @@ export default function AsetaApp() {
           </div>
 
           {/* Daftar 10 level */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-5">
+          <div className="rounded-2xl border border-line bg-white p-5">
             <h3 className="mb-3 text-sm font-bold text-forest">Rincian 10 Level</h3>
             <ul className="space-y-2">
               {LEVEL_TITLES.map((title, idx) => {
@@ -1992,7 +1999,7 @@ export default function AsetaApp() {
               exit={{ scale: 0.9, y: 20 }}
               transition={{ type: 'spring', stiffness: 320, damping: 24 }}
               onClick={e => e.stopPropagation()}
-              className="w-full max-w-sm rounded-2xl border border-slate-100 bg-white p-6 shadow-sm"
+              className="w-full max-w-sm rounded-2xl border border-line bg-white p-6 shadow-sm"
             >
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-50">
                 <RotateCcw className="h-6 w-6 text-rose-500" aria-hidden />
@@ -2041,7 +2048,7 @@ export default function AsetaApp() {
               exit={{ scale: 0.9, y: 20 }}
               transition={{ type: 'spring', stiffness: 320, damping: 24 }}
               onClick={e => e.stopPropagation()}
-              className="w-full max-w-sm rounded-2xl border border-slate-100 bg-white p-6 shadow-sm"
+              className="w-full max-w-sm rounded-2xl border border-line bg-white p-6 shadow-sm"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -2140,7 +2147,7 @@ export default function AsetaApp() {
             role="dialog"
             aria-modal="true"
             aria-label={`Panduan langkah ${tourStep + 1} dari ${TOUR_STEPS.length}`}
-            className="fixed bottom-12 left-1/2 z-60 w-[90%] max-w-sm -translate-x-1/2 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"
+            className="fixed bottom-12 left-1/2 z-60 w-[90%] max-w-sm -translate-x-1/2 rounded-2xl border border-line bg-white p-5 shadow-sm"
           >
             <div className="flex items-start gap-3">
               <Image
