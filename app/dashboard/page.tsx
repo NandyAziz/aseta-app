@@ -1204,11 +1204,11 @@ export default function AsetaApp() {
             giants yang "terlempar" sendirian di dasar halaman). --- */}
         <div className="mb-5 flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="truncate text-lg font-black tracking-tight text-forest sm:text-2xl">
-              Halo, {mascot.name} menunggumu 👋
+            <h1 className="text-base sm:text-xl font-bold tracking-tight text-forest">
+              Halo, Aseta menunggumu 👋
             </h1>
-            <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
-              Yuk, putar receh hari ini jadi aset yang tumbuh.
+            <p className="text-xs sm:text-sm text-muted">
+              Putar receh hari ini jadi aset.
             </p>
           </div>
           <button
