@@ -231,47 +231,89 @@ function mascotAura(level: number): {
   breathe: string;
   imgShadow: string;
 } {
-  // Lv 10 — Sultan Aseta: backing emas menyatu + denyut lembut.
+  // Lv 10 — Sultan Aseta: aura emas + cyan berlapis, denyut, backlight maksimal.
   if (level >= 10) {
     return {
-      glow: 'bg-gold/30 blur-2xl',
+      glow: 'bg-gold/45 blur-2xl shadow-[0_0_46px_10px_rgba(229,180,84,0.45),0_0_90px_22px_rgba(34,211,238,0.28)]',
       glowAnim: 'animate-aura-breathe',
-      ring: 'ring-1 ring-amber-200/50 ring-offset-2 ring-offset-white',
-      scale: '',
+      ring: 'ring-2 ring-amber-200/70 ring-offset-2 ring-offset-white',
+      scale: 'scale-[1.06]',
       breathe: '',
-      imgShadow: 'drop-shadow-[0_0_14px_rgba(229,180,84,0.35)]',
+      imgShadow: 'drop-shadow-[0_0_22px_rgba(229,180,84,0.55)] drop-shadow-[0_0_10px_rgba(34,211,238,0.35)]',
     };
   }
-  // Lv 7-9 — Naga Dewasa: backlight Amber Gold, Lv 9 lebih terang + denyut.
+  // Lv 9 — Aseta Legend: emas terang + aksen cyan, denyut aktif.
+  if (level >= 9) {
+    return {
+      glow: 'bg-gold/38 blur-2xl shadow-[0_0_38px_8px_rgba(229,180,84,0.38),0_0_72px_16px_rgba(34,211,238,0.22)]',
+      glowAnim: 'animate-aura-breathe',
+      ring: 'ring-2 ring-amber-200/60 ring-offset-2 ring-offset-white',
+      scale: 'scale-[1.05]',
+      breathe: '',
+      imgShadow: 'drop-shadow-[0_0_18px_rgba(229,180,84,0.45)] drop-shadow-[0_0_8px_rgba(34,211,238,0.28)]',
+    };
+  }
+  // Lv 8 — Naga Dewasa kematangan: emas pekat, backlight kuat berlapis.
+  if (level >= 8) {
+    return {
+      glow: 'bg-gold/32 blur-xl shadow-[0_0_30px_6px_rgba(229,180,84,0.32)]',
+      glowAnim: 'animate-aura-breathe',
+      ring: 'ring-1 ring-amber-200/55 ring-offset-2 ring-offset-white',
+      scale: 'scale-[1.04]',
+      breathe: '',
+      imgShadow: 'drop-shadow-[0_0_14px_rgba(229,180,84,0.34)]',
+    };
+  }
+  // Lv 7 — Naga Dewasa: emas masuk, multi-layer baru mulai terasa.
   if (level >= 7) {
-    const bright = level >= 9;
     return {
-      glow: bright ? 'bg-gold/30 blur-2xl' : 'bg-gold/25 blur-xl',
-      glowAnim: bright ? 'animate-aura-breathe' : '',
-      ring: 'ring-1 ring-amber-200/40 ring-offset-2 ring-offset-white',
-      scale: '',
+      glow: 'bg-amber-400/28 blur-xl shadow-[0_0_22px_4px_rgba(245,158,11,0.28)]',
+      glowAnim: '',
+      ring: 'ring-1 ring-amber-200/50 ring-offset-2 ring-offset-white',
+      scale: 'scale-[1.03]',
       breathe: '',
-      imgShadow: 'drop-shadow-[0_0_10px_rgba(229,180,84,0.22)]',
+      imgShadow: 'drop-shadow-[0_0_12px_rgba(245,158,11,0.28)]',
     };
   }
-  // Lv 4-6 — Bayi Naga: backlight Emerald lembut; Lv 6 scale-[1.03].
-  if (level >= 4) {
-    const bigger = level >= 6;
+  // Lv 6 — Bayi Naga melanapas: emerald kuat, aura melebar, skala naik.
+  if (level >= 6) {
     return {
-      glow: 'bg-brand/20 blur-xl',
+      glow: 'bg-emerald-400/30 blur-lg shadow-[0_0_20px_4px_rgba(52,211,153,0.26)]',
       glowAnim: '',
-      ring: 'ring-1 ring-emerald-200/40 ring-offset-2 ring-offset-white',
-      scale: bigger ? 'scale-[1.03]' : '',
+      ring: 'ring-1 ring-emerald-200/55 ring-offset-2 ring-offset-white',
+      scale: 'scale-[1.03]',
+      breathe: '',
+      imgShadow: 'drop-shadow-[0_0_10px_rgba(16,185,129,0.28)]',
+    };
+  }
+  // Lv 5 — Bayi Naga: emerald mulai menyala, cincin lebih tegas.
+  if (level >= 5) {
+    return {
+      glow: 'bg-brand/30 blur-lg shadow-[0_0_16px_3px_rgba(4,120,87,0.24)]',
+      glowAnim: '',
+      ring: 'ring-1 ring-emerald-200/50 ring-offset-2 ring-offset-white',
+      scale: '',
+      breathe: '',
+      imgShadow: 'drop-shadow-[0_0_8px_rgba(4,120,87,0.24)]',
+    };
+  }
+  // Lv 4 — Bayi Naga menetas: backlight emerald pertama yang terasa.
+  if (level >= 4) {
+    return {
+      glow: 'bg-brand/22 blur-lg',
+      glowAnim: '',
+      ring: 'ring-1 ring-emerald-200/45 ring-offset-2 ring-offset-white',
+      scale: '',
       breathe: '',
       imgShadow: 'drop-shadow-md',
     };
   }
-  // Lv 3 — Telur siap menetas: backlight lebih hangat + "bernapas".
+  // Lv 3 — Telur siap menetas: aura sage lebih terang + "bernapas".
   if (level >= 3) {
     return {
-      glow: 'bg-muted/20 blur-xl',
+      glow: 'bg-sage/28 blur-lg',
       glowAnim: '',
-      ring: 'ring-1 ring-slate-200/50 ring-offset-2 ring-offset-white',
+      ring: 'ring-1 ring-slate-200/60 ring-offset-2 ring-offset-white',
       scale: '',
       breathe: 'animate-egg-breathe',
       imgShadow: 'drop-shadow-md',
@@ -280,7 +322,7 @@ function mascotAura(level: number): {
   // Lv 2 — Telur: backlight sage tipis + "bernapas" halus.
   if (level >= 2) {
     return {
-      glow: 'bg-sage/20 blur-xl',
+      glow: 'bg-sage/18 blur-xl',
       glowAnim: '',
       ring: 'ring-1 ring-line ring-offset-2 ring-offset-white',
       scale: '',
@@ -288,9 +330,9 @@ function mascotAura(level: number): {
       imgShadow: 'drop-shadow-md',
     };
   }
-  // Lv 1 — Telur utuh polos: ring & bayangan natural saja.
+  // Lv 1 — Telur utuh polos: aura sangat samar, tanpa denyut.
   return {
-    glow: 'bg-slate-50/60 blur-xl',
+    glow: 'bg-slate-50/50 blur-xl',
     glowAnim: '',
     ring: 'ring-1 ring-line ring-offset-2 ring-offset-white',
     scale: '',
@@ -320,20 +362,52 @@ const EMBER_SPARKS = [
 ] as const;
 
 // Warna debu atmosferik per rentang level.
-type DustTone = 'sage' | 'emerald' | 'gold';
+type DustTone = 'sage' | 'emerald' | 'gold' | 'cyan';
 function dustToneForLevel(level: number): DustTone | null {
-  if (level >= 7) return 'gold';   // Lv 7-10 — naga dewasa: debu emas hangat
-  if (level >= 5) return 'emerald'; // Lv 5-6 — bayi naga: partikel emerald
-  if (level === 3) return 'sage';   // Lv 3 — telur siap menetas: percikan sage/silver
-  return null;                      // Lv 1, 2, 4 — tanpa debu tambahan
+  if (level >= 9) return 'cyan';   // Lv 9-10 — legend/sultan: debu cyan
+  if (level >= 7) return 'gold';   // Lv 7-8 — naga dewasa: debu emas hangat
+  if (level >= 4) return 'emerald'; // Lv 4-6 — bayi naga: partikel emerald
+  if (level >= 2) return 'sage';   // Lv 2-3 — telur: percikan sage/silver
+  return null;                      // Lv 1 — tanpa debu tambahan
+}
+
+// Profil intensitas partikel per level: berapa banyak, seberapa cepat, seberapa
+// terang, dan seberapa jauh mereka melayang. Level naik → jumlah & kecepatan naik.
+interface MoteProfile {
+  count: number;   // jumlah partikel aktif (dipotong dari AURA_DUST)
+  duration: number; // detik per satu siklus melayang
+  peakOpacity: number; // opacity puncak saat partikel paling terang
+  rise: number;    // jarak naik (px) — makin tinggi level, makin jauh partikel melayang
+  sparks: boolean; // apakah percikan ember aktif
+  sizeBoost: number; // pengali ukuran titik
+}
+
+const MOTE_PROFILES: Record<number, MoteProfile> = {
+  1: { count: 2, duration: 9.0, peakOpacity: 0.14, rise: 10, sparks: false, sizeBoost: 0.8 },
+  2: { count: 3, duration: 8.4, peakOpacity: 0.20, rise: 13, sparks: false, sizeBoost: 0.85 },
+  3: { count: 4, duration: 7.6, peakOpacity: 0.26, rise: 16, sparks: true, sizeBoost: 0.9 },
+  4: { count: 4, duration: 7.0, peakOpacity: 0.30, rise: 19, sparks: false, sizeBoost: 1 },
+  5: { count: 5, duration: 6.4, peakOpacity: 0.34, rise: 22, sparks: false, sizeBoost: 1 },
+  6: { count: 6, duration: 5.8, peakOpacity: 0.38, rise: 25, sparks: true, sizeBoost: 1.05 },
+  7: { count: 6, duration: 5.2, peakOpacity: 0.42, rise: 28, sparks: true, sizeBoost: 1.1 },
+  8: { count: 6, duration: 4.6, peakOpacity: 0.46, rise: 31, sparks: true, sizeBoost: 1.15 },
+  9: { count: 6, duration: 4.0, peakOpacity: 0.52, rise: 35, sparks: true, sizeBoost: 1.2 },
+  10: { count: 6, duration: 3.4, peakOpacity: 0.58, rise: 40, sparks: true, sizeBoost: 1.3 },
+};
+
+function moteProfileForLevel(level: number): MoteProfile {
+  const clamped = Math.min(MAX_LEVEL, Math.max(1, Math.floor(level) || 1));
+  return MOTE_PROFILES[clamped];
 }
 
 // Lapisan atmosferik evolusi maskot — komponen presentasional murni.
 // HANYA menghasilkan efek lembut di BELAKANG karakter (backlight & debu
 // rendah-opacity). TIDAK PERNAH menimpa ilustrasi: tanpa retakan, badge,
-// stiker, atau garis kasar. Seluruh opacity dijaga 0.2-0.4 agar natural.
+// stiker, atau garis kasar. Seluruh opacity dijaga rendah agar natural,
+// namun intensitasnya naik monoton mengikuti level.
 function MascotEvolutionMotes({ level }: { level: number }) {
   const tone = dustToneForLevel(level);
+  const profile = moteProfileForLevel(level);
   // Percikan telur (Lv 3) memakai animasi kedip lembut; sisanya melayang naik.
   if (level === 3) {
     return (
@@ -358,31 +432,63 @@ function MascotEvolutionMotes({ level }: { level: number }) {
   }
   if (!tone) return null;
   const dotColor =
-    tone === 'emerald' ? 'bg-emerald-500' : tone === 'gold' ? 'bg-amber-400' : 'bg-sage';
+    tone === 'cyan' ? 'bg-cyan-300'
+    : tone === 'emerald' ? 'bg-emerald-500'
+    : tone === 'gold' ? 'bg-amber-400'
+    : 'bg-sage';
   const glow =
-    tone === 'emerald'
-      ? '0 0 5px 1px rgba(16,185,129,0.25)'
-      : tone === 'gold'
-        ? '0 0 5px 1px rgba(251,191,36,0.25)'
-        : '0 0 5px 1px rgba(163,181,138,0.25)';
+    tone === 'cyan'
+      ? '0 0 6px 2px rgba(34,211,238,0.45)'
+      : tone === 'emerald'
+        ? '0 0 5px 1px rgba(16,185,129,0.25)'
+        : tone === 'gold'
+          ? '0 0 5px 1px rgba(251,191,36,0.25)'
+          : '0 0 5px 1px rgba(163,181,138,0.25)';
+
+  const dust = AURA_DUST.slice(0, profile.count);
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
-      {AURA_DUST.map((p) => (
+      {dust.map((p) => (
         <motion.span
           key={p.id}
           className={`absolute rounded-full ${dotColor}`}
           style={{
             left: p.left,
             bottom: p.bottom,
-            width: p.size,
-            height: p.size,
+            width: Math.max(2, Math.round(p.size * profile.sizeBoost)),
+            height: Math.max(2, Math.round(p.size * profile.sizeBoost)),
             boxShadow: glow,
           }}
-          // Melayang perlahan ke atas, muncul & menghilang samar (opacity ≤ 0.35).
-          animate={{ y: [0, -14, -30], opacity: [0, 0.35, 0] }}
-          transition={{ duration: 6.5, repeat: Infinity, delay: p.delay, ease: 'easeInOut' }}
+          // Melayang ke atas, muncul & menghilang samar. Durasi, jangkauan, dan
+          // opacity semuanya diambil dari profil level → makin tinggi level,
+          // makin cepat, makin terang, dan makin jauh partikelnya melayang.
+          animate={{ y: [0, -profile.rise / 2, -profile.rise], opacity: [0, profile.peakOpacity, 0] }}
+          transition={{ duration: profile.duration, repeat: Infinity, delay: p.delay, ease: 'easeInOut' }}
         />
       ))}
+      {/* Percikan ember aktif pada level tinggi (Lv 6+) — menambah "densitas"
+          tanpa menambah jumlah elemen DOM debu. */}
+      {profile.sparks &&
+        EMBER_SPARKS.map((s) => (
+          <motion.span
+            key={`ember-${s.id}`}
+            className={`absolute rounded-full ${dotColor}`}
+            style={{
+              left: s.left,
+              bottom: s.bottom,
+              width: Math.max(2, Math.round(s.size * profile.sizeBoost)),
+              height: Math.max(2, Math.round(s.size * profile.sizeBoost)),
+              boxShadow: glow,
+            }}
+            animate={{ opacity: [0, profile.peakOpacity * 0.9, 0], scale: [0.8, 1.15, 0.9] }}
+            transition={{
+              duration: profile.duration * 0.8,
+              repeat: Infinity,
+              delay: s.delay,
+              ease: 'easeInOut',
+            }}
+          />
+        ))}
     </div>
   );
 }
