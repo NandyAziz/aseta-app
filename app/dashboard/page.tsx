@@ -1331,11 +1331,12 @@ export default function AsetaApp() {
             )}
           </div>
 
-          {/* Nama evolusi + gelar level + status kesehatan maskot */}
+          {/* Nama & gelar rank — tetap statis agar tidak tampil ganda dengan
+              nama tahap evolusi (mis. "Aseta Mandiri" / "ASETA LEGEND"). */}
           <div className="text-center">
-            <h1 className="text-xl font-black tracking-tight text-forest sm:text-2xl">{mascot.name}</h1>
-            <p className="mt-0.5 text-xs font-bold uppercase tracking-wide text-amber-600">
-              {mascot.title}
+            <h2 className="text-lg font-black tracking-tight text-forest">Aseta</h2>
+            <p className="text-xs font-bold tracking-wider text-amber-600 uppercase mt-0.5">
+              ASETA LEGEND
             </p>
             {/* Level Maksimal Lv 10 — label teks polos, bukan pill bergradien. */}
             {mascot.level >= 10 && (
