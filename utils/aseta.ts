@@ -102,10 +102,25 @@ export interface MascotInfo {
   gif: string;
 }
 
+const MASCOT_NAMES = [
+  'Telur Aseta',
+  'Telur Aseta',
+  'Telur Aseta',
+  'Aseta Muda',
+  'Aseta Muda',
+  'Aseta Muda',
+  'Aseta Dewasa',
+  'Aseta Dewasa',
+  'Aseta Dewasa',
+  'Aseta Legenda',
+] as const;
+
 function stageForLevel(level: number): { name: string; gif: string } {
-  if (level <= 3) return { name: 'Telur Aseta', gif: '/mascot-egg.gif' };
-  if (level <= 6) return { name: 'Aseta Muda', gif: '/mascot-baby.gif' };
-  return { name: 'Aseta Mandiri', gif: '/mascot-adult.gif' };
+  const clamped = Math.min(MAX_LEVEL, Math.max(1, Math.floor(level) || 1));
+  return {
+    name: MASCOT_NAMES[clamped - 1],
+    gif: `/mascot${clamped}.gif`,
+  };
 }
 
 /**
