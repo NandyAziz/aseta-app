@@ -25,34 +25,37 @@ export function mascotAura(level: number): {
   imgShadow: string;
 } {
   // Lv 10 — Sultan Aseta: layered gold + cyan aura, pulse, maximum backlight.
+  // Larger scale (1.30) compensates for wider transparent canvas padding in mascot10.gif.
   if (level >= 10) {
     return {
       glow: 'bg-gold/45 blur-2xl shadow-[0_0_46px_10px_rgba(229,180,84,0.45),0_0_90px_22px_rgba(34,211,238,0.28)]',
       glowAnim: 'animate-aura-breathe',
       ring: 'ring-2 ring-amber-200/70 ring-offset-2 ring-offset-white',
-      scale: 'scale-[1.06]',
+      scale: 'scale-[1.30]',
       breathe: '',
       imgShadow: 'drop-shadow-[0_0_22px_rgba(229,180,84,0.55)] drop-shadow-[0_0_10px_rgba(34,211,238,0.35)]',
     };
   }
   // Lv 9 — Aseta Legend: bright gold + cyan accents, active pulse.
+  // Larger scale (1.28) compensates for wider transparent canvas padding in mascot9.gif.
   if (level >= 9) {
     return {
       glow: 'bg-gold/38 blur-2xl shadow-[0_0_38px_8px_rgba(229,180,84,0.38),0_0_72px_16px_rgba(34,211,238,0.22)]',
       glowAnim: 'animate-aura-breathe',
       ring: 'ring-2 ring-amber-200/60 ring-offset-2 ring-offset-white',
-      scale: 'scale-[1.05]',
+      scale: 'scale-[1.28]',
       breathe: '',
       imgShadow: 'drop-shadow-[0_0_18px_rgba(229,180,84,0.45)] drop-shadow-[0_0_8px_rgba(34,211,238,0.28)]',
     };
   }
   // Lv 8 — matured Naga Dewasa: deep gold, strong layered backlight.
+  // Larger scale (1.25) compensates for wider transparent canvas padding in mascot8.gif.
   if (level >= 8) {
     return {
       glow: 'bg-gold/32 blur-xl shadow-[0_0_30px_6px_rgba(229,180,84,0.32)]',
       glowAnim: 'animate-aura-breathe',
       ring: 'ring-1 ring-amber-200/55 ring-offset-2 ring-offset-white',
-      scale: 'scale-[1.04]',
+      scale: 'scale-[1.25]',
       breathe: '',
       imgShadow: 'drop-shadow-[0_0_14px_rgba(229,180,84,0.34)]',
     };
