@@ -926,7 +926,9 @@ export default function AsetaApp() {
   });
 
   return (
-    <div className="flex min-h-screen bg-ivory text-forest antialiased">
+    /* `w-full max-w-full overflow-x-hidden` sebagai pagar terakhir: konten
+       tab (mis. deretan Preset Belanja) tidak boleh melebarkan layar di HP. */
+    <div className="flex min-h-screen w-full max-w-full overflow-x-hidden bg-ivory text-forest antialiased">
       {/* ===== Sidebar — Desktop (md+) ===== */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-white md:flex">
         {/* Logo */}
@@ -1276,7 +1278,7 @@ export default function AsetaApp() {
 
       {/* ===== Tab Scan (QRIS) — tampilan bersih, tanpa mutasi state ===== */}
       {activeTab === 'scan' && (
-        <main className="mx-auto max-w-2xl px-4 py-6 pb-28 sm:px-6 md:pb-10">
+        <main className="mx-auto w-full min-w-0 max-w-2xl px-4 py-6 pb-28 sm:px-6 md:pb-10">
           <div className="rounded-2xl border border-line bg-white p-5">
             <h2 className="text-base font-bold text-forest">Scan QRIS</h2>
             <p className="text-xs text-muted">
@@ -1285,7 +1287,7 @@ export default function AsetaApp() {
 
             {/* Frame scanner: menampilkan feed kamera sungguhan, atau fallback
                 yang bersih ketika izin kamera ditolak / tidak didukung. */}
-            <div className="relative mt-4 flex aspect-4/3 w-full items-center justify-center overflow-hidden rounded-2xl bg-slate-900">
+            <div className="relative mt-4 flex aspect-4/3 w-full max-w-full items-center justify-center overflow-hidden rounded-2xl bg-slate-900">
               {/* Canvas off-screen untuk grabs frame → jsQR. Tidak terlihat. */}
               <canvas ref={scanCanvasRef} className="hidden" aria-hidden />
               {/* Feed kamera — selalu di-mount agar ref stabil; visibilitas

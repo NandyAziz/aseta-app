@@ -70,18 +70,18 @@ export default function QuickTransactions({
 }) {
   return (
     <section
-      className={`flex flex-col rounded-2xl border border-line bg-white p-4 sm:p-5 ${className}`}
+      className={`flex w-full min-w-0 max-w-full flex-col rounded-2xl border border-line bg-white p-4 sm:p-5 ${className}`}
     >
       <div className="mb-3">
         <h2 className="text-base font-bold text-forest">{title}</h2>
         <p className="text-xs text-muted">{subtitle}</p>
       </div>
 
-      <ul className="custom-scrollbar flex gap-3 overflow-x-auto pb-1 lg:flex-col lg:gap-2 lg:overflow-visible lg:pb-0">
+      <ul className="custom-scrollbar flex w-full min-w-0 max-w-full gap-3 overflow-x-auto overscroll-x-contain pb-2 lg:flex-col lg:gap-2 lg:overflow-visible lg:pb-0">
         {QUICK_PRESETS.map(preset => (
           <li
             key={preset.id}
-            className="flex w-52 shrink-0 snap-start flex-col gap-2 rounded-xl border border-line bg-ivory/70 p-3 transition-colors hover:border-emerald-200 hover:bg-emerald-50/40 lg:w-auto lg:shrink lg:flex-row lg:items-center lg:gap-3 lg:p-2.5"
+            className="flex w-52 max-w-full shrink-0 snap-start flex-col gap-2 rounded-xl border border-line bg-ivory/70 p-3 transition-colors hover:border-emerald-200 hover:bg-emerald-50/40 lg:w-auto lg:shrink lg:flex-row lg:items-center lg:gap-3 lg:p-2.5"
           >
             <div className="flex min-w-0 flex-1 items-center gap-2.5">
               {/* Badge ikon berwarna per merchant — non-monochrome,
