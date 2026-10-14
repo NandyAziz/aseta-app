@@ -114,6 +114,8 @@ function LevelShowcase({ className = '' }: { className?: string }) {
               </button>
             );
           })}
+          {/* Spacer to ensure last button (10) can scroll fully into view without being cut off by card edge */}
+          <span className="flex-shrink-0 w-8" aria-hidden />
         </div>
       </div>
 

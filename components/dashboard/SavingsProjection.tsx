@@ -123,7 +123,7 @@ export default function SavingsProjection({
               className="flex min-w-0 flex-col items-center justify-center overflow-hidden rounded-xl border border-emerald-100 bg-emerald-50/60 px-3 py-3 sm:px-3 sm:py-4 card-elevate transition-all duration-200"
             >
               <p className="text-[10px] font-bold uppercase tracking-wide text-muted">{years} Tahun</p>
-              <p className="mt-0.5 text-sm font-extrabold tracking-tight tabular-nums text-emerald-800 leading-tight sm:text-base lg:text-lg min-w-0 break-words">
+              <p className="mt-0.5 text-[11px] font-extrabold tracking-tight tabular-nums text-emerald-800 leading-tight sm:text-sm lg:text-base min-w-0 break-words overflow-hidden text-ellipsis">
                 Rp{total.toLocaleString('id-ID')}
               </p>
               <p className="mt-0.5 text-[10px] font-semibold tabular-nums text-muted sm:text-xs">
