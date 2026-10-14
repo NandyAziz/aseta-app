@@ -329,6 +329,15 @@ input[type="range"]::-moz-range-thumb:hover {
   background-color: #94a3b8;
 }
 
+/* Hide scrollbar utility for horizontal scrollable level indicators */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;      /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;              /* Chrome, Safari, Opera */
+}
+
 /* ============================================================
    Grafik pertumbuhan (GrowthChart)
    Semua koordinat, grid, dan tinggi kurva dihitung dari `series` (props

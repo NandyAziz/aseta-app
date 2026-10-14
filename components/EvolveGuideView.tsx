@@ -89,8 +89,9 @@ function LevelShowcase({ className = '' }: { className?: string }) {
           aria-valuetext={`Level ${level}, ${info.name}, ${info.title}`}
           className="h-11 w-full cursor-pointer accent-brand sm:h-5 touch-target"
         />
-        {/* Tick mark — positioned evenly aligned with the slider thumb. */}
-        <div className="flex justify-between px-0.5">
+        {/* Tick mark — horizontally scrollable on mobile so buttons 1–10
+            never overflow the card. On desktop they spread evenly. */}
+        <div className="mt-2 flex gap-1.5 overflow-x-auto scrollbar-hide px-1 pb-1 -mx-1">
           {LEVELS.map(n => {
             const active = n === level;
             const reached = n <= level;
@@ -101,7 +102,7 @@ function LevelShowcase({ className = '' }: { className?: string }) {
                 onClick={() => setLevel(n)}
                 aria-label={`Lihat level ${n}`}
                 aria-current={active}
-                className={`min-w-8 min-h-11 rounded-lg text-[10px] font-semibold tabular-nums transition-all duration-200 btn-press focus-visible-ring sm:min-h-0 ${
+                className={`flex-shrink-0 min-w-[36px] min-h-11 rounded-lg text-[10px] font-semibold tabular-nums transition-all duration-200 btn-press focus-visible-ring sm:min-h-0 ${
                   active
                     ? 'bg-brand/10 text-brand underline decoration-2 underline-offset-4 ring-2 ring-brand/30'
                     : reached
