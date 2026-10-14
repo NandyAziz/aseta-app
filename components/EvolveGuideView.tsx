@@ -184,8 +184,9 @@ function LevelShowcase({ className = '' }: { className?: string }) {
  *
  * `missions` adalah slot (`ReactNode`) berisi kartu "Misi Hari Ini" yang dirakit
  * di `app/dashboard/page.tsx`: view ini tetap presentasional dan tidak menyentuh
- * state keuangan. Slot diletakkan di bawah kartu evolusi pada mobile, dan
- * menyeimbangkannya menjadi kolom kedua pada desktop `lg:`.
+ * state keuangan. Slot hanya dipakai pada MOBILE (`lg:hidden`) — diletakkan
+ * tepat di bawah kartu evolusi. Pada desktop misi sudah tampil di kolom kanan
+ * feed Beranda, sehingga slot ini sengaja disembunyikan agar tidak dobel.
  */
 export default function EvolveGuideView({ missions }: { missions?: ReactNode }) {
   return (
@@ -203,17 +204,19 @@ export default function EvolveGuideView({ missions }: { missions?: ReactNode }) 
         {/* Kolom kiri (desktop): status & progres evolusi maskot. */}
         <LevelShowcase className="lg:col-span-5" />
 
-        {/* Kolom kanan (desktop): misi harian — sejajar dengan kartu evolusi.
-            Pada mobile mengikuti urutan dokumen, tepat di bawahnya. */}
-        {missions && <div className="lg:col-span-7">{missions}</div>}
+        {/* Misi harian — KHUSUS MOBILE (`lg:hidden`), tepat di bawah kartu
+            evolusi sesuai urutan dokumen. Di desktop kartu ini sudah tampil
+            di kolom kanan Beranda, jadi sini disembunyikan. */}
+        {missions && <div className="lg:hidden">{missions}</div>}
 
-        {/* Walkthrough fitur — 4 kartu melebar penuh di baris berikutnya. */}
-        <section className="lg:col-span-12">
+        {/* Walkthrough fitur — 4 kartu di kolom sisa (desktop), melebar penuh
+            di bawah pada mobile. */}
+        <section className="lg:col-span-7">
           <div className="mb-3">
             <h2 className="text-base font-bold text-forest">Cara Kerja Aseta</h2>
             <p className="text-xs text-muted">Empat konsep inti, singkat dan tanpa jargon.</p>
           </div>
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <ul className="grid gap-3 sm:grid-cols-2">
             {FEATURES.map(({ Icon, title, body }) => (
               <li
                 key={title}

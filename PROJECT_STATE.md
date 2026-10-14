@@ -35,10 +35,11 @@
       hari-berturut-turut, reset jika bolong.
 - [x] **Misi Hari Ini (Daily Quests)** — 3 checklist interaktif
       (☕ QRIS +100 XP · 🪙 Tabung ≥Rp5.000 +200 XP · 🐉 Sapa Aseta 3x +50 XP)
-      dengan tombol "Klaim XP" + reset otomatis tiap tanggal. Kartu ini kini
-      berada di **tab "Evolusi"** (di bawah kartu evolusi; sejajar pada `lg:`),
-      sedangkan Beranda cukup punya chip pintasan `🎯 Misi Harian (n/3) →`
-      yang melompat ke tab tersebut.
+      dengan tombol "Klaim XP" + reset otomatis tiap tanggal. Pada **mobile**
+      kartu ini pindah ke **tab "Evolusi"** (di bawah kartu evolusi) dan
+      Beranda cukup punya chip pintasan `🎯 Misi Harian (n/3) →` yang melompat
+      ke tab tersebut; pada **desktop** kartu misi tetap di kolom kanan Beranda
+      dan chip disembunyikan.
 - [x] **SFX Web Audio API** — efek suara sintetis tanpa file mp3 (aman dari 404):
       `playTapSound`, `playCoinSound`, `playLevelUpSound` (saat tap/nabung/klaim/level up).
 
@@ -77,7 +78,8 @@
 ### Layout Responsif (Terbaru)
 - [x] **Grid desktop 2 kolom** — `lg:grid-cols-12`: kolom kiri 7 (kartu hero
       maskot + total aset + Alokasi Portofolio), kolom kanan 5 (Transaksi Cepat
-      → Proyeksi Tabungan → Batas Harian).
+      → Proyeksi Tabungan → Batas Harian). Misi Hari Ini hanya di kolom
+      kanan pada `lg:` (mobile: pindah ke tab "Evolusi" + chip pintasan).
 - [x] **Kartu-kartu diekstrak ke `components/dashboard/`** —
       `TotalAssetsSummary`, `PortfolioAllocation`, `SavingsProjection`,
       `AnalyticsTabs`, `QuickTransactions`, `DailyMissions`, `DailyLimit`,
