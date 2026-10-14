@@ -38,25 +38,25 @@ export function mascotAura(level: number): {
     };
   }
   // Lv 9 — Aseta Legend: bright gold + cyan accents, active pulse.
-  // Scale 1.35 compensates for wide transparent canvas padding in mascot9.gif.
+  // Scale 1.25 keeps the adult dragon visibly larger than young levels.
   if (level >= 9) {
     return {
       glow: 'bg-gold/38 blur-2xl shadow-[0_0_38px_8px_rgba(229,180,84,0.38),0_0_72px_16px_rgba(34,211,238,0.22)]',
       glowAnim: 'animate-aura-breathe',
       ring: 'ring-2 ring-amber-200/60 ring-offset-2 ring-offset-white',
-      scale: 'scale-[1.35]',
+      scale: 'scale-[1.25]',
       breathe: '',
       imgShadow: 'drop-shadow-[0_0_18px_rgba(229,180,84,0.45)] drop-shadow-[0_0_8px_rgba(34,211,238,0.28)]',
     };
   }
   // Lv 8 — matured Naga Dewasa: deep gold, strong layered backlight.
-  // Scale 1.35 compensates for wide transparent canvas padding in mascot8.gif.
+  // Scale 1.25 keeps the adult dragon visibly larger than young levels.
   if (level >= 8) {
     return {
       glow: 'bg-gold/32 blur-xl shadow-[0_0_30px_6px_rgba(229,180,84,0.32)]',
       glowAnim: 'animate-aura-breathe',
       ring: 'ring-1 ring-amber-200/55 ring-offset-2 ring-offset-white',
-      scale: 'scale-[1.35]',
+      scale: 'scale-[1.25]',
       breathe: '',
       imgShadow: 'drop-shadow-[0_0_14px_rgba(229,180,84,0.34)]',
     };
@@ -67,7 +67,7 @@ export function mascotAura(level: number): {
       glow: 'bg-amber-400/28 blur-xl shadow-[0_0_22px_4px_rgba(245,158,11,0.28)]',
       glowAnim: '',
       ring: 'ring-1 ring-amber-200/50 ring-offset-2 ring-offset-white',
-      scale: 'scale-[1.03]',
+      scale: 'scale-[1.25]',
       breathe: '',
       imgShadow: 'drop-shadow-[0_0_12px_rgba(245,158,11,0.28)]',
     };
@@ -78,7 +78,7 @@ export function mascotAura(level: number): {
       glow: 'bg-emerald-400/30 blur-lg shadow-[0_0_20px_4px_rgba(52,211,153,0.26)]',
       glowAnim: '',
       ring: 'ring-1 ring-emerald-200/55 ring-offset-2 ring-offset-white',
-      scale: 'scale-[1.03]',
+      scale: 'scale-[1.05]',
       breathe: '',
       imgShadow: 'drop-shadow-[0_0_10px_rgba(16,185,129,0.28)]',
     };
@@ -89,7 +89,7 @@ export function mascotAura(level: number): {
       glow: 'bg-brand/30 blur-lg shadow-[0_0_16px_3px_rgba(4,120,87,0.24)]',
       glowAnim: '',
       ring: 'ring-1 ring-emerald-200/50 ring-offset-2 ring-offset-white',
-      scale: '',
+      scale: 'scale-[1.05]',
       breathe: '',
       imgShadow: 'drop-shadow-[0_0_8px_rgba(4,120,87,0.24)]',
     };
@@ -100,7 +100,7 @@ export function mascotAura(level: number): {
       glow: 'bg-brand/22 blur-lg',
       glowAnim: '',
       ring: 'ring-1 ring-emerald-200/45 ring-offset-2 ring-offset-white',
-      scale: '',
+      scale: 'scale-[1.05]',
       breathe: '',
       imgShadow: 'drop-shadow-md',
     };
@@ -111,7 +111,7 @@ export function mascotAura(level: number): {
       glow: 'bg-sage/28 blur-lg',
       glowAnim: '',
       ring: 'ring-1 ring-slate-200/60 ring-offset-2 ring-offset-white',
-      scale: '',
+      scale: 'scale-[0.95]',
       breathe: 'animate-egg-breathe',
       imgShadow: 'drop-shadow-md',
     };
@@ -122,7 +122,7 @@ export function mascotAura(level: number): {
       glow: 'bg-sage/18 blur-xl',
       glowAnim: '',
       ring: 'ring-1 ring-line ring-offset-2 ring-offset-white',
-      scale: '',
+      scale: 'scale-[0.95]',
       breathe: 'animate-egg-breathe',
       imgShadow: 'drop-shadow-md',
     };
@@ -132,7 +132,7 @@ export function mascotAura(level: number): {
     glow: 'bg-slate-50/50 blur-xl',
     glowAnim: '',
     ring: 'ring-1 ring-line ring-offset-2 ring-offset-white',
-    scale: '',
+    scale: 'scale-[0.95]',
     breathe: '',
     imgShadow: 'drop-shadow-md',
   };
