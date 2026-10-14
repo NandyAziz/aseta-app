@@ -118,11 +118,11 @@ murni dari props → aman terhadap hydration mismatch):
 
 | Komponen | Isi | Dipakai di |
 |---|---|---|
-| `TotalAssetsSummary` | nominal utama "Total Aset Saya" + breakdown (Tabungan · Dompet · Hari Ini) | dalam kartu hero, kolom kiri |
+| `TotalAssetsSummary` | nominal utama "Total Aset Saya" (`lg:` saja) + breakdown (Tabungan · Dompet · Hari Ini) + imbal hasil bulanan | dalam kartu hero, kolom kiri |
 | `PortfolioAllocation` | split bar 60/40, dua kartu porsi, grafik 7 hari, tombol "Cairkan Aset" | kolom kiri (desktop, kartu penuh) **dan** tab "Portofolio" (`bare`) |
 | `SavingsProjection` | slider setoran harian + estimasi 1/3/5 tahun | kolom kanan (desktop, kartu penuh) **dan** tab "Proyeksi" (`bare`) |
 | `AnalyticsTabs` | widget 2-tab khusus mobile | hanya mobile (`lg:hidden`) |
-| `QuickTransactions` | chip aksi preset + `QUICK_PRESETS` | tab Beranda (label "Tabung") & tab Scan (label "Bayar") |
+| `QuickTransactions` | chip aksi preset + `QUICK_PRESETS` | tab Beranda (label "Tabung", `hidden lg:block` = desktop saja) & tab Scan (label "Bayar") |
 | `DailyMissions` | 3 misi harian + `QuestRow` | kolom kanan Beranda (`hidden lg:block`) **dan** tab "Evolusi" (`lg:hidden`) |
 | `DailyLimit` | progres, sisa kuota, input batas harian | kolom kanan (desktop penuh · mobile akordeon) |
 | `GrowthChart` | grafik garis SVG 7 hari | dipakai `PortfolioAllocation` |
@@ -141,8 +141,22 @@ mengikuti isinya sendiri dan tidak ada celah putih menggantung:
 
 | | Mobile (satu kolom) | Desktop `lg:` |
 |---|---|---|
-| Kolom kiri (`lg:col-span-7`) | kartu hero maskot (panggung maskot → total aset → XP bar → chip "Misi Harian (n/3)" `lg:hidden`), lalu widget analitik 2-tab | kartu hero maskot (badan kartu dibagi 2 kolom internal: panggung maskot \| ringkasan aset + XP, tanpa chip), lalu Alokasi Portofolio |
-| Kolom kanan (`lg:col-span-5`) | Transaksi Cepat (chip geser horizontal) → Batas Harian (akordeon tertutup) | Transaksi Cepat (daftar vertikal) → **Misi Hari Ini** (`hidden lg:block`) → Proyeksi Tabungan → Batas Harian (terbuka penuh) |
+| Kolom kiri (`lg:col-span-7`) | kartu hero maskot (panggung maskot → breakdown aset (nominal utama ada di badge header) → XP bar → chip "Misi Harian (n/3)" `lg:hidden`), lalu widget analitik 2-tab | kartu hero maskot (badan kartu dibagi 2 kolom internal: panggung maskot \| ringkasan aset + XP, tanpa chip), lalu Alokasi Portofolio |
+
+Bar mobile (`header` `md:hidden`) memuat logo + "ASETA" di kiri dan badge
+**Total Aset** di kanan (label `text-[10px] text-muted` di atas nominal
+`text-sm font-semibold tabular-nums text-forest`). Badge ini adalah tempat
+nominal utama pada mobile, sehingga `TotalAssetsSummary` menyembunyikan blok
+nominalnya di bawah `lg`. Nominal berasal dari `totalWealth` yang sama, jadi
+mobile dan desktop tidak pernah menampilkan angka berbeda. Pada `lg:` header
+mobile tidak dirender sama sekali (sidebar `md:flex` yang mengambil alih) dan
+kartu hero kembali menampilkan nominal utama apa adanya.
+| Kolom kanan (`lg:col-span-5`) | ~~Transaksi Cepat~~ (disembunyikan `hidden lg:block`) → Batas Harian (akordeon tertutup) | Transaksi Cepat (daftar vertikal) → **Misi Hari Ini** (`hidden lg:block`) → Proyeksi Tabungan → Batas Harian (terbuka penuh) |
+
+Kartu **Transaksi Cepat** juga hanya tampil di desktop (`hidden lg:block`) pada
+feed Beranda. Di mobile aksi nabung cepat tetap tersedia di tab "Scan", yang
+memakai `QuickTransactions` dengan label "Bayar" — jadi `handleQuickSave()` dan
+`QUICK_PRESETS` tetap terpakai di kedua tempat.
 
 Relokasi **Misi Hari Ini** bersifat khusus mobile (`< lg`):
 

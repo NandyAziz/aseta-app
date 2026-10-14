@@ -984,13 +984,24 @@ export default function AsetaApp() {
 
       {/* ===== Kolom Konten (mobile: satu kolom, desktop: di kanan sidebar) ===== */}
       <div className="relative flex min-h-screen w-full min-w-0 flex-col">
-        {/* Bar mobile tipis: hanya logo + nama brand. Badge streak & level
-            sengaja dihapus agar bar tetap ringan dan tidak berdesakan
-            dengan judul salam di bawahnya. */}
-        <header className="sticky top-0 z-40 flex items-center border-b border-line bg-ivory/90 px-4 py-2.5 backdrop-blur-md md:hidden">
-          <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand text-xs font-black text-white">A</span>
+        {/* Bar mobile tipis: logo + nama brand di kiri, badge "Total Aset" di
+            kanan sejajar horizontal. Badge ini menggantikan nominal utama
+            yang pada mobile dipindah keluar dari kartu hero, sehingga
+            nominal selalu terlihat tanpa harus menggulir. Badge streak &
+            level tetap dihapus agar bar tidak berdesakan. */}
+        <header className="sticky top-0 z-40 flex items-center justify-between gap-3 border-b border-line bg-ivory/90 px-4 py-2.5 backdrop-blur-md md:hidden">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand text-xs font-black text-white">A</span>
             <span className="text-base font-black tracking-tight text-forest">ASETA</span>
+          </div>
+          {/* Badge total aset — nilai identik dengan `totalWealth` pada kartu
+              hero, diformat dengan `toLocaleString('id-ID')` yang sama dan
+              tetap terbaca dari state ber-guard `isMounted`. */}
+          <div className="min-w-0 shrink-0 text-right">
+            <p className="text-[10px] font-medium leading-none text-muted">Total Aset</p>
+            <p className="mt-1 text-sm font-semibold leading-none tabular-nums whitespace-nowrap text-forest">
+              Rp{totalWealth.toLocaleString('id-ID')}
+            </p>
           </div>
         </header>
 
@@ -1166,8 +1177,10 @@ export default function AsetaApp() {
             </div>
 
             <div className="flex flex-col gap-3">
-            {/* Total Aset: nominal utama + breakdown (Tabungan · Dompet · Imbal
-              hasil). Blok ini mengisi kolom kanan dari badan kartu hero. */}
+            {/* Total Aset: breakdown (Tabungan · Dompet · Hari Ini) + imbal
+              hasil bulanan. Pada desktop (`lg:`) nominal utama ikut tampil
+              di atas breakdown; pada mobile nominalnya berada di badge
+              header, jadi blok ini hanya merapikan baris breakdown. */}
           <TotalAssetsSummary
             totalWealth={totalWealth}
             monthlyReturn={monthlyReturn}
@@ -1259,8 +1272,14 @@ export default function AsetaApp() {
             batas harian. Pada mobile kolom ini tampil setelah widget
             analitik gabungan. ===== */}
         <div className="flex flex-col gap-6 lg:col-span-5">
-          {/* Deretan chip aksi yang bisa digeser horizontal di mobile. */}
-          <QuickTransactions onSave={handleQuickSave} />
+          {/* Transaksi Cepat — KHUSUS DESKTOP (`hidden lg:block`). Di mobile feed
+              Beranda tidak lagi memuatnya supaya tetap ringkas; aksi nabung
+              cepat tetap tersedia di tab "Scan" (QuickTransactions dengan
+              label "Bayar") — jadi `handleQuickSave` & `QUICK_PRESETS` tetap
+              terpakai dan tidak ada pemanggilan yang menggantung. */}
+          <div className="hidden lg:block">
+            <QuickTransactions onSave={handleQuickSave} />
+          </div>
 
           {/* Misi Hari Ini — KHUSUS DESKTOP (`hidden lg:block`), kembali ke kolom
               kanan feed Beranda. Pada mobile disembunyikan supaya feed utama

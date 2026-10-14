@@ -23,6 +23,10 @@
 ### Finansial (Fintech-grade)
 - [x] **Card "Total Aset Saya"** — nominal besar emerald + indikator imbal hasil
       "🟢 +Rp… (+4.2% p.a) bulan ini" + badge "Diinvestasikan Otomatis".
+      Pada **mobile** nominal utama pindah ke badge header (kanan bar ASETA)
+      dan kartu hero hanya menampilkan breakdown Tabungan/Dompet/Hari Ini
+      dengan ikon badge lebih besar; desktop (`lg:`) tetap menampilkan
+      nominal utama di dalam kartu hero.
 - [x] **Alokasi Portofolio Otomatis 60/40** — split bar 🟡 Emas Digital 60% &
       🟢 Reksadana Pasar Uang 40% (proporsional terhadap balance aktual).
 - [x] **Widget Statistik** — Hari Ini / Transaksi / Dompet (grid `gap-3`, font aman).
@@ -87,8 +91,10 @@
       animasi maskot, kamera/QR, modal, dan tour.
 - [x] **Widget analitik 2-tab (mobile)** — "Portofolio" dan "Proyeksi" digabung
       ke satu kartu tab agar feed utama tidak perlu digulir jauh.
-- [x] **Transaksi Cepat ringkas di mobile** — chip aksi geser horizontal,
-      label "Tabung" / "Bayar" tanpa panah teks.
+- [x] **Transaksi Cepat ringkas** — chip aksi geser horizontal, label
+      "Tabung" / "Bayar" tanpa panah teks. Di feed **Beranda** kartu ini
+      kini desktop-saja (`hidden lg:block`); di mobile aksi nabung
+      cepat diambil lewat tab "Scan" (label "Bayar").
 - [x] **Batas Harian jadi akordeon di mobile** — tertutup secara default,
       ringkasan pemakaian tetap terlihat di header.
 - [x] **Input batas harian tervalidasi** — `maxLength={8}`, hanya digit,
