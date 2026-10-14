@@ -91,6 +91,18 @@
       animasi maskot, kamera/QR, modal, dan tour.
 - [x] **Widget analitik 2-tab (mobile)** — "Portofolio" dan "Proyeksi" digabung
       ke satu kartu tab agar feed utama tidak perlu digulir jauh.
+- [x] **Grafik pertumbuhan responsif & beranimasi** — `GrowthChart` memakai
+      `viewBox` 320×104 + `preserveAspectRatio="xMidYMid meet"` dengan `aspect`
+      yang sama rasionya (skala seragam, tanpa gepeng/letterbox/overflow di
+      320px–desktop). Semua koordinat `d`, tinggi kurva, dan grid dihitung
+      dari props `series` (tidak ada angka statis); kurva Catmull-Rom dengan
+      headroom 18% supaya tren tidak menempel tepi. Label sumbu dipindah ke
+      HTML agar fontsize responsif lewat breakpoint dan tidak ter-clip.
+      Animasi: garis digambar masuk (`pathLength=1` → `stroke-dashoffset`),
+      area fade-in, aura titik akhir, dan `transition d/cx/cy 500ms` saat
+      data berubah — semuanya CSS murni (aman SSR, tanpa hydration mismatch)
+      dengan `prefers-reduced-motion` guard. `id` gradient pakai `useId()`
+      karena 2 instans aktif bersamaan di DOM.
 - [x] **Transaksi Cepat dipindah ke tab "Scan"** — kartu ini DIHAPUS dari feed
       **Beranda** di semua breakpoint (mobile & desktop) agar kolom kanan fokus
       pada misi, proyeksi, dan batas harian. Aksi nabung cepat tetap tersedia

@@ -176,3 +176,64 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: #94a3b8;
 }
+
+/* --- Grafik pertumbuhan (GrowthChart) --------------------------------------
+   Semua koordinat, grid, dan tinggi kurva dihitung dari `series` (props
+   reaktif), bukan dari angka statis — jadi grafik mengikuti data apa pun.
+   Motion di sini murni CSS (tanpa state/effect) supaya komponen tetap aman
+   di server render dan bebas hydration mismatch.
+
+   `pathLength={1}` pada <path> membuat panjang kurva dinormalisasi jadi 1,
+   sehingga animasi "gambar garis" cukup `stroke-dashoffset: 1 → 0` tanpa
+   perlu mengukur panjang path sungguhan di DOM. */
+@keyframes chart-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+.chart-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: chart-draw 900ms ease-out 1 both;
+}
+
+@keyframes chart-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.chart-area {
+  animation: chart-fade 700ms ease-out 1 both;
+}
+
+/* Cincin lembut di titik akhir: memudar sambil melebar sekali saja. */
+@keyframes chart-halo {
+  0% { opacity: 0.4; transform: scale(0.55); }
+  70%, 100% { opacity: 0; transform: scale(1.8); }
+}
+.chart-halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: chart-halo 2.4s ease-out 1 forwards;
+}
+
+/* Transisi mulus saat `series` berubah (mis. setelah setoran / pencairan).
+   `d`, `cx`, `cy`, `r`, dan `opacity` bisa diinterpolasi di browser modern;
+   browser lama hanya Hop (snap) — hasil akhirnya tetap sama. */
+.chart-anim {
+  transition:
+    d 500ms ease-in-out,
+    cx 500ms ease-in-out,
+    cy 500ms ease-in-out,
+    r 300ms ease-in-out,
+    opacity 300ms ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-line,
+  .chart-area,
+  .chart-halo {
+    animation: none;
+  }
+  .chart-anim {
+    transition: none;
+  }
+}

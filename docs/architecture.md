@@ -29,7 +29,7 @@ aseta-app/
 │       ├── QuickTransactions.tsx     # Kartu transaksi cepat + QUICK_PRESETS
 │       ├── DailyMissions.tsx         # Kartu misi harian + QuestRow
 │       ├── DailyLimit.tsx            # Kartu batas harian (akordeon di mobile)
-│       └── GrowthChart.tsx           # Grafik garis SVG 7 hari
+│       └── GrowthChart.tsx           # Grafik garis SVG 7 hari ( responsif + beranimasi)
 ├── utils/aseta.ts           # Logika murni: calculateRoundUp, getMascotLevel, getXpProgress,
 │                            #   formatRupiah, clampDailyCap, MAX_DAILY_CAP
 ├── utils/sound.ts           # Efek suara sintetis Web Audio API (dipakai dashboard & hero)
@@ -125,7 +125,7 @@ murni dari props → aman terhadap hydration mismatch):
 | `QuickTransactions` | chip aksi preset + `QUICK_PRESETS` | tab "Scan" saja (label "Bayar") — sudah dihapus dari feed Beranda |
 | `DailyMissions` | 3 misi harian + `QuestRow` | kolom kanan Beranda (`hidden lg:block`) **dan** tab "Evolusi" (`lg:hidden`) |
 | `DailyLimit` | progres, sisa kuota, input batas harian | kolom kanan (desktop penuh · mobile akordeon) |
-| `GrowthChart` | grafik garis SVG 7 hari | dipakai `PortfolioAllocation` |
+| `GrowthChart` | grafik garis SVG 7 hari (kurva Catmull-Rom, domain relatif + headroom 18%, `viewBox` 320×104 + `preserveAspectRatio="xMidYMid meet"`, label sumbu di HTML) | dipakai `PortfolioAllocation` (desktop + tab "Portofolio" mobile, jadi 2 instans aktif bersamaan → `id` gradient via `useId()`) |
 
 Properti `bare` dipakai agar isi yang tampil di dalam tab tidak memakai chrome
 kartu lagi (tidak ada kartu bersarang). Konfigurasi onboarding tour
