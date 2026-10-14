@@ -65,14 +65,14 @@ export default function SavingsProjection({
 
   const shellClass = bare
     ? ''
-    : 'flex h-full min-w-0 flex-col rounded-2xl border border-line bg-white p-5';
+    : 'flex h-full min-w-0 flex-col rounded-2xl border border-line bg-white p-5 card-elevate';
 
   return (
     <section className={`${shellClass} ${className}`}>
       {!bare && (
         /* Header: emerald→teal gradient icon + return pill. */
         <div className="mb-3 flex items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 p-2.5 text-white shadow-sm shadow-emerald-500/20">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 p-2.5 text-white shadow-sm shadow-emerald-500/20 touch-target">
             <TrendingUp className="h-4.5 w-4.5" aria-hidden />
           </span>
           <div className="min-w-0">
@@ -88,11 +88,11 @@ export default function SavingsProjection({
         </label>
         <span className="flex items-center gap-2">
           {!bare && (
-            <span className="rounded-full border border-emerald-200/50 bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
+            <span className="rounded-full border border-emerald-200/50 bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 shrink-0">
               +4,2% p.a
             </span>
           )}
-          <span className="text-sm font-black tabular-nums text-brand">
+          <span className="text-base font-black tabular-nums text-brand shrink-0 transition-colors duration-200">
             Rp{daily.toLocaleString('id-ID')}
           </span>
         </span>
@@ -106,27 +106,27 @@ export default function SavingsProjection({
         value={daily}
         onChange={event => setDaily(Number(event.target.value))}
         aria-label="Geser untuk mengatur setoran harian proyeksi"
-        className="h-11 w-full cursor-pointer accent-brand sm:h-5"
+        className="h-11 w-full cursor-pointer accent-brand sm:h-5 touch-target"
       />
       <div className="flex justify-between text-[11px] font-medium text-muted">
         <span>Rp{PROJECTION_MIN.toLocaleString('id-ID')}</span>
         <span>Rp{PROJECTION_MAX.toLocaleString('id-ID')}</span>
       </div>
 
-      <ul className="mt-3 grid grid-cols-3 gap-1 sm:gap-3">
+      <ul className="mt-3 grid grid-cols-3 gap-2 sm:gap-3">
         {PROJECTION_HORIZONS.map(years => {
           const total = projectSavings(daily, years);
           const gain = Math.max(0, total - projectContribution(daily, years));
           return (
             <li
               key={years}
-              className="flex min-w-0 flex-col items-center justify-center overflow-hidden rounded-xl border border-emerald-100 bg-emerald-50/60 px-1 py-2 text-center sm:px-3 sm:py-3"
+              className="flex min-w-0 flex-col items-center justify-center overflow-hidden rounded-xl border border-emerald-100 bg-emerald-50/60 px-2 py-3 text-center sm:px-3 sm:py-4 card-elevate transition-all duration-200"
             >
               <p className="text-[10px] font-bold uppercase tracking-wide text-muted">{years} Tahun</p>
-              <p className="mt-0.5 text-[13px] font-extrabold tracking-tighter tabular-nums whitespace-nowrap text-emerald-800 leading-tight sm:text-sm">
+              <p className="mt-0.5 text-base font-extrabold tracking-tighter tabular-nums whitespace-nowrap text-emerald-800 leading-tight sm:text-lg">
                 Rp{total.toLocaleString('id-ID')}
               </p>
-              <p className="mt-0.5 text-[9px] font-semibold tabular-nums text-muted whitespace-nowrap sm:text-[10px]">
+              <p className="mt-0.5 text-[10px] font-semibold tabular-nums text-muted whitespace-nowrap sm:text-xs">
                 +{gain.toLocaleString('id-ID')} hasil
               </p>
             </li>

@@ -43,9 +43,7 @@ export default function AnalyticsTabs({
 
   return (
     <section
-      className={`rounded-2xl border border-line bg-white p-4 sm:p-5 ${
-        highlight ? 'relative z-50 ring-4 ring-emerald-400 ring-offset-2' : ''
-      } ${className}`}
+      className={`rounded-2xl border border-line bg-white p-4 sm:p-5 transition-shadow duration-200 ${highlight ? 'relative z-50 ring-4 ring-emerald-400 ring-offset-2' : ''} ${className}`}
     >
       {/* Tab bar: two equally wide buttons, touch height ≥ 44px. */}
       <div
@@ -64,11 +62,7 @@ export default function AnalyticsTabs({
               aria-selected={active}
               aria-controls={`analytics-panel-${item.id}`}
               onClick={() => setTab(item.id)}
-              className={`min-h-11 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
-                active
-                  ? 'bg-white text-brand shadow-xs ring-1 ring-line'
-                  : 'text-muted hover:text-forest'
-              }`}
+              className={`min-h-11 rounded-lg px-3 py-2 text-sm font-semibold transition-all duration-200 btn-press focus-visible-ring ${active ? 'bg-white text-brand shadow-xs ring-1 ring-line' : 'text-muted hover:text-forest'}`}
             >
               {item.label}
             </button>
@@ -80,7 +74,7 @@ export default function AnalyticsTabs({
         role="tabpanel"
         id={`analytics-panel-${tab}`}
         aria-labelledby={`analytics-tab-${tab}`}
-        className="mt-4"
+        className="tab-panel mt-4"
       >
         {tab === 'portofolio' ? (
           /* `highlight` is deliberately NOT forwarded to the content: the highlight

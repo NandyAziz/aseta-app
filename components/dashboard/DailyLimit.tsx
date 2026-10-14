@@ -59,7 +59,7 @@ export default function DailyLimit({
 
   return (
     <section
-      className={`flex flex-col rounded-2xl border border-line bg-white p-4 sm:p-5 ${className}`}
+      className={`flex flex-col rounded-2xl border border-line bg-white p-4 sm:p-5 card-elevate ${className}`}
     >
       {collapsible ? (
         <button
@@ -67,7 +67,7 @@ export default function DailyLimit({
           onClick={() => setOpen(value => !value)}
           aria-expanded={open}
           aria-controls={panelId}
-          className="flex w-full items-center justify-between gap-3 text-left"
+          className="flex w-full items-center justify-between gap-3 text-left btn-press focus-visible-ring rounded-xl p-2 hover:bg-ivory/50"
         >
           <span className="min-w-0">
             <span className="block text-base font-bold text-forest">Batas Harian</span>
@@ -90,13 +90,16 @@ export default function DailyLimit({
       {/* The progress bar stays visible even while the accordion is collapsed, so
           today's usage status can be read without opening the panel. */}
       <div
-        className={`h-2 w-full overflow-hidden rounded-full bg-slate-100 ${
-          collapsible ? 'mt-3' : ''
-        }`}
+        className={`w-full overflow-hidden rounded-full bg-slate-100 ${collapsible ? 'mt-3' : ''}`}
       >
         <div
-          className="h-full rounded-full bg-brand transition-all duration-500"
+          className="h-2.5 rounded-full bg-brand progress-bar-smooth"
           style={{ width: `${percent}%` }}
+          role="progressbar"
+          aria-valuenow={Math.round(percent)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`Penggunaan batas harian ${Math.round(percent)} persen`}
         />
       </div>
 
@@ -109,15 +112,13 @@ export default function DailyLimit({
           {/* Remaining quota still savable today. Not decoration — the
               number is filled in real time. `truncate` keeps a long
               amount clipped neatly inside the card, never overflowing. */}
-          <div className="flex max-w-full items-center justify-between gap-2 overflow-hidden rounded-xl border border-emerald-100/60 bg-emerald-50/50 px-3.5 py-3">
+          <div className="flex max-w-full items-center justify-between gap-2 overflow-hidden rounded-xl border border-emerald-100/60 bg-emerald-50/50 px-3.5 py-3 card-elevate">
             <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-muted">
               <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-brand" aria-hidden />
               <span className="max-w-full truncate">Sisa Limit Tabungan</span>
             </span>
             <span
-              className={`min-w-0 max-w-full truncate text-sm font-black tabular-nums ${
-                exhausted ? 'text-rose-600' : 'text-brand'
-              }`}
+              className={`min-w-0 max-w-full truncate text-sm font-black tabular-nums ${exhausted ? 'text-rose-600' : 'text-brand'}`}
               title={`Rp${formatRupiah(remaining)}`}
             >
               Rp{formatRupiah(remaining)}
@@ -134,13 +135,13 @@ export default function DailyLimit({
               aria-describedby={`${panelId}-hint`}
               value={draft}
               onChange={event => handleDraftChange(event.target.value)}
-              className="min-w-0 flex-1 rounded-xl border border-line bg-white px-3 py-2.5 text-sm tabular-nums text-forest outline-none transition-colors focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+              className="min-w-0 flex-1 rounded-xl border border-line bg-white px-3 py-2.5 text-sm tabular-nums text-forest input-focus min-h-11"
             />
             <button
               type="button"
               onClick={onSave}
               disabled={draft === cap}
-              className="min-h-11 shrink-0 rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-white transition-all duration-200 active:scale-95 hover:bg-brand-dark disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-muted sm:min-h-0"
+              className="min-h-11 shrink-0 rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-white btn-press hover:bg-brand-dark disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-muted focus-visible-ring"
             >
               Simpan
             </button>

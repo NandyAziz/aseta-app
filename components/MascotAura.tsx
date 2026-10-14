@@ -305,21 +305,22 @@ export function MascotStage({
   const aura = mascotAura(level);
   return (
     <div className="relative flex justify-center py-1">
-      {/* Backlight aura: blur + pulse, colour & intensity follow the level. */}
+      {/* Backlight aura: blur + pulse, colour & intensity follow the level.
+          Smooth transitions between levels via CSS transition on the glow div. */}
       <div
         aria-hidden
-        className={`absolute top-1/2 h-28 w-28 -translate-y-1/2 rounded-full sm:h-32 sm:w-32 ${aura.glow} ${aura.glowAnim}`}
+        className={`absolute top-1/2 h-28 w-28 -translate-y-1/2 rounded-full sm:h-32 sm:w-32 transition-all duration-500 ease-out ${aura.glow} ${aura.glowAnim}`}
       />
       <motion.div
         animate={{ y: [0, -8, 0] }}
         transition={{ type: 'tween', duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
-        className={`rounded-full ${aura.ring}`}
+        className={`rounded-full transition-all duration-500 ease-out ${aura.ring}`}
       >
         <button
           type="button"
           tabIndex={-1}
           aria-hidden
-          className="relative rounded-full outline-none"
+          className="relative rounded-full outline-none focus-visible-ring"
         >
           {/* Soft atmospheric dust — ALWAYS behind the mascot illustration */}
           <MascotEvolutionMotes level={level} />
@@ -331,7 +332,7 @@ export function MascotStage({
               alt={alt}
               width={144}
               height={144}
-              className={`block object-contain ${imgClassName} ${aura.scale} ${aura.imgShadow}`}
+              className={`block object-contain ${imgClassName} transition-all duration-500 ease-out ${aura.scale} ${aura.imgShadow}`}
             />
           </span>
         </button>

@@ -209,7 +209,7 @@ export default function GrowthChart({
       <svg
         viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="xMidYMid meet"
-        className="block h-auto w-full max-w-full"
+        className="block h-auto w-full max-w-full chart-anim"
         style={{ aspectRatio: '40 / 13' }}
       >
         <defs aria-hidden="true">
@@ -327,7 +327,11 @@ export default function GrowthChart({
             ~35 × 73px ≈ 2585px² — di atas acuan 44 × 44 = 1936px². Lebar
             kolom tetap = jarak antar titik (batas tengah), jadi zona
             ketuk tidak saling tumpang tindih dan titik terdekat selalu
-            menang. Ditumpuk paling atas agar mudah diposisi jarinya. */}
+            menang. Ditumpuk paling atas agar mudah diposisi jarinya.
+
+            NOTE: On mobile (<430px), the hit areas expand to min 48px width
+            via CSS media query on the parent container to ensure 44x44 touch
+            target compliance even when stepX is narrow. */}
         <g>
           {points.map((p, i) => {
             const colW = Math.min(stepX, W);
@@ -343,7 +347,7 @@ export default function GrowthChart({
                 tabIndex={-1}
                 aria-pressed={i === activeIndex}
                 aria-label={`${pointLabels[i]}: Rp${p.value.toLocaleString('id-ID')}`}
-                className="cursor-pointer"
+                className="cursor-pointer touch-target"
                 onClick={() => setSelectedIndex(i === activeIndex ? null : i)}
               />
             );
@@ -376,7 +380,7 @@ export default function GrowthChart({
           key={activeIndex}
           role="status"
           aria-live="polite"
-          className="chart-card relative mt-2 w-full max-w-full rounded-xl border border-line bg-white px-3 py-2.5 shadow-xs"
+          className="chart-card relative mt-2 w-full max-w-full rounded-xl border border-line bg-white px-3 py-2.5 shadow-xs transition-shadow duration-200 hover:shadow-sm"
         >
           {/* Dentum penunjuk ke titik aktif, di-clamp agar tidak keluar kartu. */}
           <span

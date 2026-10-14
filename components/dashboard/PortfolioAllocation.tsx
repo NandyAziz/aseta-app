@@ -33,7 +33,7 @@ export default function PortfolioAllocation({
 }) {
   const shellClass = bare
     ? ''
-    : 'rounded-2xl border border-line bg-white p-5';
+    : 'rounded-2xl border border-line bg-white p-5 card-elevate';
   const ringClass = highlight ? 'relative z-50 ring-4 ring-emerald-400 ring-offset-2' : '';
 
   return (
@@ -47,7 +47,7 @@ export default function PortfolioAllocation({
 
       {/* Split bar 60/40 */}
       <div
-        className="flex h-3 w-full overflow-hidden rounded-full ring-1 ring-inset ring-line"
+        className="flex h-3.5 w-full overflow-hidden rounded-full ring-1 ring-inset ring-line touch-target"
         role="img"
         aria-label="Alokasi aset: Emas Digital 60 persen, Reksadana Pasar Uang 40 persen"
       >
@@ -57,31 +57,29 @@ export default function PortfolioAllocation({
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-2">
-        <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-3">
-          <p className="text-[11px] font-bold text-amber-700">Emas Digital · 60%</p>
-          <p className="mt-0.5 text-sm font-black tabular-nums wrap-break-word text-forest">
+        <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-3 card-elevate transition-all duration-200">
+          <p className="text-xs font-bold text-amber-700">Emas Digital · 60%</p>
+          <p className="mt-0.5 text-base font-black tabular-nums wrap-break-word text-forest transition-colors duration-300">
             Rp{goldValue.toLocaleString('id-ID')}
           </p>
-          <p className="text-[11px] text-muted">
-            ~{goldGrams.toLocaleString('id-ID', { maximumFractionDigits: 4 })} gram
-          </p>
+          <p className="text-xs text-muted">~{goldGrams.toLocaleString('id-ID', { maximumFractionDigits: 4 })} gram</p>
         </div>
-        <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3">
-          <p className="text-[11px] font-bold text-brand">Reksadana · 40%</p>
-          <p className="mt-0.5 text-sm font-black tabular-nums wrap-break-word text-forest">
+        <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3 card-elevate transition-all duration-200">
+          <p className="text-xs font-bold text-brand">Reksadana · 40%</p>
+          <p className="mt-0.5 text-base font-black tabular-nums wrap-break-word text-forest transition-colors duration-300">
             Rp{reksaValue.toLocaleString('id-ID')}
           </p>
-          <p className="text-[11px] text-muted">Pasar Uang · likuid</p>
+          <p className="text-xs text-muted">Pasar Uang · likuid</p>
         </div>
       </div>
 
       {/* Grafik pertumbuhan 7 hari */}
-      <div className="mt-4 rounded-xl bg-ivory p-3">
+      <div className="mt-4 rounded-xl bg-ivory/60 p-3 card-elevate transition-all duration-200">
         <div className="mb-1 flex items-center justify-between">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-muted">
-            Pertumbuhan Aset · 7 Hari
+          <p className="text-xs font-bold uppercase tracking-wide text-muted">
+            Pertumbuhan Aset
           </p>
-          <TrendingUp className="h-3.5 w-3.5 text-brand" aria-hidden />
+          <TrendingUp className="h-4 w-4 text-brand" aria-hidden />
         </div>
         <GrowthChart series={growthSeries} />
       </div>
@@ -92,7 +90,7 @@ export default function PortfolioAllocation({
         <button
           type="button"
           onClick={onLiquidate}
-          className="min-h-11 shrink-0 rounded-xl border border-line bg-white px-3.5 py-2 text-xs font-semibold text-forest transition-all duration-200 active:scale-95 hover:border-emerald-300 hover:bg-emerald-50/50 hover:text-brand sm:min-h-0"
+          className="min-h-11 shrink-0 rounded-xl border border-line bg-white px-3.5 py-2 text-xs font-semibold text-forest btn-press hover:border-emerald-300 hover:bg-emerald-50/50 hover:text-brand focus-visible-ring"
         >
           Cairkan Aset
         </button>

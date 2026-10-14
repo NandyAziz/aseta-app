@@ -90,12 +90,12 @@ export default function QrisRoundUpSimulator() {
   return (
     <section
       aria-labelledby="judul-simulator"
-      className="overflow-hidden rounded-3xl border border-line bg-white shadow-xl shadow-forest/5"
+      className="overflow-hidden rounded-3xl border border-line bg-white shadow-xl shadow-forest/5 card-elevate"
     >
       {/* Kepala kartu */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-brand/5 px-5 py-4 sm:px-6">
         <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-brand text-white">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-brand text-white touch-target">
             <QrCode className="h-5 w-5" />
           </span>
           <div>
@@ -105,7 +105,7 @@ export default function QrisRoundUpSimulator() {
             <p className="text-xs text-muted">Nominal berubah → tabungan &amp; XP ikut berubah</p>
           </div>
         </div>
-        <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-brand ring-1 ring-brand/20">
+        <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-brand ring-1 ring-brand/20 shrink-0">
           Otomatis tiap transaksi
         </span>
       </div>
@@ -123,7 +123,7 @@ export default function QrisRoundUpSimulator() {
                   type="button"
                   onClick={() => setAmountText(String(presetAmount))}
                   aria-pressed={isActive}
-                  className={`inline-flex min-h-11 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-bold transition-all duration-200 active:scale-95 sm:min-h-0 sm:text-sm ${
+                  className={`inline-flex min-h-11 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-bold transition-all duration-200 btn-press focus-visible-ring sm:min-h-0 sm:text-sm ${
                     isActive
                       ? 'bg-brand text-white shadow-md shadow-brand/30'
                       : 'bg-ivory text-forest ring-1 ring-line hover:text-brand hover:ring-brand/40'
@@ -145,7 +145,7 @@ export default function QrisRoundUpSimulator() {
           >
             Nominal belanja
           </label>
-          <div className="mt-2 flex items-center gap-2 rounded-2xl border border-line bg-ivory px-4 py-3 transition focus-within:border-brand">
+          <div className="mt-2 flex items-center gap-2 rounded-2xl border border-line bg-ivory px-4 py-3 transition-colors duration-200 focus-within:border-brand focus-within:ring-2 focus-within:ring-emerald-100">
             <span className="text-sm font-black text-muted">Rp</span>
             <input
               id="nominal-qris"
@@ -155,7 +155,7 @@ export default function QrisRoundUpSimulator() {
               value={displayAmount}
               onChange={(event) => handleAmountChange(event.target.value)}
               placeholder="0"
-              className="w-full min-w-0 bg-transparent text-xl font-black tabular-nums text-forest outline-none placeholder:text-muted/60"
+              className="w-full min-w-0 bg-transparent text-xl font-black tabular-nums text-forest input-focus min-h-11"
             />
           </div>
           <input
@@ -166,7 +166,7 @@ export default function QrisRoundUpSimulator() {
             value={sliderValue}
             onChange={(event) => setAmountText(event.target.value)}
             aria-label="Geser untuk mengubah nominal belanja"
-            className="mt-3 h-11 w-full cursor-pointer accent-brand sm:h-5"
+            className="mt-3 h-11 w-full cursor-pointer accent-brand sm:h-5 touch-target"
           />
           <div className="mt-1 flex justify-between text-[11px] font-medium text-muted">
             <span>Rp1.000</span>
@@ -176,24 +176,24 @@ export default function QrisRoundUpSimulator() {
 
         {/* Hasil real-time */}
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-2xl border border-brand/20 bg-brand/5 p-4">
+          <div className="rounded-2xl border border-brand/20 bg-brand/5 p-4 card-elevate transition-all duration-200">
             <p className="flex items-center gap-1.5 text-xs font-bold text-brand">
               <TrendingUp className="h-4 w-4" />
               Nabung Round-Up
             </p>
-            <p className="mt-1.5 text-3xl font-black text-forest">
+            <p className="mt-1.5 text-3xl font-black text-forest transition-colors duration-300">
               <AnimatedNumber value={`+${formatRp(roundUp)}`} />
             </p>
             <p className="mt-1 text-[11px] text-muted">
               Sisa pembulatan ke kelipatan {formatRp(ROUND_UP_BASE)}
             </p>
           </div>
-          <div className="rounded-2xl border border-gold/40 bg-gold/10 p-4">
+          <div className="rounded-2xl border border-gold/40 bg-gold/10 p-4 card-elevate transition-all duration-200">
             <p className="flex items-center gap-1.5 text-xs font-bold text-amber-700">
               <Sparkles className="h-4 w-4" />
               Maskot XP
             </p>
-            <p className="mt-1.5 text-3xl font-black text-forest">
+            <p className="mt-1.5 text-3xl font-black text-forest transition-colors duration-300">
               <AnimatedNumber value={`+${xpGain.toLocaleString('id-ID')} XP`} />
             </p>
             <p className="mt-1 text-[11px] text-muted">{XP_PER_RUPIAH} rupiah = 1 XP untuk Aseta</p>
@@ -201,7 +201,7 @@ export default function QrisRoundUpSimulator() {
         </div>
 
         {/* Total yang benar-benar ditabung */}
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-forest px-4 py-3 text-ivory">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-forest px-4 py-3 text-ivory card-elevate transition-all duration-200">
           <span className="flex items-center gap-2 text-xs font-semibold text-ivory/70">
             <Wallet className="h-4 w-4" />
             Total jadi setelah dibulatkan
@@ -212,7 +212,7 @@ export default function QrisRoundUpSimulator() {
         </div>
 
         {/* Automatic allocation of the round-up result: 60% Emas Digital · 40% Reksadana */}
-        <div className="rounded-2xl border border-line bg-ivory/60 p-4">
+        <div className="rounded-2xl border border-line bg-ivory/60 p-4 card-elevate transition-all duration-200">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs font-bold uppercase tracking-wider text-muted">
               Alokasi otomatis

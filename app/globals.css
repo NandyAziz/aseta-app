@@ -157,14 +157,166 @@
   animation: scan-flash 420ms ease-out 1 forwards;
 }
 
+/* ============================================================
+   UI Polish: Micro-interactions & Touch Target Standards
+   ============================================================ */
 
-/* Scrollbar tipis & premium untuk area konten dalam frame HP */
+/* Touch target minimum: 44x44px (min-h-11 ≈ 44px at default root font) */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+@media (max-width: 430px) {
+  .touch-target {
+    min-height: 48px;
+    min-width: 48px;
+  }
+}
+
+/* Button press feedback - universal active:scale-95 */
+.btn-press {
+  transition: transform 120ms ease-out, background-color 150ms ease-out, box-shadow 150ms ease-out, border-color 150ms ease-out;
+}
+.btn-press:active {
+  transform: scale(0.95);
+}
+
+/* Card hover/tap elevation */
+.card-elevate {
+  transition: box-shadow 200ms ease-out, border-color 200ms ease-out, transform 100ms ease-out;
+}
+.card-elevate:hover {
+  box-shadow: 0 8px 24px -8px rgba(15, 23, 42, 0.12), 0 4px 12px -4px rgba(15, 23, 42, 0.08);
+  border-color: #a3b58a;
+}
+.card-elevate:active {
+  transform: scale(0.995);
+}
+
+/* Tab switch animation */
+.tab-panel {
+  animation: tab-panel-in 220ms ease-out 1 both;
+}
+@keyframes tab-panel-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Progress bar smooth animation */
+.progress-bar-smooth {
+  transition: width 600ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Badge pulse for completed missions */
+@keyframes badge-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+}
+.badge-complete {
+  animation: badge-pulse 2s ease-out infinite;
+}
+
+/* Chart tooltip/card smooth entry */
+@keyframes chart-card-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.chart-card {
+  animation: chart-card-in 260ms ease-out 1 both;
+}
+
+/* Modal overlay fade */
+@keyframes modal-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes modal-content-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal-overlay {
+  animation: modal-overlay-in 200ms ease-out 1 both;
+}
+.modal-content {
+  animation: modal-content-in 280ms cubic-bezier(0.16, 1, 0.3, 1) 1 both;
+}
+
+/* Input focus ring - consistent across all inputs */
+.input-focus {
+  transition: border-color 150ms ease-out, box-shadow 150ms ease-out, background-color 150ms ease-out;
+}
+.input-focus:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+/* Slider thumb styling for touch */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: #e2e8f0;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #047857;
+  margin-top: -7px;
+  box-shadow: 0 2px 6px rgba(4, 120, 87, 0.3);
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(4, 120, 87, 0.4);
+}
+input[type="range"]::-webkit-slider-thumb:active {
+  transform: scale(1.3);
+}
+input[type="range"]::-moz-range-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: #e2e8f0;
+  border: none;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #047857;
+  border: none;
+  box-shadow: 0 2px 6px rgba(4, 120, 87, 0.3);
+  transition: transform 150ms ease-out;
+}
+input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.15);
+}
+
+/* Focus visible for keyboard navigation */
+.focus-visible-ring:focus-visible {
+  outline: none;
+  ring: 2px;
+  ring-offset: 2px;
+  ring-color: #10b981;
+}
+
+/* Scrollbar styling for content areas */
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
 }
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
@@ -177,7 +329,8 @@
   background-color: #94a3b8;
 }
 
-/* --- Grafik pertumbuhan (GrowthChart) --------------------------------------
+/* ============================================================
+   Grafik pertumbuhan (GrowthChart)
    Semua koordinat, grid, dan tinggi kurva dihitung dari `series` (props
    reaktif), bukan dari angka statis — jadi grafik mengikuti data apa pun.
    Motion di sini murni CSS (tanpa state/effect) supaya komponen tetap aman
@@ -185,7 +338,8 @@
 
    `pathLength={1}` pada <path> membuat panjang kurva dinormalisasi jadi 1,
    sehingga animasi "gambar garis" cukup `stroke-dashoffset: 1 → 0` tanpa
-   perlu mengukur panjang path sungguhan di DOM. */
+   perlu mengukur panjang path sungguhan di DOM.
+   ============================================================ */
 @keyframes chart-draw {
   from { stroke-dashoffset: 1; }
   to { stroke-dashoffset: 0; }
@@ -249,15 +403,44 @@
   animation: chart-point-pulse 1.8s ease-out infinite;
 }
 
+/* Horizontal overflow prevention on mobile */
+@media (max-width: 430px) {
+  html, body, #__next {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  .mobile-safe {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .chart-line,
   .chart-area,
   .chart-halo,
   .chart-card,
-  .chart-point-pulse {
-    animation: none;
+  .chart-point-pulse,
+  .animate-breathe,
+  .animate-mascot-float,
+  .animate-aura-breathe,
+  .animate-sparkle-twinkle,
+  .animate-mascot-tap,
+  .animate-bubble-pop,
+  .animate-toast-in,
+  .animate-egg-breathe,
+  .animate-mascot-shake,
+  .tab-panel,
+  .progress-bar-smooth,
+  .badge-complete {
+    animation: none !important;
+    transition: none !important;
   }
   .chart-anim {
+    transition: none;
+  }
+  input[type="range"]::-webkit-slider-thumb,
+  input[type="range"]::-moz-range-thumb {
     transition: none;
   }
 }

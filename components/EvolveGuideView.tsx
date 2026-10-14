@@ -65,11 +65,11 @@ function LevelShowcase({ className = '' }: { className?: string }) {
 
   return (
     <section
-      className={`flex h-full min-w-0 flex-col rounded-2xl border border-line bg-white p-5 sm:p-6 ${className}`}
+      className={`flex h-full min-w-0 flex-col rounded-2xl border border-line bg-white p-5 sm:p-6 card-elevate ${className}`}
     >
       <div className="mb-1 flex items-baseline justify-between gap-3">
         <h2 className="text-base font-bold text-forest">Perjalanan Evolusi</h2>
-        <span className="shrink-0 text-sm font-bold tabular-nums text-brand">
+        <span className="shrink-0 text-sm font-bold tabular-nums text-brand transition-colors duration-300">
           Lv. {level} / {MAX_LEVEL}
         </span>
       </div>
@@ -87,7 +87,7 @@ function LevelShowcase({ className = '' }: { className?: string }) {
           onChange={e => setLevel(Number(e.target.value))}
           aria-label="Geser untuk melihat evolusi maskot"
           aria-valuetext={`Level ${level}, ${info.name}, ${info.title}`}
-          className="h-11 w-full cursor-pointer accent-brand sm:h-5"
+          className="h-11 w-full cursor-pointer accent-brand sm:h-5 touch-target"
         />
         {/* Tick mark — positioned evenly aligned with the slider thumb. */}
         <div className="flex justify-between px-0.5">
@@ -101,12 +101,12 @@ function LevelShowcase({ className = '' }: { className?: string }) {
                 onClick={() => setLevel(n)}
                 aria-label={`Lihat level ${n}`}
                 aria-current={active}
-                className={`min-w-6 min-h-11 rounded text-[10px] font-semibold tabular-nums transition-colors sm:min-h-0 ${
+                className={`min-w-8 min-h-11 rounded-lg text-[10px] font-semibold tabular-nums transition-all duration-200 btn-press focus-visible-ring sm:min-h-0 ${
                   active
-                    ? 'text-brand underline decoration-2 underline-offset-4'
+                    ? 'bg-brand/10 text-brand underline decoration-2 underline-offset-4 ring-2 ring-brand/30'
                     : reached
-                      ? 'text-forest hover:text-brand'
-                      : 'text-muted hover:text-brand'
+                      ? 'text-forest hover:text-brand hover:bg-emerald-50/50'
+                      : 'text-muted hover:text-brand hover:bg-emerald-50/50'
                 }`}
               >
                 {n}
@@ -131,16 +131,16 @@ function LevelShowcase({ className = '' }: { className?: string }) {
             key={info.name}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
             className="text-lg font-black tracking-tight text-forest"
           >
             {info.name}
           </motion.h3>
           <motion.p
             key={info.title}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.25, delay: 0.05 }}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.05, ease: 'easeOut' }}
             className="mt-0.5 text-xs font-bold uppercase tracking-wider text-amber-600"
           >
             {info.title}
@@ -150,27 +150,32 @@ function LevelShowcase({ className = '' }: { className?: string }) {
         <dl className="mt-4 grid w-full max-w-sm grid-cols-3 gap-2 border-t border-line pt-3 text-center">
           <div className="min-w-0">
             <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted">Tahap</dt>
-            <dd className="mt-0.5 truncate text-xs font-bold text-forest">{stage?.label}</dd>
+            <dd className="mt-0.5 truncate text-xs font-bold text-forest transition-colors duration-300">{stage?.label}</dd>
           </div>
           <div className="min-w-0">
             <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted">Target</dt>
-            <dd className="mt-0.5 text-xs font-bold tabular-nums text-forest">
+            <dd className="mt-0.5 text-xs font-bold tabular-nums text-forest transition-colors duration-300">
               {isMax ? 'Maks' : xpNeeded.toLocaleString('id-ID')}
             </dd>
           </div>
           <div className="min-w-0">
             <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted">Status</dt>
-            <dd className="mt-0.5 text-xs font-bold text-brand">
+            <dd className="mt-0.5 text-xs font-bold text-brand transition-colors duration-300">
               {isMax ? 'Legend' : `Lv. ${level}`}
             </dd>
           </div>
         </dl>
 
         {/* Thin progress bar as a marker of level position on the 1-10 scale. */}
-        <div className="mt-3 h-1 w-full max-w-sm overflow-hidden rounded-full bg-slate-100">
+        <div className="mt-3 h-1.5 w-full max-w-sm overflow-hidden rounded-full bg-slate-100">
           <div
-            className="h-full rounded-full bg-brand transition-all duration-300 ease-out"
+            className="h-full rounded-full bg-brand progress-bar-smooth"
             style={{ width: `${percent}%` }}
+            role="progressbar"
+            aria-valuenow={Math.round(percent)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Kemajuan evolusi ${Math.round(percent)} persen`}
           />
         </div>
       </div>
@@ -220,9 +225,9 @@ export default function EvolveGuideView({ missions }: { missions?: ReactNode }) 
             {FEATURES.map(({ Icon, title, body }) => (
               <li
                 key={title}
-                className="flex min-w-0 flex-col rounded-2xl border border-line bg-white p-4 transition-colors hover:border-emerald-200"
+                className="flex min-w-0 flex-col rounded-2xl border border-line bg-white p-4 card-elevate transition-all duration-200 hover:border-emerald-200"
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 touch-target">
                   <Icon className="h-4 w-4 text-brand" aria-hidden />
                 </span>
                 <h3 className="mt-2.5 text-sm font-bold text-forest">{title}</h3>
