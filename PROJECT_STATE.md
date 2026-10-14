@@ -1,165 +1,184 @@
 # PROJECT_STATE — ASETA
 
-> Aplikasi **fintech gamified** untuk menabung otomatis dari "receh" pembulatan
-> transaksi QRIS (Auto Round-Up Investment). Maskot naga "Aseta" berevolusi
-> seiring bertambahnya aset. Stack: **Next.js 16 · React 19 · Tailwind v4 · TypeScript**.
+> A **fintech gamified** app for automatically saving the "change" from QRIS
+> transaction round-ups (Auto Round-Up Investment). The dragon mascot "Aseta"
+> evolves as assets accumulate. Stack: **Next.js 16 · React 19 · Tailwind v4 ·
+> TypeScript**.
 
-**Status build:** ✅ `tsc` 0 error · `eslint` 0 error/0 warning · `npm run build` sukses (static `/`)
+**Build status:** ✅ `tsc` 0 errors · `eslint` 0 errors/0 warnings · `npm run
+build` succeeds (static `/`)
 
 ---
 
-## ✅ Fitur yang Sudah Selesai
+## ✅ Completed Features
 
-### Inti Aplikasi
-- [x] **Auto Round-Up** — pembulatan transaksi ke ribuan terdekat, selisihnya ditabung.
-- [x] **Hero Mascot Stage** — maskot besar (gif per level evolusi) dengan radial glow,
-      partikel sparkle, badge level emas, altar + koin emas.
-- [x] **3 Fase Evolusi Maskot** — Telur → Aseta Muda → Aseta Mandiri
-      (`getMascotLevel` di `utils/aseta.ts`), transisi spring `AnimatePresence`.
-- [x] **Pet Speech Bubble** — dialog acak saat maskot di-tap (`PET_LINES`), bounce effect.
-- [x] **XP Evolusi Progress Bar** — `h-6` pill gradasi emerald-teal + efek glossy
-      (`getXpProgress`), teks "current / next XP" dinamis per level.
+### Application Core
+- [x] **Auto Round-Up** — rounds transactions up to the nearest thousand and
+      saves the difference.
+- [x] **Hero Mascot Stage** — a large mascot (gif per evolution level) with
+      radial glow, sparkle particles, a golden level badge, and an altar with
+      golden coins.
+- [x] **3 Mascot Evolution Stages** — Egg → Young Aseta → Independent Aseta
+      (`getMascotLevel` in `utils/aseta.ts`), with spring `AnimatePresence`
+      transitions.
+- [x] **Pet Speech Bubble** — random dialogue when the mascot is tapped
+      (`PET_LINES`), with a bounce effect.
+- [x] **XP Evolution Progress Bar** — `h-6` emerald-teal gradient pill + glossy
+      effect (`getXpProgress`), with dynamic "current / next XP" text per level.
 
-### Finansial (Fintech-grade)
-- [x] **Card "Total Aset Saya"** — nominal besar emerald + indikator imbal hasil
-      "🟢 +Rp… (+4.2% p.a) bulan ini" + badge "Diinvestasikan Otomatis".
-      Pada **mobile** nominal utama pindah ke badge header (kanan bar ASETA)
-      dan kartu hero hanya menampilkan breakdown Tabungan/Dompet/Hari Ini
-      dengan ikon badge lebih besar; desktop (`lg:`) tetap menampilkan
-      nominal utama di dalam kartu hero.
-- [x] **Alokasi Portofolio Otomatis 60/40** — split bar 🟡 Emas Digital 60% &
-      🟢 Reksadana Pasar Uang 40% (proporsional terhadap balance aktual).
-- [x] **Widget Statistik** — Hari Ini / Transaksi / Dompet (grid `gap-3`, font aman).
-- [x] **Batas Harian (Daily Cap)** — input + tombol Simpan ber-style emerald.
-- [x] **Preset Transaksi Cepat** — Kopi Kenangan / Indomaret / Makan Siang (1 tap).
-- [x] **Tab Riwayat** — daftar transaksi tersimpan (localStorage).
+### Financial (Fintech-grade)
+- [x] **"Total Aset Saya" card** — large emerald figure + return indicator
+      "🟢 +Rp… (+4.2% p.a) bulan ini" + a "Diinvestasikan Otomatis" badge. On
+      **mobile** the primary figure moves to the header badge (right of the ASETA
+      bar) and the hero card shows only the Tabungan/Dompet/Hari Ini breakdown
+      with larger badge icons; on desktop (`lg:`) the primary figure stays inside
+      the hero card.
+- [x] **Automatic 60/40 Portfolio Allocation** — split bar 🟡 Emas Digital 60% &
+      🟢 Reksadana Pasar Uang 40% (proportional to the actual balance).
+- [x] **Statistics Widget** — Hari Ini / Transaksi / Dompet (`gap-3` grid, safe
+      font sizes).
+- [x] **Daily Cap** — input + an emerald-styled save button.
+- [x] **Quick Transaction Presets** — Kopi Kenangan / Indomaret / Makan Siang
+      (1 tap).
+- [x] **History Tab** — a list of stored transactions (localStorage).
 
-### Gamifikasi Lanjutan (Jalur 2)
-- [x] **Streak Harian** — badge "🔥 N Hari" di header; naik jika aktivitas
-      hari-berturut-turut, reset jika bolong.
-- [x] **Misi Hari Ini (Daily Quests)** — 3 checklist interaktif
-      (☕ QRIS +100 XP · 🪙 Tabung ≥Rp5.000 +200 XP · 🐉 Sapa Aseta 3x +50 XP)
-      dengan tombol "Klaim XP" + reset otomatis tiap tanggal. Pada **mobile**
-      kartu ini pindah ke **tab "Evolusi"** (di bawah kartu evolusi) dan
-      Beranda cukup punya chip pintasan `🎯 Misi Harian (n/3) →` yang melompat
-      ke tab tersebut; pada **desktop** kartu misi tetap di kolom kanan Beranda
-      dan chip disembunyikan.
-- [x] **SFX Web Audio API** — efek suara sintetis tanpa file mp3 (aman dari 404):
-      `playTapSound`, `playCoinSound`, `playLevelUpSound` (saat tap/nabung/klaim/level up).
+### Advanced Gamification (Track 2)
+- [x] **Daily Streak** — a "🔥 N Hari" badge in the header; increases with
+      consecutive-day activity and resets after a gap.
+- [x] **Daily Quests (Misi Hari Ini)** — 3 interactive checklist items
+      (☕ QRIS +100 XP · 🪙 Save ≥Rp5,000 +200 XP · 🐉 Greet Aseta 3× +50 XP) with
+      a "Klaim XP" button and an automatic reset each new date. On **mobile**
+      this card moves to the **"Evolusi" tab** (below the evolution card) and
+      Beranda only needs the shortcut chip `🎯 Misi Harian (n/3) →` that jumps to
+      that tab; on **desktop** the quest card stays in the Beranda right column
+      and the chip is hidden.
+- [x] **Web Audio API SFX** — synthetic sound effects with no mp3 files (immune
+      to 404s): `playTapSound`, `playCoinSound`, `playLevelUpSound` (on
+      tap/deposit/claim/level up).
 
-### Finansial Realistis (Jalur 3)
-- [x] **Modal Pencairan Aset (Liquidate)** — cairkan Emas/Reksadana/Semua dari
-      portofolio kembali ke Saldo Dompet utama (dengan validasi nominal).
-- [x] **Grafik Pertumbuhan 7 Hari** — mini SVG line chart (`GrowthChart`) responsif.
+### Realistic Financial Behaviour (Track 3)
+- [x] **Asset Liquidation Modal** — liquidate Gold/Mutual Funds/All from the
+      portfolio back into the main Wallet Balance (with amount validation).
+- [x] **7-Day Growth Chart** — a responsive mini SVG line chart (`GrowthChart`).
 
 ### Onboarding & UX
-- [x] **Interactive Walkthrough / Onboarding Tour** — 4 langkah (Hero Mascot →
-      Portfolio → XP Bar → Tombol Scan), backdrop `bg-black/75 z-40` + spotlight
-      tajam (`z-55` ring emerald) + tooltip modal (`z-60`) dengan avatar mini maskot.
-      Status disimpan di `localStorage` (`aseta_tour_completed`), bisa diulang via tombol `?`.
-- [x] **Hydration Safety** — semua render berbasis localStorage dibungkus guard
-      `isMounted` (via `useSyncExternalStore`) → bebas hydration mismatch.
-- [x] **Mobile Frame + Bottom Navbar** — container `max-w-md`, navbar fixed
-      glassmorphism tunggal (tanpa tab ganda), `pb-28` agar konten tak tertutup.
+- [x] **Interactive Walkthrough / Onboarding Tour** — 4 steps (Hero Mascot →
+      Portfolio → XP Bar → Scan Button), `bg-black/75 z-40` backdrop + sharp
+      spotlight (`z-55` emerald ring) + modal tooltip (`z-60`) with a mini mascot
+      avatar. Status is stored in `localStorage` (`aseta_tour_completed`) and can
+      be replayed via the `?` button.
+- [x] **Hydration Safety** — every localStorage-based render is guarded by
+      `isMounted` (via `useSyncExternalStore`) → no hydration mismatches.
+- [x] **Mobile Frame + Bottom Navbar** — `max-w-md` container, a single fixed
+      glassmorphism navbar (no double tabs), `pb-28` so content is not covered.
 
 ---
 
-### Polish Visual & Micro-Interactions (Terbaru)
-- [x] **Parallax Tilt Panggung Hero** — `TiltStage` di `HeroMascot3D` memiringkan
-      seluruh isi panggung mengikuti kursor (`perspective: 900` + spring).
-- [x] **Telur Aseta Interaktif** — animasi "bernapas" (CSS), getaran saat diklik,
-      dan SFX "ciit" (`playEggChirpSound`) dari `utils/sound.ts`.
-- [x] **Bar Alokasi di Simulator** — strip mini Emas Digital 60% / Reksadana 40%
-      yang mengikuti nilai round-up secara real-time.
-- [x] **Tap Micro-interaksi Maskot** — `whileTap` scale-95, bounce CSS
-      `animate-mascot-tap`, dan partikel "+50 XP" melayang tiap tap.
-- [x] **Widget Proyeksi Tabungan** — kalkulator bunga majemuk harian
-      (Rp5.000–Rp50.000/hari) dengan estimasi 1/3/5 tahun @ +4,2% p.a;
-      subteks "hasil" mengurangi setoran kumulatif `daily × 365 × years`.
-- [x] **Audio Terpusat** — semua SFX Web Audio API dipindah ke `utils/sound.ts`
-      (dipakai bersama oleh landing & dashboard).
+### Visual Polish & Micro-Interactions (Latest)
+- [x] **Hero Stage Parallax Tilt** — `TiltStage` in `HeroMascot3D` tilts the
+      entire stage content following the cursor (`perspective: 900` + spring).
+- [x] **Interactive Aseta Egg** — a "breathing" animation (CSS), a shake on
+      click, and a "chirp" SFX (`playEggChirpSound`) from `utils/sound.ts`.
+- [x] **Simulator Allocation Bar** — a mini Emas Digital 60% / Reksadana 40%
+      strip that follows the round-up value in real time.
+- [x] **Mascot Tap Micro-interaction** — `whileTap` scale-95, CSS bounce
+      `animate-mascot-tap`, and a floating "+50 XP" particle on every tap.
+- [x] **Savings Projection Widget** — a daily compound-interest calculator
+      (Rp5,000–Rp50,000/day) with 1/3/5-year estimates @ +4.2% p.a; the "hasil"
+      subtext subtracts cumulative deposits `daily × 365 × years`.
+- [x] **Centralised Audio** — all Web Audio API SFX moved to `utils/sound.ts`
+      (shared by the landing page and the dashboard).
 
-### Layout Responsif (Terbaru)
-- [x] **Grid desktop 2 kolom** — `lg:grid-cols-12`: kolom kiri 7 (kartu hero
-      maskot + total aset + Alokasi Portofolio), kolom kanan 5 (Misi Hari Ini
-      → Proyeksi Tabungan → Batas Harian). Misi Hari Ini hanya di kolom
-      kanan pada `lg:` (mobile: pindah ke tab "Evolusi" + chip pintasan).
-- [x] **Kartu-kartu diekstrak ke `components/dashboard/`** —
+### Responsive Layout (Latest)
+- [x] **2-column desktop grid** — `lg:grid-cols-12`: left column 7 (mascot hero
+      card + total assets + Portfolio Allocation), right column 5 (Misi Hari Ini
+      → Proyeksi Tabungan → Batas Harian). Misi Hari Ini appears in the right
+      column only at `lg:` (on mobile it moves to the "Evolusi" tab plus a
+      shortcut chip).
+- [x] **Cards extracted to `components/dashboard/`** —
       `TotalAssetsSummary`, `PortfolioAllocation`, `SavingsProjection`,
       `AnalyticsTabs`, `QuickTransactions`, `DailyMissions`, `DailyLimit`,
-      `GrowthChart`. `app/dashboard/page.tsx` kini hanya memegang state,
-      animasi maskot, kamera/QR, modal, dan tour.
-- [x] **Widget analitik 2-tab (mobile)** — "Portofolio" dan "Proyeksi" digabung
-      ke satu kartu tab agar feed utama tidak perlu digulir jauh.
-- [x] **Grafik pertumbuhan responsif & beranimasi** — `GrowthChart` memakai
-      `viewBox` 320×104 + `preserveAspectRatio="xMidYMid meet"` dengan `aspect`
-      yang sama rasionya (skala seragam, tanpa gepeng/letterbox/overflow di
-      320px–desktop). Semua koordinat `d`, tinggi kurva, dan grid dihitung
-      dari props `series` (tidak ada angka statis); kurva Catmull-Rom dengan
-      headroom 18% supaya tren tidak menempel tepi. Label sumbu dipindah ke
-      HTML agar fontsize responsif lewat breakpoint dan tidak ter-clip.
-      Animasi: garis digambar masuk (`pathLength=1` → `stroke-dashoffset`),
-      area fade-in, aura titik akhir, dan `transition d/cx/cy 500ms` saat
-      data berubah — semuanya CSS murni (aman SSR, tanpa hydration mismatch)
-      dengan `prefers-reduced-motion` guard. `id` gradient pakai `useId()`
-      karena 2 instans aktif bersamaan di DOM.
-- [x] **Titik grafik interaktif** — tiap titik `growthSeries` bisa diklik/di-tap
-      (state lokal `selectedIndex`). Hit-area berupa **kolom `rect` setinggi
-      penuh** (bukan lingkaran kecil): zona ketuk dibagi di batas tengah antar
-      titik sehingga tidak tumpang tindih, dan tetap ≥ acuan 44×44 di viewport
-      320px (terukur 36.7×75.4px ≈ 2770px² setelah memperhitungkan padding
-      `px-4` + `p-5` + `p-3`). Kartu detail menampilkan periode, nominal persis
-      (`Rp…`), dan perubahan %/Rp dari periode sebelumnya; memakai alur normal
-      (bukan `absolute` di atas grafik) sehingga mustahil ter-clip di layar
-      sempit, dengan dentum penunjuk di-clamp ke titik aktif. Dukungan
-      keyboard: `←/→/Home/End` pindah titik, `Esc` menutup; grup satu tab stop
-      saja dengan `role="status" aria-live="polite"` pada kartunya.
-      SVG **tidak** memakai `role="img"` (agar titik interaktif tidak
-      disembunyikan pembaca layar); lapisan dekoratif memakai `aria-hidden`.
-- [x] **Catatan data `growth`** — `growth` diisi **per transaksi**
-      (`page.tsx` `handleQuickSave`/quest/liquidate), bukan per hari, dan
-      tidak menyimpan timestamp. Karena itu label titik bawaan memakai
-      "Periode N", **bukan tanggal**. `GrowthChart` menerima prop opsional
-      `labels?: readonly string[]` untuk memasok tanggal asli di masa depan
-      tanpa mengubah komponen. Header "Pertumbuhan Aset · 7 Hari" di
-      `PortfolioAllocation` masih memakai kata "Hari" — perlu diselaraskan
-      bila mau akurat.
-- [x] **Transaksi Cepat dipindah ke tab "Scan"** — kartu ini DIHAPUS dari feed
-      **Beranda** di semua breakpoint (mobile & desktop) agar kolom kanan fokus
-      pada misi, proyeksi, dan batas harian. Aksi nabung cepat tetap tersedia
-      di tab "Scan" (`QuickTransactions`, label "Bayar"), jadi `handleQuickSave`
-      dan `QUICK_PRESETS` tetap terpakai.
-- [x] **Batas Harian jadi akordeon di mobile** — tertutup secara default,
-      ringkasan pemakaian tetap terlihat di header.
-- [x] **Input batas harian tervalidasi** — `maxLength={8}`, hanya digit,
-      dijepit `clampDailyCap()`; tidak pernah meluber keluar kartu.
+      `GrowthChart`. `app/dashboard/page.tsx` now only holds state, mascot
+      animation, camera/QR, modals, and the tour.
+- [x] **2-tab analytics widget (mobile)** — "Portofolio" and "Proyeksi" merged
+      into a single tab card so the main feed does not require much scrolling.
+- [x] **Responsive, animated growth chart** — `GrowthChart` uses
+      `viewBox` 320×104 + `preserveAspectRatio="xMidYMid meet"` with an `aspect`
+      of the same ratio (uniform scale, no distortion/letterbox/overflow from
+      320px to desktop). Every `d` coordinate, curve height, and grid line is
+      computed from the `series` prop (no static numbers); a Catmull-Rom curve
+      with 18% headroom keeps the trend off the edges. Axis labels moved to HTML
+      so font sizes scale via breakpoints and are never clipped. Animation: the
+      line draws in (`pathLength=1` → `stroke-dashoffset`), the area fades in, an
+      end-point halo, and `transition d/cx/cy 500ms` when data changes — all pure
+      CSS (SSR-safe, no hydration mismatch) with a `prefers-reduced-motion` guard.
+      The gradient `id` uses `useId()` because 2 instances are live in the DOM at
+      once.
+- [x] **Interactive chart points** — every `growthSeries` point is clickable/tappable
+      (local `selectedIndex` state). Hit areas are **full-height `rect` columns**
+      (not small circles): tap zones split at the midpoint between adjacent
+      points so they never overlap, and stay ≥ the 44×44 reference at a 320px
+      viewport (measured 36.7×75.4px ≈ 2770px² after accounting for the
+      `px-4` + `p-5` + `p-3` padding). The detail card shows the period, the exact
+      figure (`Rp…`), and the %/Rp change from the previous period; it uses normal
+      flow (not `absolute` over the chart) so it cannot possibly be clipped on a
+      narrow screen, with a pointer notch clamped to the active point. Keyboard
+      support: `←/→/Home/End` move between points, `Esc` closes; a single tab stop
+      for the whole group, with `role="status" aria-live="polite"` on the card.
+      The SVG deliberately does **not** use `role="img"` (that would hide the
+      interactive points from screen readers); decorative layers use `aria-hidden`.
+- [x] **`growth` data caveat** — `growth` is appended **per transaction**
+      (`page.tsx` `handleQuickSave`/quest/liquidate), not per day, and stores no
+      timestamp. That is why the default point labels use "Periode N" rather than
+      dates. `GrowthChart` accepts an optional `labels?: readonly string[]` prop so
+      real dates can be supplied later without changing the component. The
+      "Pertumbuhan Aset · 7 Hari" header in `PortfolioAllocation` still says
+      "Hari" — it should be aligned if accuracy matters.
+- [x] **Quick Transactions moved to the "Scan" tab** — this card is REMOVED from
+      the **Beranda** feed at every breakpoint (mobile & desktop) so the right
+      column focuses on missions, projection, and the daily limit. Quick-deposit
+      actions remain available in the "Scan" tab (`QuickTransactions`, label
+      "Bayar"), so `handleQuickSave` and `QUICK_PRESETS` stay in use.
+- [x] **Daily Limit becomes an accordion on mobile** — closed by default, with
+      the usage summary still visible in the header.
+- [x] **Validated daily-limit input** — `maxLength={8}`, digits only, clamped by
+      `clampDailyCap()`; it never overflows the card.
 
-## 📋 Daftar Tugas Selanjutnya (Roadmap)
+## 📋 Next Tasks (Roadmap)
 
-### Prioritas Tinggi
-- [ ] **Persistensi Streak saat Mount** — pastikan streak terhitung & tampil benar
-      bahkan sebelum transaksi pertama pada hari itu (saat ini naik via `commitSavings`).
-- [ ] **Reset Otomatis Daily Quests saat Mount** — panggil reset berbasis tanggal
-      saat komponen mount (bukan hanya saat nabung) agar checklist akurat tiap hari.
-- [ ] **Notifikasi Streak Putus** — toast/peringatan ramah jika user melewatkan 1 hari.
+### High Priority
+- [ ] **Persist the streak on mount** — make sure the streak is computed and
+      displayed correctly even before the first transaction of the day (it
+      currently only increments via `commitSavings`).
+- [ ] **Automatic daily quest reset on mount** — call the date-based reset when
+      the component mounts (not only on deposit) so the checklist is accurate
+      every day.
+- [ ] **Broken-streak notification** — a friendly toast/warning if the user
+      misses a day.
 
-### Prioritas Sedang
-- [ ] **Riwayat Pertumbuhan Real** — simpan snapshot `growth` harian (bukan hanya
-      saat transaksi) agar grafik 7 hari lebih akurat.
-- [ ] **Animasi Konfeti Level Up** — perluas efek visual saat evolusi maskot (level up).
-- [ ] **Aksesibilitas** — pastikan semua interaktif punya label ARIA & fokus keyboard.
+### Medium Priority
+- [ ] **Real growth history** — store daily `growth` snapshots (not just on
+      transactions) so the 7-day chart is more accurate.
+- [ ] **Level-up confetti animation** — extend the visual effect when the mascot
+      evolves (level up).
+- [ ] **Accessibility** — ensure every interactive element has an ARIA label and
+      keyboard focus.
 
-### Prioritas Rendah / Eksplorasi
-- [ ] **Unit Test** — tambahkan test untuk `utils/aseta.ts` (round-up, level, XP).
-- [ ] **Onboarding ulang setelah update fitur** — versioning tour (`aseta_tour_v2`).
-- [ ] **Harga emas & return dinamis** — ambil dari data/API simulasi, bukan konstanta.
+### Low Priority / Exploration
+- [ ] **Unit tests** — add tests for `utils/aseta.ts` (round-up, level, XP).
+- [ ] **Re-run onboarding after a feature update** — tour versioning
+      (`aseta_tour_v2`).
+- [ ] **Dynamic gold price & return** — source it from simulated data/API rather
+      than constants.
 
 ---
 
-## 🗂️ File Konteks
-- `.clinerules` — aturan pengkodean & standar proyek.
-- `.clineignore` — daftar file/folder yang diabaikan agen.
-- `PROJECT_STATE.md` — dokumen ini (progress & roadmap).
-- `docs/architecture.md` — arsitektur, data model, & konstanta domain (terverifikasi dari kode).
-- `AGENTS.md` — ringkasan konteks agent (di bawah blok nextjs-agent-rules).
-- `opencode.json` — daftar instruksi yang dimuat agent.
+## 🗂️ Context Files
+- `.agents/rules/aseta-coding-standards.md` — the mandatory coding standard and
+  project rules (primary source of truth).
+- `skills-lock.json` — skill registry (source + hash per installed skill).
+- `PROJECT_STATE.md` — this document (progress & roadmap).
+- `docs/architecture.md` — architecture, data model, and domain constants
+  (verified against the code).
+- `AGENTS.md` — agent context summary (below the nextjs-agent-rules block).
+- `opencode.json` — the list of instructions loaded by the agent.

@@ -1,23 +1,23 @@
 import { Sparkles, TrendingUp, Wallet } from 'lucide-react';
 
 /**
- * Blok "Total Aset Saya" — breakdown tiga baris + nominal utama.
+ * "Total Aset Saya" block — a three-row breakdown plus the primary figure.
  *
- * Permanen berada di dalam kartu hero maskot (bukan kartu terpisah) supaya
- * urutan hierarki informasi tetap maskot → aset.
+ * Permanently lives inside the mascot hero card (not a separate card) so the
+ * information hierarchy stays mascot → assets.
  *
- * **Spesifik per breakpoint:**
- * - Mobile (`< lg`) — nominal utama TIDAK diulang di sini karena sudah
- *   dipindahkan ke badge header (lihat `app/dashboard/page.tsx`). Yang
- *   tersisa adalah kartu breakdown yang lebih lega: baris bertumpuk
- *   penuh dengan ikon badge lebih besar, nominal lebih tebal, dan padding
- *   seimbang. Semua class mobile ditulis lebih dulu lalu di-override oleh
- *   `lg:` sehingga tampilan desktop tetap persis seperti semula.
- * - Desktop (`lg:`) — nominal utama tampil penuh di atas breakdown
- *   (struktur asli), gaya breakdown kembali ke versi ringkas yang lama.
+ * **Breakpoint-specific:**
+ * - Mobile (`< lg`) — the primary figure is NOT repeated here, because it was
+ *   moved to the header badge (see `app/dashboard/page.tsx`). What remains is a
+ *   roomier breakdown card: full-row stacked lines with larger badge icons,
+ *   heavier figures, and balanced padding. All mobile classes come first and
+ *   are overridden by `lg:` so the desktop look stays exactly as before.
+ * - Desktop (`lg:`) — the primary figure appears in full above the breakdown
+ *   (the original structure); the breakdown style reverts to the old compact
+ *   version.
  *
- * Badge header memakai nominal yang sama persis (`totalWealth`), jadi
- * tidak ada sumber angka yang berbeda antara mobile dan desktop.
+ * The header badge uses the exact same figure (`totalWealth`), so there is
+ * no different number source between mobile and desktop.
  */
 export default function TotalAssetsSummary({
   totalWealth,
@@ -32,8 +32,8 @@ export default function TotalAssetsSummary({
   wallet: number;
   today: number;
 }) {
-  // Satu pemformatan dipakai badge header & kartu hero supaya angka di
-  // mobile dan desktop tidak pernah berbeda.
+  // A single formatting pass is used for both the header badge and the hero
+  // card so the figures on mobile and desktop can never differ.
   const totalLabel = `Rp${totalWealth.toLocaleString('id-ID')}`;
 
   return (

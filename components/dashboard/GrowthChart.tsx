@@ -3,49 +3,50 @@
 import { useId, useState, type KeyboardEvent } from 'react';
 
 /* ============================================================================
- * GrowthChart — grafik garis SVG pertumbuhan portofolio (7 snapshot terakhir)
- * dengan titik data yang bisa diklik/di-tap.
+ * GrowthChart — SVG line chart of portfolio growth (last 7 snapshots)
+ * with clickable/tappable data points.
  *
- * Sifat penting:
- * 1. PURE PROPS + state interaksi lokal. Tidak ada `localStorage`, waktu
- *    sistem, atau acak saat render → aman SSR & bebas hydration mismatch.
- *    `useState` di sini HANYA menyimpan titik yang sedang dipilih.
- * 2. FLUID. `viewBox` + `preserveAspectRatio="xMidYMid meet"` + `aspect` yang
- *    persis sama rasionya → skala seragam di 320px sampai lebar desktop,
- *    tanpa gepeng (distorsi), tanpa letterbox, tanpa overflow horizontal.
- * 3. LABEL DI LUAR SVG. Sumbu/teks diletakkan di baris HTML di bawah grafik,
- *    bukan di dalam `viewBox`. Kalau teks ikut diskalakan viewBox, ukurannya
- *    ikut membesar di layar lebar dan ikut terpotong di 320px.
- * 4. HIT AREA per titik berupa KOLOM RECT setinggi area plot (bukan lingkaran
- *    kecil), sehingga target sentuhnya lebar penuh, tidak saling tumpang tindih,
- *    dan tetap ≥ 44px pada viewport 320px untuk 7 titik (stepX ≈ 50px).
- * 5. KARTU DETAIL memakai alur normal (bukan `absolute` di atas grafik) supaya
- *    mustahil ter-clip di layar sempit. Dentum penunjuknya yang di-clamp ke
- *    titik aktif, jadi secara visual tetap "nempel" ke titiknya.
+ * Key properties:
+ * 1. PURE PROPS + local interaction state. No `localStorage`, system time,
+ *    or randomness during render → SSR-safe & free of hydration mismatch.
+ *    `useState` here ONLY stores the currently selected point.
+ * 2. FLUID. `viewBox` + `preserveAspectRatio="xMidYMid meet"` + an `aspect`
+ *    with exactly the same ratio → uniform scale from 320px up to desktop
+ *    width, no squashing (distortion), no letterbox, no horizontal overflow.
+ * 3. LABELS OUTSIDE THE SVG. Axes/text live in an HTML row below the chart,
+ *    not inside the `viewBox`. If the text were scaled by the viewBox, it
+ *    would grow on wide screens and get clipped at 320px.
+ * 4. HIT AREA per point is a full-height RECT COLUMN across the plot area
+ *    (not a small circle), so the touch target is full width, never
+ *    overlapping, and stays ≥ 44px at a 320px viewport for 7 points
+ *    (stepX ≈ 50px).
+ * 5. The DETAIL CARD uses normal flow (not `absolute` over the chart) so it
+ *    can never be clipped on a narrow screen. Its pointer notch is clamped to
+ *    the active point, so it still visually "sticks" to its point.
  * ========================================================================== */
 
-/** Kanvas virtual. Semua koordinat dihitung relatif terhadap nilai ini. */
+/** Virtual canvas. All coordinates are computed relative to this value. */
 const W = 320;
 const H = 104;
-/** Padding kiri/kanan area plot — label HTML memakai rasio yang sama (lihat PAD_RATIO_X). */
+/** Left/right padding of the plot area — the HTML labels use the same ratio (see PAD_RATIO_X). */
 const PAD_X = 8;
-/** Ruang atas: cukup untuk cincin aura titik puncak tanpa keluar viewBox. */
+/** Top space: enough for the peak point's aura ring without leaving the viewBox. */
 const PAD_TOP = 18;
-/** Ruang bawah untuk label sumbu X. */
+/** Bottom space for the X axis labels. */
 const PAD_BOTTOM = 18;
 const PLOT_H = H - PAD_TOP - PAD_BOTTOM;
 const PLOT_BOTTOM = PAD_TOP + PLOT_H;
-/** 8 / 320 = 2.5% → dipakai sebagai padding-x baris label HTML agar rata. */
+/** 8 / 320 = 2.5% → used as the label row's padding-x so both align. */
 const PAD_RATIO_X = '2.5%';
 
-/** Rasio garis horizontal grid (0 = puncak, 1 = dasar area plot). */
+/** Horizontal grid line ratios (0 = peak, 1 = bottom of the plot area). */
 const GRID_STEPS = [0, 0.5, 1];
 
-/** Batas aman titik & titik kendali kurva agar tidak keluar area plot. */
+/** Safe bound for points & curve control points so they stay inside the plot area. */
 const clampY = (y: number) => Math.min(PAD_TOP, Math.max(PLOT_BOTTOM, y));
 const r2 = (n: number) => n.toFixed(2);
 
-/** Rupiah ringkas untuk label sumbu: 1_250_000 → "1,3 jt". */
+/** Compact Rupiah for axis labels: 1_250_000 → "1,3 jt". */
 function formatCompactIDR(value: number): string {
   const abs = Math.abs(value);
   if (abs >= 1_000_000_000) return `${(value / 1e9).toLocaleString('id-ID', { maximumFractionDigits: 1 })} M`;
@@ -54,16 +55,16 @@ function formatCompactIDR(value: number): string {
   return value.toLocaleString('id-ID');
 }
 
-/** Persen dengan tanda eksplisit: 1,24 → "+1,24%". */
+/** Percent with an explicit sign: 1.24 → "+1.24%". */
 function formatPercent(value: number): string {
   const sign = value > 0 ? '+' : value < 0 ? '−' : '';
   return `${sign}${Math.abs(value).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
 }
 
 /**
- * Kurva Catmull-Rom → Bezier agar garis terasa "hidup" dan tidak bersudut
- * seperti polyline. Titik kendali dijepit ke area plot supaya kurva tidak
- * pernah menanjak keluar kotak saat data melonjak.
+ * Catmull-Rom curve → Bezier so the line feels "alive" instead of angular
+ * like a polyline. Control points are clamped to the plot area so the curve
+ * never spikes outside the box when the data jumps.
  */
 function smoothPath(pts: { x: number; y: number }[]): string {
   if (pts.length === 0) return '';
@@ -86,31 +87,31 @@ function smoothPath(pts: { x: number; y: number }[]): string {
 
 export default function GrowthChart({
   series,
-  /** Label per titik (mis. tanggal). Opsional — lihat catatan di bawah. */
+  /** Label per point (e.g. a date). Optional — see the note below. */
   labels,
 }: {
   series: number[];
   labels?: readonly string[];
 }) {
-  // `useId` bisa memuat karakter non-alnum di beberapa versi React; disaring
-  // agar id aman dipakai sebagai referensi `url(#...)` gradient SVG.
+  // `useId` may contain non-alphanumeric characters in some React versions;
+  // filtered so the id is safe to use as an SVG gradient `url(#...)` reference.
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
   const fillId = `growthFill-${uid}`;
 
-  // Hanya state interaksi: indeks titik yang sedang aktif, atau null.
+  // Interaction state only: the index of the currently active point, or null.
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  // --- Data → titik (dinamis, mengikuti `series` apa pun yang masuk) --------
+  // --- Data → points (dynamic, follows whatever `series` comes in) --------
   const values = (series.length >= 2 ? series : [0, 0])
     .map(v => (Number.isFinite(v) ? v : 0))
     .slice(0, 31);
   const span = Math.max(1, values.length - 1);
 
-  /* Domain relatif terhadap data + headroom. Menjangkarkan ke 0 (seperti
-     `Math.min(...data, 0)`) membuat tren yang nilainya jauh dari nol menempel
-     di tepi atas dan meninggalkan 3/4 kanvas kosong. Headroom 18% menjaga
-     nilai tertinggi & terendah tetap di dalam area plot, dan seri datar tetap
-     tergambar sebagai garis di tengah. */
+  /* Domain relative to the data + headroom. Anchoring to 0 (like
+     `Math.min(...data, 0)`) makes a trend whose values are far from zero hug
+     the top edge and leave 3/4 of the canvas empty. 18% headroom keeps the
+     highest & lowest values inside the plot area, and a flat series still
+     renders as a line in the middle. */
   const lo = Math.min(...values);
   const hi = Math.max(...values);
   const rawRange = hi - lo;
@@ -131,10 +132,10 @@ export default function GrowthChart({
   const last = points[points.length - 1];
   const areaPath = `${linePath} L${r2(last.x)},${r2(PLOT_BOTTOM)} L${r2(first.x)},${r2(PLOT_BOTTOM)} Z`;
 
-  /* Label titik. `labels` (tanggal asli) dipakai bila diteruskan pemanggil.
-     Kalau tidak, pakai label PERIODE — bukan tanggal. Series `growth` diisi
-     per-transaksi (bukan per hari) dan tidak menyimpan timestamp, jadi
-     mengarang tanggal di sini akan menampilkan informasi yang salah. */
+  /* Point labels. `labels` (real dates) are used when the caller passes them.
+     Otherwise PERIOD labels are used — not dates. The `growth` series is
+     filled per transaction (not per day) and stores no timestamp, so
+     inventing dates here would display wrong information. */
   const pointLabels = points.map((_, i) => labels?.[i] ?? `Periode ${i + 1}`);
   const days = values.length;
 
@@ -146,7 +147,7 @@ export default function GrowthChart({
         ? `turun ${formatCompactIDR(Math.abs(delta))} dalam ${days} periode`
         : `flat dalam ${days} periode`;
 
-  // --- Titik aktif ----------------------------------------------------------
+  // --- Active point ------------------------------------------------------------
   const activeIndex = selectedIndex !== null && selectedIndex < points.length ? selectedIndex : null;
   const active = activeIndex !== null ? points[activeIndex] : null;
   const activePrev = activeIndex !== null && activeIndex > 0 ? points[activeIndex - 1] : null;
@@ -156,7 +157,7 @@ export default function GrowthChart({
       : null;
   const activeDelta = active && activePrev ? active.value - activePrev.value : null;
 
-  /** Geser fokus titik dengan keyboard (satu tab stop, bukan 7). */
+  /** Move the focused point with the keyboard (one tab stop, not 7). */
   function handleKeyDown(e: KeyboardEvent<HTMLDivElement>) {
     if (points.length === 0) return;
     const move = (next: number) => {
@@ -197,15 +198,14 @@ export default function GrowthChart({
       aria-label={`Grafik pertumbuhan portofolio, ${days} periode terakhir, ${trendLabel}. Nilai terakhir ${formatCompactIDR(last.value)} rupiah. Tekan panah kiri atau kanan untuk memilih titik, Escape untuk menutup.`}
       onKeyDown={handleKeyDown}
     >
-      {/* ---------- Grafik: rasio viewBox (320:104 = 40:13) dicocokkan dengan
-          `aspect` agar `meet` mengisi kotak persis tanpa letterbox.
+      {/* ---------- Chart: the viewBox ratio (320:104 = 40:13) is matched with
+          `aspect` so `meet` fills the box exactly without a letterbox.
 
-          Sengaja TIDAK memakai `role="img"`: atribut itu menyuruh pembaca
-          layar memperlakukan seluruh SVG sebagai satu gambar dan
-          mengabaikan keturunannya — termasuk titik-titik yang bisa diklik.
-          Karena itu bagian dekoratif disembunyikan dengan `aria-hidden` di
-          grupnya masing-masing, sementara kolom hit-area tetap terekspos
-          sebagai `role="button"`. ---------- */}
+          Deliberately NOT using `role="img"`: that attribute tells screen
+          readers to treat the whole SVG as a single image and ignore its
+          children — including the clickable points. So the decorative part is
+          hidden with `aria-hidden` on its own group, while the hit-area
+          columns stay exposed as `role="button"`. ---------- */}
       <svg
         viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="xMidYMid meet"
@@ -213,17 +213,17 @@ export default function GrowthChart({
         style={{ aspectRatio: '40 / 13' }}
       >
         <defs aria-hidden="true">
-          {/* Satu nada emerald transparan yang sangat halus — tanpa gradien
-              berlapis/mesh agar tren terbaca namun tidak mencolok. */}
+          {/* A single, very subtle transparent emerald tone — no layered/mesh
+              gradient, so the trend stays readable without standing out. */}
           <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#10b981" stopOpacity="0.22" />
             <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
           </linearGradient>
         </defs>
 
-        {/* --- Lapisan dekoratif (sembunyi dari pembaca layar) --- */}
+        {/* --- Decorative layer (hidden from screen readers) --- */}
         <g aria-hidden="true">
-          {/* Latar klik: mengosongkan pilihan saat area grafik lain diketuk. */}
+          {/* Click backdrop: clears the selection when any other part of the chart is tapped. */}
           <rect
             x={0}
             y={0}
@@ -234,8 +234,8 @@ export default function GrowthChart({
             onClick={() => setSelectedIndex(null)}
           />
 
-          {/* Grid horizontal: proporsi tetap, `non-scaling-stroke` menjaga
-            ketebalan tetap hairline di resolusi apa pun. */}
+          {/* Horizontal grid: fixed proportions, `non-scaling-stroke` keeps the
+            thickness a hairline at any resolution. */}
           <g stroke="#cbd5e1" strokeLinecap="round" vectorEffect="non-scaling-stroke">
             {GRID_STEPS.map(step => {
               const y = PLOT_BOTTOM - step * PLOT_H;
@@ -255,8 +255,8 @@ export default function GrowthChart({
             })}
           </g>
 
-          {/* Area + garis: `d` dihitung dari data, dianimasikan masuk sekali
-            lalu bertransisi mulus setiap `series` berubah. */}
+          {/* Area + line: `d` is computed from the data, animated in once
+            then transitions smoothly on every `series` change. */}
           <path d={areaPath} fill={`url(#${fillId})`} className="chart-area chart-anim" />
           <path
             d={linePath}
@@ -270,7 +270,7 @@ export default function GrowthChart({
             className="chart-line chart-anim"
           />
 
-          {/* Garis penunjuk vertikal di titik aktif. */}
+          {/* Vertical pointer line at the active point. */}
           {active && (
             <line
               x1={r2(active.x)}
@@ -286,8 +286,8 @@ export default function GrowthChart({
             />
           )}
 
-          {/* Titik data: pasif = inti kecil bertepi putih, aktif = inti besar
-            + cincin putih + denyut. */}
+          {/* Data points: inactive = small core with a white edge, active = large
+            core + white ring + pulse. */}
           {points.map((p, i) => {
             const isActive = i === activeIndex;
             const isLast = i === points.length - 1;

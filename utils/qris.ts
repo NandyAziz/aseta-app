@@ -1,36 +1,36 @@
 /**
- * Parser payload QRIS / QR pembayaran statis (EMVCo-compatible).
+ * Parser for QRIS / static payment QR payloads (EMVCo-compatible).
  *
- * Fungsi murni: menerima string payload QR dan mengembalikan nominal dalam
- * rupiah. Tidak menyentuh React maupun state — aman dipanggil dari loop
- * pemindaian kamera.
+ * Pure function: takes a QR payload string and returns the amount in
+ * rupiah. It touches neither React nor state — safe to call from the
+ * camera scanning loop.
  *
- * Format EMVCo TLV: `TAG` + `LEN` + `VALUE` (LEN 2 digit desimal).
- * Tag yang dipakai:
+ * EMVCo TLV format: `TAG` + `LEN` + `VALUE` (LEN is 2 decimal digits).
+ * Tags used:
  *  - `01` Payload Format Indicator
- *  - `26` Merchant Account Information (TLV bersarang, bisa memuat nama merchant)
+ *  - `26` Merchant Account Information (nested TLV, may carry the merchant name)
  *  - `52` Merchant Category Code
  *  - `53` Transaction Currency → `360` = IDR
- *  - `54` Transaction Amount (desimal titik/koma, mis. "18200.00")
+ *  - `54` Transaction Amount (dot/comma decimal, e.g. "18200.00")
  *  - `58` Country Code → `ID`
  *  - `59` Merchant Name
  *  - `60` Merchant City
  *
- * Referensi: EMVCo QRCPS Merchant-presented / Consumer-presented spec.
+ * Reference: EMVCo QRCPS Merchant-presented / Consumer-presented spec.
  */
 
 const EMV_HEADER = '000201';
 
 export interface ParsedQrPayload {
-  /** Nominal dalam rupiah, atau null bila QR tidak membawa nominal. */
+  /** Amount in rupiah, or null when the QR carries no amount. */
   amount: number | null;
-  /** Nama merchant bila terbaca, null bila tidak ada. */
+  /** Merchant name when readable, null when absent. */
   merchantName: string | null;
-  /** Kode mata uang (360 = IDR). */
+  /** Currency code (360 = IDR). */
   currency: string | null;
 }
 
-/** walked state machine untuk membaca satu tag TLV pada `pos`. */
+/** Walked state machine that reads a single TLV tag at `pos`. */
 function readTag(
   data: string,
   pos: number
@@ -45,7 +45,7 @@ function readTag(
   return { tag, length, value: data.slice(start, end), next: end };
 }
 
-/** Pecah seluruh TLV di level pertama menjadi peta tag → value. */
+/** Splits all first-level TLVs into a tag → value map. */
 function topLevelTags(data: string): Map<string, string> {
   const map = new Map<string, string>();
   let pos = 0;
@@ -59,33 +59,33 @@ function topLevelTags(data: string): Map<string, string> {
 }
 
 /**
- * Cari tag `54` (Transaction Amount). Mengembalikan nominal rupiah, atau null
- * bila tidak ada / tidak valid / di luar rentang yang masuk akal.
+ * Finds tag `54` (Transaction Amount). Returns the amount in rupiah, or null
+ * when absent / invalid / outside a plausible range.
  *
- * Guard penting: string dari QR adalah input tak dipercaya, jadi setiap nilai
- * wajib divalidasi sebelum dipakai sebagai nominal uang.
+ * Important guard: strings from a QR are untrusted input, so every value
+ * must be validated before being used as a money amount.
  */
 function parseAmount(tags: Map<string, string>): number | null {
   const raw = tags.get('54');
   if (!raw) return null;
-  // EMVCo memakai titik atau koma sebagai desimal.
+  // EMVCo uses either a dot or a comma as the decimal separator.
   const normalized = raw.replace(',', '.').trim();
   if (!/^\d+(\.\d{1,2})?$/.test(normalized)) return null;
   const value = Number.parseFloat(normalized);
   if (!Number.isFinite(value) || value <= 0) return null;
-  // Batasi agar QR PHY dengan nominal gila tidak merusak state.
+  // Cap the value so a physically printed QR with an absurd amount cannot corrupt state.
   if (value > 1_000_000_000) return null;
   return Math.round(value);
 }
 
-/** Nama merchant: coba tag 59 dulu, lalu nested TLV di dalam tag 26. */
+/** Merchant name: try tag 59 first, then the nested TLV inside tag 26. */
 function parseMerchantName(tags: Map<string, string>): string | null {
   const direct = tags.get('59');
   if (direct && direct.trim()) return direct.trim();
 
   const mai = tags.get('26');
   if (mai) {
-    // Tag 26 adalah TLV bersarang: cari tag `08` (Merchant Name) di dalamnya.
+    // Tag 26 is a nested TLV: look for tag `08` (Merchant Name) inside it.
     let pos = 0;
     while (pos < mai.length) {
       const field = readTag(mai, pos);
@@ -98,11 +98,11 @@ function parseMerchantName(tags: Map<string, string>): string | null {
 }
 
 /**
- * Parse payload QR pembayaran.
+ * Parses a payment QR payload.
  *
- * Mengembalikan objek berisi `amount: null` bila payload tidak memakai format
- * EMVCo atau tidak memuat nominal — pemanggil dapat memakai input manual
- * sebagai gantinya alih-alih menebak angka.
+ * Returns an object with `amount: null` when the payload does not use the
+ * EMVCo format or carries no amount — the caller can fall back to manual
+ * input instead of guessing a number.
  */
 export function parseQrPayload(payload: string): ParsedQrPayload {
   const data = (payload ?? '').trim();

@@ -5,24 +5,24 @@ import { ChevronDown, ShieldCheck } from 'lucide-react';
 import { MAX_DAILY_CAP, clampDailyCap, formatRupiah } from '@/utils/aseta';
 
 /**
- * Jumlah digit maksimum yang boleh diketik pada input batas harian.
- * 8 digit = nilai `MAX_DAILY_CAP` (Rp10.000.000). Dipakai sebagai `maxLength`
- * nyata karena `type="number"` mengabaikan atribut tersebut — input memakai
- * `type="text" inputMode="numeric"` supaya pembatasannya benar-benar bekerja.
+ * Maximum number of digits allowed in the daily limit input.
+ * 8 digits = the `MAX_DAILY_CAP` value (Rp10.000.000). Used as a real `maxLength`
+ * because `type="number"` ignores that attribute — the input uses
+ * `type="text" inputMode="numeric"` so the limit actually works.
  */
 const DAILY_CAP_MAX_DIGITS = String(MAX_DAILY_CAP).length;
 
 /**
- * Kartu "Batas Harian".
+ * "Batas Harian" card.
  *
- * MOBILE (`collapsible`): dirender sebagai akordeon tertutup secara default
- * supaya feed utama dashboard tetap ringkas. Ringkasan (bar progres + nominal
- * terpakai) tetap terlihat di header ketika tertutup.
- * DESKTOP: selalu terbuka penuh, karena tidak ada tekanan ruang vertikal.
+ * MOBILE (`collapsible`): rendered as an accordion closed by default so the
+ * main dashboard feed stays compact. The summary (progress bar + amount spent)
+ * is still visible in the header while collapsed.
+ * DESKTOP: always fully open, because there is no vertical space pressure.
  *
- * Validasi input: hanya digit, maksimum 8 digit, lalu dijepit ke
- * `[0, MAX_DAILY_CAP]` oleh `clampDailyCap` — tidak pernah ada nominal yang
- * meluber keluar batas kartu.
+ * Input validation: digits only, max 8 digits, then clamped to
+ * `[0, MAX_DAILY_CAP]` by `clampDailyCap` — the amount never overflows past
+ * the card boundary.
  */
 export default function DailyLimit({
   today,
@@ -47,7 +47,7 @@ export default function DailyLimit({
   collapsible?: boolean;
   className?: string;
 }) {
-  // State lokal akordeon di-init dari konstanta (`false`) → aman untuk hydration.
+  // Local accordion state is initialised from a constant (`false`) → hydration-safe.
   const [open, setOpen] = useState<boolean>(false);
   const panelId = useId();
   const expanded = !collapsible || open;
@@ -87,8 +87,8 @@ export default function DailyLimit({
         </div>
       )}
 
-      {/* Bar progres tetap terlihat meski akordeon tertutup, agar status
-          pemakaian hari ini terbaca tanpa harus membuka panel. */}
+      {/* The progress bar stays visible even while the accordion is collapsed, so
+          today's usage status can be read without opening the panel. */}
       <div
         className={`h-2 w-full overflow-hidden rounded-full bg-slate-100 ${
           collapsible ? 'mt-3' : ''
@@ -106,9 +106,9 @@ export default function DailyLimit({
             Terpakai Rp{formatRupiah(today)} dari Rp{formatRupiah(cap)}
           </p>
 
-          {/* Sisa kuota yang masih bisa ditabung hari ini. Bukan dekorasi —
-              angkanya ikut terisi real-time. `truncate` menjaga agar nominal
-              panjang tetap terpotong rapi di dalam kartu, tidak pernah meluber. */}
+          {/* Remaining quota still savable today. Not decoration — the
+              number is filled in real time. `truncate` keeps a long
+              amount clipped neatly inside the card, never overflowing. */}
           <div className="flex max-w-full items-center justify-between gap-2 overflow-hidden rounded-xl border border-emerald-100/60 bg-emerald-50/50 px-3.5 py-3">
             <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-muted">
               <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-brand" aria-hidden />

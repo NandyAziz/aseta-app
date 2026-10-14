@@ -25,7 +25,7 @@ import type { Transaction, SavingsState } from '@/types';
 type TabId = 'home' | 'scan' | 'history' | 'evolve';
 
 const STORAGE_KEY = 'aseta-savings-state';
-// Key terpisah untuk melacak tanggal aktif terakhir → pemicu auto-reset harian.
+// Separate key that tracks the last active date → daily auto-reset trigger.
 const LAST_ACTIVE_KEY = 'aseta_last_active_date';
 const DEFAULT_WALLET_BALANCE = 2500000;
 const INITIAL_STATE: SavingsState = {
@@ -47,7 +47,7 @@ const INITIAL_STATE: SavingsState = {
   growth: [],
 };
 
-// Pesan dynamic pet speech bubble — diputar saat maskot di-tap
+// Dynamic pet speech bubble lines — cycled when the mascot is tapped
 const PET_LINES = [
   'Uang kembalianmu udah aku putar ke Emas Digital ya! 🐉✨',
   'Semakin rajin nabung, semakin cepat aku evolusi!',
@@ -56,22 +56,22 @@ const PET_LINES = [
   'Yuk scan struk lagi, tinggal sedikit lagi ke level berikutnya!',
 ] as const;
 
-const GOLD_GRAM_PRICE = 1_200_000; // simulasi harga emas Rp/gram
+const GOLD_GRAM_PRICE = 1_200_000; // simulated gold price in Rp/gram
 
-// Jumlah misi harian yang ditampilkan (harus sinkron dengan `DailyMissions`).
-// Dipakai untuk pembilang chip "Misi Harian (n/3)".
+// Number of daily missions displayed (must stay in sync with `DailyMissions`).
+// Used for the "Misi Harian (n/3)" chip counter.
 const QUEST_TOTAL = 3;
 
-// --- Parameter loop pemindaian QR ---
-// Decoding dibatasi ~6 fps: cukup untuk menangkap QR yang dipegang statis,
-// tapi tidak mengunci CPU saat kamera menyala.
+// --- QR scanning loop parameters ---
+// Decoding is capped at ~6 fps: enough to catch a statically held QR,
+// but it does not pin the CPU while the camera is running.
 const SCAN_INTERVAL_MS = 160;
-// Sisi terpanjang frame yang di-decode. Resolusi penuh kamera (1080p+)
-// mahal dan tidak menambah peluang deteksi yang berarti.
+// Longest edge of the decoded frame. The camera's full resolution (1080p+)
+// is expensive and adds no meaningful detection chance.
 const SCAN_MAX_EDGE = 480;
 
-// Balasan maskot saat tap harian sudah melewati batas GREET_TAP_TARGET —
-// tetap ramah, tidak menghakimi, dan memberi arahan tastyuk berikutnya.
+// Mascot replies once the daily taps pass GREET_TAP_TARGET —
+// still friendly, never judgemental, and points at the next action.
 const PET_LINES_LIMIT = [
   'Aku udah kekenjangan sapa hari ini, deh! 😴',
   'Batas sapa hari ini habis — tapi maskotmu tetap senang kok!',
@@ -89,8 +89,8 @@ function isValidSavingsState(obj: unknown): obj is SavingsState {
   );
 }
 
-// Pembuatan transaksi dipindah ke module scope agar bebas dari aturan
-// kesucian (purity) React Compiler — hanya dipanggil dari event handler.
+// Transaction creation lives at module scope so it stays free of the React
+// Compiler purity rules — it is only ever called from an event handler.
 function buildTransaction(tx: Omit<Transaction, 'id' | 'timestamp' | 'date'>): Transaction {
   return {
     ...tx,
@@ -101,12 +101,12 @@ function buildTransaction(tx: Omit<Transaction, 'id' | 'timestamp' | 'date'>): T
 }
 
 // ============================================================
-// Efek suara sintetis (Web Audio API, tanpa file mp3) dipusatkan
-// di utils/sound.ts supaya tidak diduplikasi antar halaman.
+// Synthetic sound effects (Web Audio API, no mp3 files) are centralized
+// in utils/sound.ts so they are not duplicated across pages.
 // ============================================================
 
 // ============================================================
-// Utilitas tanggal (YYYY-MM-DD) untuk streak & reset misi harian
+// Date utility (YYYY-MM-DD) for the streak & daily mission reset
 // ============================================================
 function todayKey(d: Date = new Date()): string {
   const y = d.getFullYear();
@@ -121,11 +121,11 @@ function daysBetween(aKey: string, bKey: string): number {
   return Math.round((b.getTime() - a.getTime()) / 86_400_000);
 }
 
-// Snapshot pertumbuhan portofolio 7 hari (simulasi deterministik berbasis balance)
+// 7-day portfolio growth snapshot (deterministic simulation based on balance)
 function buildGrowthSeries(balance: number): number[] {
   const pts = 7;
   const base = Math.max(0, balance);
-  // Kurva naik lembut menuju balance saat ini (gradien ~ +1.1%/hari)
+  // Gentle rising curve towards the current balance (gradient ~ +1.1%/day)
   const series: number[] = [];
   for (let i = 0; i < pts; i++) {
     const factor = 1 - (pts - 1 - i) * 0.011;
@@ -135,14 +135,14 @@ function buildGrowthSeries(balance: number): number[] {
   return series;
 }
 
-// Normalisasi state dari localStorage (migrasi field baru dengan aman)
+// Normalize state read from localStorage (migrates new fields safely)
 function num(v: unknown, fallback: number): number {
   return typeof v === 'number' && Number.isFinite(v) ? v : fallback;
 }
 
-// Bentuk state saat ganti hari: akumulator harian & misi di-reset ke awal,
-// sementara data persisten (balance, dompet, riwayat, streak, growth) dipertahankan.
-// date quest diset ke hari baru agar checklist akurat.
+// State shape on a day change: the daily accumulator & missions are reset to
+// the start, while persistent data (balance, wallet, history, streak, growth) is
+// preserved. The quest date is set to the new day so the checklist stays accurate.
 function applyDailyReset(prev: SavingsState, today: string): SavingsState {
   return {
     ...prev,
@@ -151,13 +151,13 @@ function applyDailyReset(prev: SavingsState, today: string): SavingsState {
   };
 }
 
-// Simpan tanggal aktif terakhir ke key terpisah (dipanggil dari event handler,
-// bukan saat render → aman dari aturan purity). Abaikan bila localStorage diblokir.
+// Persist the last active date to a separate key (called from an event handler,
+// not during render → safe under the purity rules). Ignored when localStorage is blocked.
 function persistLastActive(today: string) {
   try {
     localStorage.setItem(LAST_ACTIVE_KEY, today);
   } catch {
-    /* localStorage tidak tersedia — cukup andalkan state di memori */
+    /* localStorage unavailable — in-memory state is good enough */
   }
 }
 
@@ -182,7 +182,7 @@ function normalizeState(parsed: SavingsState): SavingsState {
 
 const TOUR_STORAGE_KEY = 'aseta_tour_completed';
 
-// Langkah onboarding tour: target = selector unik elemen yang di-highlight
+// Onboarding tour steps: target = unique selector of the highlighted element
 const TOUR_STEPS = [
   {
     target: '[data-tour="hero-mascot"]',
@@ -229,15 +229,15 @@ export default function AsetaApp() {
       }
       return INITIAL_STATE;
     } catch {
-      // localStorage diblokir / JSON corrupt → fallback mulus ke default (tanpa crash)
+      // localStorage blocked / JSON corrupt → fall back to defaults silently (no crash)
       return INITIAL_STATE;
     }
   });
 
   const [activeTab, setActiveTab] = useState<TabId>('home');
   const [historySearch, setHistorySearch] = useState<string>('');
-  const [historyRange, setHistoryRange] = useState<number>(0); // 0 = semua hari
-  const [nowTs, setNowTs] = useState<number>(0); // "waktu sekarang" untuk filter riwayat (diisi via effect)
+  const [historyRange, setHistoryRange] = useState<number>(0); // 0 = all days
+  const [nowTs, setNowTs] = useState<number>(0); // "now" timestamp for the history filter (filled via effect)
   const [amountInput, setAmountInput] = useState<string>('');
   const [merchantInput, setMerchantInput] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -246,25 +246,25 @@ export default function AsetaApp() {
   const [mascotMood, setMascotMood] = useState<MascotExpression>('idle');
   const [mascotSpeech, setMascotSpeech] = useState<string | null>(null);
   const moodTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // --- Kamera sungguhan (getUserMedia) ---
-  // Siklus hidup: idle → starting → live, atau idle → denied/error (fallback).
-  // Demo mode dipisah dari kamera: tidak pernah menyentuh state keuangan,
-  // hanya menampilkan toast konfirmasi strut tiruan.
+  // --- Real camera (getUserMedia) ---
+  // Lifecycle: idle → starting → live, or idle → denied/error (fallback).
+  // Demo mode is kept separate from the camera: it never touches financial state,
+  // it only shows a toast confirming the mock receipt.
   type CameraState = 'idle' | 'starting' | 'live' | 'denied' | 'unsupported';
   const [cameraState, setCameraState] = useState<CameraState>('idle');
   const [cameraError, setCameraError] = useState<string>('');
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  // Canvas off-screen khusus grabs frame kamera untuk decoding jsQR.
+  // Off-screen canvas dedicated to grabbing camera frames for jsQR decoding.
   const scanCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const scanRafRef = useRef<number | null>(null);
   const lastScanAtRef = useRef<number>(0);
-  // Hasil scan terakhir (payload mentah + hasil parse) untuk ditampilkan di modal.
+  // Latest scan result (raw payload + parsed output) to display in the modal.
   const [scanResult, setScanResult] = useState<{ amount: number | null; merchantName: string | null } | null>(null);
   const [showScanModal, setShowScanModal] = useState<boolean>(false);
-  // Kilatan singkat saat QR berhasil tertangkap.
+  // Brief flash when the QR is captured successfully.
   const [scanFlash, setScanFlash] = useState<boolean>(false);
-  /** Matikan stream kamera, batalkan loop decoding, dan lepaskan resource-nya. */
+  /** Stop the camera stream, cancel the decode loop, and release its resources. */
   const stopCamera = useCallback(() => {
     if (scanRafRef.current !== null) {
       cancelAnimationFrame(scanRafRef.current);
@@ -275,11 +275,11 @@ export default function AsetaApp() {
     if (videoRef.current) videoRef.current.srcObject = null;
   }, []);
   const petLineIndex = useRef<number>(0);
-  // Bertambah tiap tap → dipakai sebagai `key` untuk memutar ulang animasi
-  // partikel "+50 XP" yang melayang keluar dari maskot.
+  // Increments on every tap → used as the `key` that restarts the animation
+  // of the "+50 XP" particles floating out of the mascot.
   const [xpBurstId, setXpBurstId] = useState<number>(0);
-  // Bertambah tiap tap yang ditolak (batas harian tercapai) → dipakai
-  // sebagai `key` untuk memutar ulang animasi getar halus pada maskot.
+  // Increments on every rejected tap (daily limit reached) → used as the
+  // `key` that restarts the subtle shake animation on the mascot.
   const [mascotShakeId, setMascotShakeId] = useState<number>(0);
 
   // --- Onboarding Tour ---
@@ -287,9 +287,9 @@ export default function AsetaApp() {
   const [tourStep, setTourStep] = useState<number>(0);
   const [tourRect, setTourRect] = useState<DOMRect | null>(null);
 
-  // --- Efek 3D Mouse Tilt pada maskot (Framer Motion) ---
-  // Nilai -0.5..0.5 dinormalisasi dari posisi kursor di atas panggung,
-  // dihaluskan dengan spring agar gerakan terasa lembut dan premium.
+  // --- 3D mouse tilt effect on the mascot (Framer Motion) ---
+  // Values in -0.5..0.5 are normalised from the cursor position over the stage
+  // and smoothed with a spring so the motion feels soft and premium.
   const tiltX = useMotionValue(0);
   const tiltY = useMotionValue(0);
   const tiltRotateX = useSpring(useTransform(tiltY, [-0.5, 0.5], [12, -12]), {
@@ -313,26 +313,27 @@ export default function AsetaApp() {
     tiltY.set(0);
   }
 
-  // --- Pencairan Aset (Liquidate Portfolio) ---
+  // --- Asset liquidation (liquidate portfolio) ---
   const [showLiquidateModal, setShowLiquidateModal] = useState<boolean>(false);
   const [liquidateTarget, setLiquidateTarget] = useState<'gold' | 'reksadana' | 'all'>('gold');
   const [liquidateAmount, setLiquidateAmount] = useState<string>('');
 
   /**
-   * Tap maskot — interaksi mikro "Sapa Aseta".
+   * Mascot tap — the "Sapa Aseta" micro-interaction.
    *
-   * Batas harian: maksimal `GREET_TAP_TARGET` (3) tap per hari. Selama
-   * belum tercapai → SFX + animasi partikel "+50 XP" + penghitung
-   * `greetCount` naik. Setelah tercapai → TIDAK ada partikel & SFX;
-   * maskot hanya "menolak" halus lewat getaran kecil + balasan lisan
-   * agar tetap terasa hidup tanpa mengajari pengguna.
+   * Daily limit: at most `GREET_TAP_TARGET` (3) taps per day. Until the limit
+   * is reached → SFX + "+50 XP" particle animation + the `greetCount`
+   * counter goes up. Once reached → NO particles & SFX; the mascot only
+   * "declines" gently with a small shake plus a spoken reply, so it still
+   * feels alive without lecturing the user.
    *
-   * Catatan domain: XP 50 misi ini diberikan satu kali lewat
-   * `claimQuest('greet')`, BUKAN tiap tap — partikel hanya penanda progres.
+   * Domain note: the 50 XP for this mission is granted once through
+   * `claimQuest('greet')`, NOT on every tap — the particles are only a
+   * progress marker.
    */
   function handleMascotTap() {
     const today = todayKey();
-    // Reset dulu bila tanggal sudah berganti agar batas harian akurat.
+    // Reset first if the date already rolled over, so the daily limit stays accurate.
     const questsToday =
       state.quests.date === today ? state.quests : { ...INITIAL_STATE.quests, date: today };
     const tapsUsed = Math.min(questsToday.greetCount, GREET_TAP_TARGET);
@@ -346,7 +347,7 @@ export default function AsetaApp() {
     );
     petLineIndex.current += 1;
 
-    // Batas tercapai → tolak halus: tanpa SFX, tanpa partikel "+50 XP".
+    // Limit reached → decline gently: no SFX, no "+50 XP" particles.
     if (limitReached) {
       setMascotShakeId(prev => prev + 1);
       playLimitSound();
@@ -372,7 +373,7 @@ export default function AsetaApp() {
     try {
       localStorage.setItem(TOUR_STORAGE_KEY, '1');
     } catch {
-      /* localStorage tidak tersedia — abaikan */
+      /* localStorage unavailable — ignore */
     }
   }
 
@@ -395,30 +396,30 @@ export default function AsetaApp() {
     saveState();
   }, [state, saveState]);
 
-  // Auto-reset harian berbasis key localStorage `aseta_last_active_date`.
-  // Saat mount: bila tidak ada tanggal tersimpan ATAU tanggal tersimpan ≠ hari ini,
-  // reset akumulator harian (todaySavings) & status misi, lalu simpan tanggal hari ini.
-  // Bila tanggal sama → pertahankan state harian yang ada. Aman dari hydration
-  // (hanya jalan di klien setelah isMounted) & tidak crash bila localStorage diblokir.
+  // Daily auto-reset based on the `aseta_last_active_date` localStorage key.
+  // On mount: if there is no stored date OR the stored date ≠ today,
+  // reset the daily accumulator (todaySavings) & mission status, then store
+  // today's date. If the date matches → keep the existing daily state. Hydration
+  // safe (client-only after `isMounted`) and does not crash if localStorage is blocked.
   useEffect(() => {
     if (!isMounted) return;
     let cancelled = false;
     const timer = setTimeout(() => {
       if (cancelled) return;
-      // en-CA menghasilkan format ISO YYYY-MM-DD berbasis waktu lokal.
+      // en-CA yields an ISO-style YYYY-MM-DD format based on local time.
       const todayStr = new Date().toLocaleDateString('en-CA');
       let storedDate: string | null = null;
       try {
         storedDate = localStorage.getItem(LAST_ACTIVE_KEY);
       } catch {
-        storedDate = null; // localStorage bermasalah → perlakukan seperti hari baru
+        storedDate = null; // localStorage problem → treat it as a new day
       }
       if (storedDate === null || storedDate !== todayStr) {
         setState(prev => applyDailyReset(prev, todayStr));
         try {
           localStorage.setItem(LAST_ACTIVE_KEY, todayStr);
         } catch {
-          /* localStorage tidak tersedia — state tetap ter-reset di memori */
+          /* localStorage unavailable — state is still reset in memory */
         }
       }
     }, 0);
@@ -449,7 +450,7 @@ export default function AsetaApp() {
     };
   }, [mascotMood, mascotSpeech]);
 
-  // Onboarding tour: jalankan sekali saat first visit
+  // Onboarding tour: run once on the first visit
   useEffect(() => {
     if (!isMounted) return;
     let cancelled = false;
@@ -457,10 +458,10 @@ export default function AsetaApp() {
     try {
       completed = localStorage.getItem(TOUR_STORAGE_KEY) === '1';
     } catch {
-      completed = true; // localStorage bermasalah → jangan ganggu user
+      completed = true; // localStorage problem → do not bother the user
     }
     if (!completed) {
-      // Tunda setState agar tidak sinkron di dalam effect (hindari cascading render)
+      // Defer setState so it is not synchronous inside the effect (avoids cascading renders)
       const timer = setTimeout(() => {
         if (!cancelled) {
           setIsTourActive(true);
@@ -475,7 +476,7 @@ export default function AsetaApp() {
     return;
   }, [isMounted]);
 
-  // Onboarding tour: hitung posisi spotlight untuk langkah aktif
+  // Onboarding tour: compute the spotlight position for the active step
   useEffect(() => {
     if (!isTourActive) return;
 
@@ -510,12 +511,12 @@ export default function AsetaApp() {
     };
   }, [isTourActive, tourStep]);
 
-  // Catatan: pemindaian/demo otomatis yang menambah tabungan saat tab Scan
-  // dibuka telah DIHAPUS — semua penambahan aset hanya terjadi saat user
-  // secara eksplisit menekan tombol (preset / Simpan & Tabungkan).
+  // Note: the automatic scan/demo that added savings when the Scan tab was
+  // opened has been REMOVED — all asset additions only happen when the user
+  // explicitly presses a button (preset / Simpan & Tabungkan).
 
-  // Matikan kamera saat komponen di-unmount ATAU pengguna pindah tab —
-  // tanpa ini, LED kamera terus menyala setelah tab Scan ditinggalkan.
+  // Stop the camera when the component unmounts OR the user switches tabs —
+  // without this the camera LED stays on after leaving the Scan tab.
   useEffect(() => {
     if (activeTab !== 'scan') stopCamera();
   }, [activeTab, stopCamera]);
@@ -524,8 +525,8 @@ export default function AsetaApp() {
     return () => stopCamera();
   }, [stopCamera]);
 
-  // Perbarui "waktu sekarang" untuk filter Riwayat. setState ditunda via setTimeout
-  // agar tidak sinkron di dalam effect (hindari cascading render), sesuai pola lint.
+  // Refresh "now" for the History filter. The setState is deferred via setTimeout
+  // so it is not synchronous inside the effect (avoids cascading renders), per the lint rule.
   useEffect(() => {
     if (!isMounted) return;
     const timer = setTimeout(() => setNowTs(Date.now()), 0);
@@ -534,9 +535,9 @@ export default function AsetaApp() {
 
   // Handlers
   // ============================================================
-  // Semua mutasi keuangan HANYA dipanggil dari event handler
-  // eksplisit user (tombol preset / simpan / klaim / pencairan) —
-  // tidak pernah saat render atau tab dibuka.
+  // All financial mutations are ONLY invoked from an explicit user
+  // event handler (preset / save / claim / liquidation buttons) —
+  // never during render or when a tab is opened.
   // ============================================================
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -546,7 +547,7 @@ export default function AsetaApp() {
     toastTimer.current = setTimeout(() => setToastMessage(null), 3000);
   }
 
-  // Inti transaksi round-up: tambah aset, potong dompet, streak, quest & growth.
+  // Core round-up transaction: add assets, debit the wallet, streak, quest & growth.
   function commitSavings(merchant: string, originalAmount: number): boolean {
     const roundUp = calculateRoundUp(originalAmount);
     if (roundUp <= 0) {
@@ -557,14 +558,14 @@ export default function AsetaApp() {
       showToast(`Batas harian Rp${state.dailyCap.toLocaleString('id-ID')} terlampaui. Besok lagi ya!`);
       return false;
     }
-    // Jaga agar saldo dompet tidak pernah negatif (anti-bocor) — round-up
-    // hanya dipotong bila dompet masih sanggup menutupinya.
+    // Keep the wallet balance from ever going negative (leak-proof) — the
+    // round-up is only debited when the wallet can still cover it.
     if (roundUp > state.walletBalance) {
       showToast('Saldo dompet tidak cukup untuk menutup round-up ini.');
       return false;
     }
     const today = todayKey();
-    // Transaksi = aktivitas hari ini → pastikan key tanggal aktif tersimpan.
+    // Transaction = activity today → make sure the active-date key is stored.
     persistLastActive(today);
     const prevLevel = getMascotLevel(state.balance).level;
     const nextBalance = state.balance + roundUp;
@@ -608,12 +609,12 @@ export default function AsetaApp() {
     }
     return true;
   }
-  // Preset transaksi cepat — hanya dipanggil saat tombol "Tabung" diklik.
+  // Quick transaction presets — only called when the "Tabung" button is clicked.
   function handleQuickSave(preset: QuickPreset) {
     commitSavings(preset.merchant, preset.amount);
   }
 
-  // Input manual (tab Scan) — hanya dipanggil tombol "Simpan & Tabungkan".
+  // Manual input (Scan tab) — only called by the "Simpan & Tabungkan" button.
   function handleSave() {
     const amount = parseInt(amountInput, 10) || 0;
     if (amount <= 0) {
@@ -628,10 +629,11 @@ export default function AsetaApp() {
   }
 
   /**
-   * QR tertangkap → parse payload → flash + getaran singkat → buka modal.
+   * QR captured → parse payload → flash + short vibration → open the modal.
    *
-   * Tidak pernah menyentuh state keuangan: modal hanya menampilkan hasil baca
-   * dan meng-prefill input nominal. Penabung tetap harus dikonfirmasi user.
+   * Never touches financial state: the modal only shows the read result
+   * and pre-fills the amount input. The saving still has to be confirmed
+   * by the user.
    */
   const handleQrDetected = useCallback((payload: string) => {
     const parsed = parseQrPayload(payload);

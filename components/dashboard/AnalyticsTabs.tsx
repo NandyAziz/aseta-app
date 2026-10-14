@@ -12,15 +12,15 @@ const ANALYTICS_TABS: ReadonlyArray<{ id: AnalyticsTab; label: string }> = [
 ];
 
 /**
- * Widget analitik gabungan untuk MOBILE.
+ * Combined analytics widget for MOBILE.
  *
- * "Alokasi Portofolio" dan "Proyeksi Tabungan" digabung ke dalam satu kartu
- * dua tab sehingga feed utama dashboard tidak grewuh memanjang. Di desktop
- * keduanya kembali tampil sebagai dua kartu penuh (lihat grid 7/5 kolom),
- * karena wheel mouse tidak perlu menggulir sesingkat swipe.
+ * "Alokasi Portofolio" and "Proyeksi Tabungan" are merged into a single
+ * two-tab card so the main dashboard feed does not stretch awkwardly. On
+ * desktop both return as two full cards (see the 7/5 column grid), because a
+ * mouse wheel does not need to scroll as short as a swipe.
  *
- * State tab lokal di-init dari konstan (`'portofolio'`), jadi render server
- * dan render pertama klien selalu identik.
+ * Local tab state is initialised from a constant (`'portofolio'`), so the
+ * server render and the first client render are always identical.
  */
 export default function AnalyticsTabs({
   goldValue,
@@ -47,7 +47,7 @@ export default function AnalyticsTabs({
         highlight ? 'relative z-50 ring-4 ring-emerald-400 ring-offset-2' : ''
       } ${className}`}
     >
-      {/* Bilah tab: dua tombol sama lebar, tinggi sentuh ≥ 44px. */}
+      {/* Tab bar: two equally wide buttons, touch height ≥ 44px. */}
       <div
         role="tablist"
         aria-label="Analitik aset"
@@ -83,9 +83,9 @@ export default function AnalyticsTabs({
         className="mt-4"
       >
         {tab === 'portofolio' ? (
-          /* `highlight` sengaja TIDAK diteruskan ke isi: cincin sorot sudah
-             dipakai oleh kartu widget ini sendiri, meneruskanya akan membuat
-             dua cincin bertumpuk. */
+          /* `highlight` is deliberately NOT forwarded to the content: the highlight
+             ring is already used by this widget card itself, forwarding it would
+             produce two stacked rings. */
           <PortfolioAllocation
             bare
             goldValue={goldValue}

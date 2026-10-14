@@ -1,0 +1,41 @@
+#!/bin/sh
+#
+# ASETA pre-commit gate — zero dependency (no husky, no lint-staged).
+#
+# Runs `npm run check` (typecheck && lint && build) and blocks the commit on
+# any non-zero exit. Chosen over husky+lint-staged deliberately: the project's
+# standing rule forbids editing package-lock.json, and a full build is a far
+# better signal than a staged-files-only formatter pass.
+#
+# Uses ONLY shell builtins + npm. No cat/heredoc/echo-to-file, so the hook does
+# not depend on /usr/bin utilities being on PATH (which is not guaranteed on
+# Windows checkouts).
+#
+# Activation (one-time, LOCAL — not committed):
+#   git config core.hooksPath .githooks
+#
+# On Linux/macOS the file must be executable:  chmod +x .githooks/pre-commit
+# (git records the +x bit only if core.fileMode=true, which is false by
+# default on Windows checkouts — so chmod after cloning elsewhere.)
+#
+# Bypass in an emergency:
+#   git commit --no-verify
+#
+if ! command -v npm >/dev/null 2>&1; then
+  echo "pre-commit: npm tidak ditemukan di PATH - commit dibatalkan." >&2
+  exit 1
+fi
+
+echo "pre-commit: menjalankan npm run check (typecheck && lint && build)..."
+
+npm run check || {
+  echo "" >&2
+  echo "pre-commit: GATE GAGAL - commit dibatalkan." >&2
+  echo "  npm run check harus keluar dengan 0 error dan 0 warning." >&2
+  echo "  Perbaiki dulu, atau commit dengan --no-verify bila benar-benar" >&2
+  echo "  mendesak (dan buat issue untuk tindak lanjut)." >&2
+  exit 1
+}
+
+echo "pre-commit: OK - lanjut commit."
+exit 0

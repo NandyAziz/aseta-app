@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { calculateRoundUp } from '@/utils/aseta';
 
-/** Format rupiah gaya Indonesia — murni, aman dipanggil saat render. */
+/** Indonesian-style rupiah formatter — pure, safe to call during render. */
 function formatRp(value: number): string {
   return `Rp${value.toLocaleString('id-ID')}`;
 }
@@ -25,7 +25,7 @@ interface QrisPreset {
   Icon: typeof Coffee;
 }
 
-/** Preset belanja cepat — meniru transaksi QRIS harian yang umum. */
+/** Fast shopping presets — mirroring typical daily QRIS transactions. */
 const QRIS_PRESETS: QrisPreset[] = [
   { id: 'kopi', label: 'Kopi Rp18.200', amount: 18200, Icon: Coffee },
   { id: 'indomaret', label: 'Indomaret Rp43.500', amount: 43500, Icon: ShoppingBasket },
@@ -36,14 +36,14 @@ const DEFAULT_AMOUNT = 18200;
 const MIN_AMOUNT = 1000;
 const MAX_AMOUNT = 100000;
 const STEP_AMOUNT = 100;
-/** Kurs XP maskot: 10 rupiah pembulatan = 1 XP. */
+/** Mascot XP rate: 10 rupiah of round-up = 1 XP. */
 const XP_PER_RUPIAH = 10;
-/** Pembulatan QRIS selalu ke kelipatan ini. */
+/** QRIS round-up always lands on a multiple of this. */
 const ROUND_UP_BASE = 5000;
-/** Porsi Emas Digital dari total tabungan (sisa = Reksadana Pasar Uang). */
+/** Emas Digital share of total savings (the remainder = Reksadana Pasar Uang). */
 const GOLD_RATIO = 0.6;
 
-/** Angka yang bertransisi halus setiap kali nilainya berganti. */
+/** Figure that transitions smoothly every time its value changes. */
 function AnimatedNumber({ value, className }: { value: string; className?: string }) {
   return (
     <span className={`relative inline-block overflow-hidden align-bottom ${className ?? ''}`}>
@@ -64,19 +64,19 @@ function AnimatedNumber({ value, className }: { value: string; className?: strin
 }
 
 /**
- * Simulasi Round-Up QRIS: nominal bisa diubah lewat input maupun slider,
- * lalu hasil pembulatan dan XP maskot diperbarui secara real-time.
+ * QRIS round-up simulation: the amount can be changed through the input or the
+ * slider, then the round-up result and mascot XP update in real time.
  */
 export default function QrisRoundUpSimulator() {
-  // Disimpan sebagai string berisi digit saja → angka tak terdefinisi
-  // tidak pernah bisa bocor ke kalkulasi.
+  // Stored as a digit-only string → undefined amounts never leak into
+  // calculations.
   const [amountText, setAmountText] = useState(String(DEFAULT_AMOUNT));
 
   const amount = amountText.length > 0 ? Number(amountText) : 0;
   const roundUp = calculateRoundUp(amount);
   const xpGain = Math.round(roundUp / XP_PER_RUPIAH);
   const totalTarget = amount + roundUp;
-  // Alokasi otomatis atas hasil pembulatan (identik dengan split portofolio dashboard).
+  // Automatic allocation of the round-up result (identical to the dashboard portfolio split).
   const goldShare = Math.round(roundUp * GOLD_RATIO);
   const reksaShare = roundUp - goldShare;
   const sliderValue = Math.min(MAX_AMOUNT, Math.max(MIN_AMOUNT, amount));
@@ -211,7 +211,7 @@ export default function QrisRoundUpSimulator() {
           </span>
         </div>
 
-        {/* Alokasi otomatis hasil pembulatan: 60% Emas Digital · 40% Reksadana */}
+        {/* Automatic allocation of the round-up result: 60% Emas Digital · 40% Reksadana */}
         <div className="rounded-2xl border border-line bg-ivory/60 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs font-bold uppercase tracking-wider text-muted">

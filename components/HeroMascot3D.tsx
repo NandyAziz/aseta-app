@@ -7,33 +7,33 @@ import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { playEggChirpSound } from '@/utils/sound';
 
 /**
- * Scene Spline opsional. URL yang diminta sebelumnya
- * (prod.spline.design/JbV0nJ0y-Yh6iL4t) berstatus `403 AccessDenied`,
- * jadi tidak bisa dipakai. Default sengaja dikosongkan agar hero memakai
- * panggung "Telur Aseta" 3D (framer-motion) yang dijamin tampil tanpa kotak
- * hitam. Isi `NEXT_PUBLIC_SPLINE_SCENE_URL` (atau prop `sceneUrl`) untuk
- * mengaktifkan Spline kembali.
+ * Optional Spline scene. The previously requested URL
+ * (prod.spline.design/JbV0nJ0y-Yh6iL4t) returns `403 AccessDenied`,
+ * so it cannot be used. The default is deliberately empty so the hero uses the
+ * 3D "Telur Aseta" stage (framer-motion) that is guaranteed to render without a
+ * black box. Fill in `NEXT_PUBLIC_SPLINE_SCENE_URL` (or the `sceneUrl` prop) to
+ * re-enable Spline.
  */
 export const DEFAULT_SPLINE_SCENE = process.env.NEXT_PUBLIC_SPLINE_SCENE_URL ?? '';
 
 /**
- * Scene 3D bergantung pada WebGL & API browser, jadi dimuat secara lazy
- * di sisi klien saja (`ssr: false`) agar prerender statis tetap aman.
+ * The 3D scene depends on WebGL & browser APIs, so it is loaded lazily on the
+ * client only (`ssr: false`) to keep static prerendering safe.
  */
 const SplineScene = dynamic(() => import('@splinetool/react-spline'), {
   ssr: false,
   loading: () => null,
 });
 
-/** Batas tunggu (ms) sebelum jatuh ke tampilan cadangan. */
+/** Wait limit (ms) before falling back to the fallback view. */
 const LOAD_TIMEOUT_MS = 20000;
 
 type SceneStatus = 'memuat' | 'siap' | 'gagal';
 
 /**
- * Panggung parallax: seluruh isi panggung miring mengikuti posisi kursor
- * (rotasi X/Y berpegas halus) sehingga telur terasa punya kedalaman 3D.
- * Nilai dinormalisasi ke rentang -0.5..0.5 di dalam event handler.
+ * Parallax stage: all stage content tilts following the cursor position
+ * (springy X/Y rotation) so the egg feels 3D.
+ * Values are normalized to the -0.5..0.5 range inside the event handler.
  */
 function TiltStage({ children, className }: { children: ReactNode; className?: string }) {
   const mx = useMotionValue(0);
@@ -77,28 +77,28 @@ function TiltStage({ children, className }: { children: ReactNode; className?: s
 }
 
 /**
- * Telur Aseta bergaya — gradien emerald (#008F68), kontur skala naga emas
- * yang halus, aksen geometris, dan inner-glow untuk kedalaman 3D.
+ * Stylized Aseta egg — emerald gradient (#008F68), subtle gold dragon scale
+ * contours, geometric accents, and inner-glow for 3D depth.
  *
- * Lapisan transform dipisah agar animasi tidak saling menimpa:
- * wrapper luar = melayang (Framer Motion), tombol = getaran saat di-tap,
- * dan `span` di dalamnya = "bernapas" (CSS). `shakeId` berubah setiap tap
- * sehingga remount elemen memutar ulang satu putaran getaran.
+ * Transform layers are separated so animations do not overwrite each other:
+ * outer wrapper = floating (Framer Motion), button = shake when tapped,
+ * and the inner `span` = "breathing" (CSS). `shakeId` changes on every tap
+ * so remounting the element replays one shake cycle.
  */
 function DragonEgg({ shakeId, onPoke }: { shakeId: number; onPoke: () => void }) {
   return (
     <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-3xl">
-      {/* Cahaya latar lembut di belakang telur */}
+      {/* Soft background light behind the egg */}
       <div className="absolute h-64 w-64 rounded-full bg-brand/15 blur-3xl sm:h-80 sm:w-80" />
 
-      {/* Telur melayang pelan agar tidak terasa statis */}
+      {/* Egg floats slowly so it does not feel static */}
       <motion.div
         className="relative"
         initial={{ y: 0 }}
         animate={{ y: [0, -12, 0] }}
         transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
       >
-        {/* Bayangan lembut di bawah telur */}
+        {/* Soft shadow under the egg */}
         <div className="absolute -bottom-5 left-1/2 h-5 w-36 -translate-x-1/2 rounded-[50%] bg-forest/20 blur-md" />
         <motion.button
           key={shakeId}
@@ -125,7 +125,7 @@ function DragonEgg({ shakeId, onPoke }: { shakeId: number; onPoke: () => void })
                 '0 32px 60px -22px rgba(5,110,80,0.55)',
             }}
           >
-          {/* Inner-glow: pantulan mint di bawah + rim gelap di kanan (kedalaman 3D) */}
+          {/* Inner-glow: mint reflection at the bottom + dark rim on the right (3D depth) */}
           <div
             aria-hidden
             className="absolute inset-0"
@@ -136,7 +136,7 @@ function DragonEgg({ shakeId, onPoke }: { shakeId: number; onPoke: () => void })
             }}
           />
 
-          {/* Kontur skala naga emas — baris bawah paling terang, makin ke atas makin samar */}
+          {/* Gold dragon scale contours — bottom row brightest, fainter toward the top */}
           <svg
             viewBox="0 0 200 260"
             className="absolute inset-0 h-full w-full"
@@ -161,7 +161,7 @@ function DragonEgg({ shakeId, onPoke }: { shakeId: number; onPoke: () => void })
                 opacity="0.2"
               />
             </g>
-            {/* Aksen geometris di mahkota telur: pita melengkung ganda + belah ketupat */}
+            {/* Geometric accents on the egg crown: double curved band + split diamond */}
             <path d="M14 76 Q100 54 186 76" stroke="#e5b454" strokeWidth="2" opacity="0.45" />
             <path d="M24 90 Q100 70 176 90" stroke="#e5b454" strokeWidth="1.2" opacity="0.25" />
             <path
@@ -173,7 +173,7 @@ function DragonEgg({ shakeId, onPoke }: { shakeId: number; onPoke: () => void })
             />
           </svg>
 
-          {/* Kilau specular kaca di atas kontur (sorot utama) */}
+          {/* Glass specular glint above the contours (main highlight) */}
           <div className="absolute left-6 top-7 h-12 w-8 rotate-[-18deg] rounded-full bg-white/35 blur-md" />
           </span>
         </motion.button>
@@ -183,9 +183,9 @@ function DragonEgg({ shakeId, onPoke }: { shakeId: number; onPoke: () => void })
 }
 
 /**
- * Pembungkus Spline interaktif: hover sedikit membesar dan berotasi sangat
- * pelan otomatis agar tidak terlihat kaku. Tilt kursor ditangani satu kali di
- * `TiltStage` agar rotasi tidak menumpuk dua lapis.
+ * Interactive Spline wrapper: hover slightly scales up and rotates very slowly
+ * on its own so it never looks stiff. Cursor tilt is handled once in
+ * `TiltStage` so rotation does not stack in two layers.
  */
 function InteractiveSpline({
   sceneUrl,
@@ -211,7 +211,7 @@ function InteractiveSpline({
   );
 }
 
-/** Petunjuk kecil bahwa scene 3D sedang dimuat (telur tetap tampil di belakang). */
+/** Small hint that the 3D scene is loading (the egg stays visible behind it). */
 function LoadingChip() {
   return (
     <div className="pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full border border-line bg-ivory/90 px-3 py-1 text-[11px] font-semibold text-muted backdrop-blur">
@@ -230,8 +230,8 @@ interface SplineErrorBoundaryState {
 }
 
 /**
- * Penangkap error runtime Spline (WebGL mati, scene gagal diparse, dll.)
- * agar landing page tetap tampil dengan tampilan cadangan, bukan blank.
+ * Catches Spline runtime errors (dead WebGL, scene fails to parse, etc.) so the
+ * landing page still renders with the fallback view instead of a blank screen.
  */
 class SplineErrorBoundary extends Component<
   SplineErrorBoundaryProps,
@@ -244,7 +244,7 @@ class SplineErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    // Sengaja dicatat untuk mendiagnosis scene yang rusak — bukan error UI.
+    // Intentionally logged to diagnose broken scenes — not a UI error.
     console.warn('Scene Spline gagal dirender:', error.message, info.componentStack);
   }
 
@@ -254,34 +254,34 @@ class SplineErrorBoundary extends Component<
 }
 
 export interface HeroMascot3DProps {
-  /** URL scene `.splinecode` opsional; telur Aseta tampil bila kosong/gagal. */
+  /** Optional `.splinecode` scene URL; the Aseta egg shows when empty/failed. */
   sceneUrl?: string;
 }
 
 /**
- * Panggung hero 3D. "Telur Aseta" yang kaya (gradien, sulur, bara emas) selalu
- * dirender sebagai lapisan dasar sehingga tidak pernah ada kotak hitam/kosong.
- * Panggung miring mengikuti kursor (parallax tilt); telur melayang, "bernapas",
- * serta bergetar dan bersuara saat diklik. Bila `sceneUrl` diisi dan scene berhasil
- * dimuat, canvas Spline muncul perlahan di atas telur. Jika scene gagal
- * (403/jaringan/WebGL), telur tetap tampil utuh.
+ * 3D hero stage. The rich "Telur Aseta" (gradients, swirls, gold embers) is always
+ * rendered as the base layer, so there is never a black/empty box.
+ * The stage tilts with the cursor (parallax tilt); the egg floats, "breathes",
+ * and shakes with a sound on click. When `sceneUrl` is filled in and the scene
+ * loads successfully, the Spline canvas fades in above the egg. If the scene
+ * fails (403/network/WebGL), the egg stays fully visible.
  */
 export default function HeroMascot3D({ sceneUrl = DEFAULT_SPLINE_SCENE }: HeroMascot3DProps) {
   const [status, setStatus] = useState<SceneStatus>('memuat');
   const trimmedSceneUrl = sceneUrl.trim();
   const hasScene = trimmedSceneUrl !== '';
-  // Bertambah tiap tap agar animasi getaran diputar ulang (remount via key).
+  // Increments on every tap so the shake animation replays (remount via key).
   const [shakeId, setShakeId] = useState<number>(0);
 
-  // Jika scene tak kunjung selesai, sembunyikan lapisan Spline agar telur yang
-  // tampil — pengguna tidak terjebak menunggu selamanya.
+  // If the scene never finishes, hide the Spline layer so the egg that
+  // shows — users are not stuck waiting forever.
   useEffect(() => {
     if (!hasScene || status !== 'memuat') return;
     const timer = setTimeout(() => setStatus('gagal'), LOAD_TIMEOUT_MS);
     return () => clearTimeout(timer);
   }, [hasScene, status]);
 
-  // Event handler (bukan saat render) → aman dari aturan purity React Compiler.
+  // Event handler (not during render) → safe under React Compiler purity rules.
   function handleEggPoke() {
     playEggChirpSound();
     setShakeId(prev => prev + 1);

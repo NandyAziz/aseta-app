@@ -3,8 +3,8 @@
 import { GREET_TAP_TARGET } from '@/utils/aseta';
 
 /**
- * Satu baris misi harian dengan checkbox & tombol klaim XP.
- * Murni dari props → aman dari hydration mismatch.
+ * A single daily mission row with a checkbox & XP claim button.
+ * Purely derived from props → safe from hydration mismatch.
  */
 function QuestRow({
   emoji,
@@ -49,10 +49,10 @@ function QuestRow({
 }
 
 /**
- * Kartu "Misi Hari Ini" — tiga misi harian + klaim XP.
+ * "Misi Hari Ini" card — three daily missions + XP claims.
  *
- * Seluruh status misi sudah diturunkan di halaman (diguard `isMounted`),
- * sehingga komponen ini murni tampilan + penerusan aksi `onClaim`.
+ * All mission state is already derived in the page (guarded by `isMounted`),
+ * so this component is pure presentation + `onClaim` action forwarding.
  */
 export default function DailyMissions({
   qrisDone,

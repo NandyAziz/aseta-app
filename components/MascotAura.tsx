@@ -4,18 +4,18 @@ import { motion } from 'framer-motion';
 import { MAX_LEVEL } from '@/utils/aseta';
 
 /**
- * Panggung maskot: backlight aura + partikel atmosferik.
+ * Mascot stage: aura backlight + atmospheric particles.
  *
- * Dipisah dari `app/dashboard/page.tsx` ke modul sendiri supaya halaman
- * tab "Evolusi & Panduan" di dashboard bisa memakai efek yang PERSIS SAMA tanpa
- * menduplikasi tabel level. Satu sumber kebenaran untuk efek visual.
+ * Split out of `app/dashboard/page.tsx` into its own module so the dashboard's
+ * "Evolusi & Panduan" tab can use the EXACT SAME effect without duplicating the
+ * level table. One source of truth for the visual effect.
  *
- * Aturan(maintained dari versi awal):
- * - Semua efek hanya di BELAKANG ilustrasi — tidak pernah menimpa artwork.
- * - Opacity dijaga rendah agar natural; intensitas naik monoton per level.
+ * Rules (maintained from the initial version):
+ * - All effects stay BEHIND the illustration — they never cover the artwork.
+ * - Opacity is kept low so it looks natural; intensity rises monotonically per level.
  */
 
-/** Aura progresif panggung maskot berdasarkan level (1-10). */
+/** Progressive mascot stage aura based on level (1-10). */
 export function mascotAura(level: number): {
   glow: string;
   glowAnim: string;
@@ -24,7 +24,7 @@ export function mascotAura(level: number): {
   breathe: string;
   imgShadow: string;
 } {
-  // Lv 10 — Sultan Aseta: aura emas + cyan berlapis, denyut, backlight maksimal.
+  // Lv 10 — Sultan Aseta: layered gold + cyan aura, pulse, maximum backlight.
   if (level >= 10) {
     return {
       glow: 'bg-gold/45 blur-2xl shadow-[0_0_46px_10px_rgba(229,180,84,0.45),0_0_90px_22px_rgba(34,211,238,0.28)]',
@@ -35,7 +35,7 @@ export function mascotAura(level: number): {
       imgShadow: 'drop-shadow-[0_0_22px_rgba(229,180,84,0.55)] drop-shadow-[0_0_10px_rgba(34,211,238,0.35)]',
     };
   }
-  // Lv 9 — Aseta Legend: emas terang + aksen cyan, denyut aktif.
+  // Lv 9 — Aseta Legend: bright gold + cyan accents, active pulse.
   if (level >= 9) {
     return {
       glow: 'bg-gold/38 blur-2xl shadow-[0_0_38px_8px_rgba(229,180,84,0.38),0_0_72px_16px_rgba(34,211,238,0.22)]',
@@ -46,7 +46,7 @@ export function mascotAura(level: number): {
       imgShadow: 'drop-shadow-[0_0_18px_rgba(229,180,84,0.45)] drop-shadow-[0_0_8px_rgba(34,211,238,0.28)]',
     };
   }
-  // Lv 8 — Naga Dewasa kematangan: emas pekat, backlight kuat berlapis.
+  // Lv 8 — matured Naga Dewasa: deep gold, strong layered backlight.
   if (level >= 8) {
     return {
       glow: 'bg-gold/32 blur-xl shadow-[0_0_30px_6px_rgba(229,180,84,0.32)]',
@@ -57,7 +57,7 @@ export function mascotAura(level: number): {
       imgShadow: 'drop-shadow-[0_0_14px_rgba(229,180,84,0.34)]',
     };
   }
-  // Lv 7 — Naga Dewasa: emas masuk, multi-layer baru mulai terasa.
+  // Lv 7 — Naga Dewasa: gold arrives, the multi-layer effect just starts to show.
   if (level >= 7) {
     return {
       glow: 'bg-amber-400/28 blur-xl shadow-[0_0_22px_4px_rgba(245,158,11,0.28)]',
@@ -68,7 +68,7 @@ export function mascotAura(level: number): {
       imgShadow: 'drop-shadow-[0_0_12px_rgba(245,158,11,0.28)]',
     };
   }
-  // Lv 6 — Bayi Naga melapor: emerald kuat, aura melebar, skala naik.
+  // Lv 6 — Bayi Naga emerges: strong emerald, wider aura, higher scale.
   if (level >= 6) {
     return {
       glow: 'bg-emerald-400/30 blur-lg shadow-[0_0_20px_4px_rgba(52,211,153,0.26)]',
@@ -79,7 +79,7 @@ export function mascotAura(level: number): {
       imgShadow: 'drop-shadow-[0_0_10px_rgba(16,185,129,0.28)]',
     };
   }
-  // Lv 5 — Bayi Naga: emerald mulai menyala, cincin lebih tegas.
+  // Lv 5 — Bayi Naga: emerald starts glowing, ring gets firmer.
   if (level >= 5) {
     return {
       glow: 'bg-brand/30 blur-lg shadow-[0_0_16px_3px_rgba(4,120,87,0.24)]',
@@ -90,7 +90,7 @@ export function mascotAura(level: number): {
       imgShadow: 'drop-shadow-[0_0_8px_rgba(4,120,87,0.24)]',
     };
   }
-  // Lv 4 — Bayi Naga menetas: backlight emerald pertama yang terasa.
+  // Lv 4 — Bayi Naga hatches: the first noticeable emerald backlight.
   if (level >= 4) {
     return {
       glow: 'bg-brand/22 blur-lg',
@@ -101,7 +101,7 @@ export function mascotAura(level: number): {
       imgShadow: 'drop-shadow-md',
     };
   }
-  // Lv 3 — Telur siap menetas: aura sage lebih terang + "bernapas".
+  // Lv 3 — Telur about to hatch: brighter sage aura + "breathing".
   if (level >= 3) {
     return {
       glow: 'bg-sage/28 blur-lg',
@@ -112,7 +112,7 @@ export function mascotAura(level: number): {
       imgShadow: 'drop-shadow-md',
     };
   }
-  // Lv 2 — Telur: backlight sage tipis + "bernapas" halus.
+  // Lv 2 — Telur: thin sage backlight + subtle "breathing".
   if (level >= 2) {
     return {
       glow: 'bg-sage/18 blur-xl',
@@ -123,7 +123,7 @@ export function mascotAura(level: number): {
       imgShadow: 'drop-shadow-md',
     };
   }
-  // Lv 1 — Telur utuh polos: aura sangat samar, tanpa denyut.
+  // Lv 1 — plain intact Telur: very faint aura, no pulse.
   return {
     glow: 'bg-slate-50/50 blur-xl',
     glowAnim: '',
@@ -134,7 +134,7 @@ export function mascotAura(level: number): {
   };
 }
 
-// Konstanta posisi debu atmosferik (module scope → lolos purity React Compiler).
+// Atmospheric dust position constants (module scope → passes React Compiler purity).
 const AURA_DUST = [
   { id: 'd1', left: '10%', bottom: '16%', size: 4, delay: 0 },
   { id: 'd2', left: '26%', bottom: '30%', size: 3, delay: 0.9 },
@@ -144,7 +144,7 @@ const AURA_DUST = [
   { id: 'd6', left: '58%', bottom: '44%', size: 3, delay: 1.2 },
 ] as const;
 
-// Titik "percikan" sangat lembut untuk telur siap menetas (Lv 3).
+// Very soft "spark" dots for the egg about to hatch (Lv 3).
 const EMBER_SPARKS = [
   { id: 's1', left: '18%', bottom: '26%', size: 3, delay: 0 },
   { id: 's2', left: '78%', bottom: '34%', size: 2, delay: 0.7 },
@@ -152,19 +152,19 @@ const EMBER_SPARKS = [
   { id: 's4', left: '34%', bottom: '52%', size: 2, delay: 1.9 },
 ] as const;
 
-// Warna debu atmosferik per rentang level.
+// Atmospheric dust colour per level range.
 type DustTone = 'sage' | 'emerald' | 'gold' | 'cyan';
 function dustToneForLevel(level: number): DustTone | null {
-  if (level >= 9) return 'cyan';   // Lv 9-10 — legend/sultan: debu cyan
-  if (level >= 7) return 'gold';   // Lv 7-8 — naga dewasa: debu emas hangat
-  if (level >= 4) return 'emerald'; // Lv 4-6 — bayi naga: partikel emerald
-  if (level >= 2) return 'sage';   // Lv 2-3 — telur: percikan sage/silver
-  return null;                      // Lv 1 — tanpa debu tambahan
+  if (level >= 9) return 'cyan';   // Lv 9-10 — legend/sultan: cyan dust
+  if (level >= 7) return 'gold';   // Lv 7-8 — naga dewasa: warm gold dust
+  if (level >= 4) return 'emerald'; // Lv 4-6 — bayi naga: emerald particles
+  if (level >= 2) return 'sage';   // Lv 2-3 — telur: sage/silver sparks
+  return null;                      // Lv 1 — no extra dust
 }
 
 /**
- * Profil intensitas partikel per level: berapa banyak, seberapa cepat, seberapa
- * terang, dan seberapa jauh mereka melayang. Level naik → jumlah & kecepatan naik.
+ * Particle intensity profile per level: how many, how fast, how bright, and how
+ * far they float. Higher level → more particles and faster motion.
  */
 interface MoteProfile {
   count: number;
@@ -194,15 +194,15 @@ function moteProfileForLevel(level: number): MoteProfile {
 }
 
 /**
- * Lapisan atmosferik evolusi maskot — komponen presentasional murni.
- * HANYA menghasilkan efek lembut di BELAKANG karakter (backlight & debu
- * rendah-opacity). TIDAK PERNAH menimpa ilustrasi: tanpa retakan, badge,
- * stiker, atau garis kasar.
+ * Mascot evolution atmospheric layer — a purely presentational component.
+ * It ONLY produces soft effects BEHIND the character (backlight & low-opacity
+ * dust). It NEVER covers the illustration: no cracks, badges, stickers, or
+ * harsh lines.
  */
 export function MascotEvolutionMotes({ level }: { level: number }) {
   const tone = dustToneForLevel(level);
   const profile = moteProfileForLevel(level);
-  // Percikan telur (Lv 3) memakai animasi kedip lembut; sisanya melayang naik.
+  // Egg sparks (Lv 3) use a soft blink animation; the rest float upward.
   if (level === 3) {
     return (
       <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
@@ -257,8 +257,8 @@ export function MascotEvolutionMotes({ level }: { level: number }) {
           transition={{ duration: profile.duration, repeat: Infinity, delay: p.delay, ease: 'easeInOut' }}
         />
       ))}
-      {/* Percikan ember aktif pada level tinggi (Lv 6+) — menambah "densitas"
-          tanpa menambah jumlah elemen DOM debu. */}
+      {/* Ember sparks active on higher levels (Lv 6+) — adds "density"
+          without adding more dust DOM elements. */}
       {profile.sparks &&
         EMBER_SPARKS.map((s) => (
           <motion.span
@@ -285,9 +285,9 @@ export function MascotEvolutionMotes({ level }: { level: number }) {
 }
 
 /**
- * Panggung maskot lengkap: backlight aura + ilustrasi + partikel.
- * Berisi prop `gif`, `alt`, dan `className` gambar agar bisa dipakai ulang
- * oleh kartu maskot di dashboard maupun pratinjau slider di halaman panduan.
+ * Full mascot stage: aura backlight + illustration + particles.
+ * Exposes the image props `gif`, `alt`, and `className` so it can be reused by
+ * the dashboard mascot card and the guide page slider preview.
  */
 export function MascotStage({
   gif,
@@ -305,7 +305,7 @@ export function MascotStage({
   const aura = mascotAura(level);
   return (
     <div className="relative flex justify-center py-1">
-      {/* Backlight aura: blur + denyut, warna & intensitas mengikuti level. */}
+      {/* Backlight aura: blur + pulse, colour & intensity follow the level. */}
       <div
         aria-hidden
         className={`absolute top-1/2 h-28 w-28 -translate-y-1/2 rounded-full sm:h-32 sm:w-32 ${aura.glow} ${aura.glowAnim}`}
@@ -321,9 +321,9 @@ export function MascotStage({
           aria-hidden
           className="relative rounded-full outline-none"
         >
-          {/* Debu atmosferik lembut — SELALU di belakang ilustrasi maskot */}
+          {/* Soft atmospheric dust — ALWAYS behind the mascot illustration */}
           <MascotEvolutionMotes level={level} />
-          {/* Pembungkus "bernapas" memisahkan animasi scale dari gambar. */}
+          {/* The "breathing" wrapper separates the scale animation from the image. */}
           <span className={`relative z-10 block ${aura.breathe}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img

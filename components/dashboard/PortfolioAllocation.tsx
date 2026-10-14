@@ -2,17 +2,17 @@ import { TrendingUp } from 'lucide-react';
 import GrowthChart from './GrowthChart';
 
 /**
- * Isi "Alokasi Portofolio": bilah split 60/40, dua kartu porsi, grafik
- * pertumbuhan 7 hari, dan tombol pencairan aset.
+ * Contents of "Alokasi Portofolio": the 60/40 split bar, the two share cards,
+ * the 7-day chart, and the asset-liquidation button.
  *
- * Dirancang dipakai dalam DUA konteks tanpa menduplikasi isi:
- * - sebagai kartu utuh (desktop, kolom kiri) → `bare` kosong;
- * - sebagai isi tab "Portofolio" di widget analitik gabungan (mobile) → `bare`
- *   aktif supaya chrome kartu tidak bersarang di dalam kartu.
+ * Designed for TWO contexts without duplicating its contents:
+ * - as a complete card (desktop, left column) → `bare` unset;
+ * - as the body of the "Portofolio" tab inside the analytics widget (mobile) →
+ *   `bare` is set so the card chrome is not nested inside another card.
  *
- * Props `data-tour="portfolio"` sengaja dipasang pada elemen terluar di kedua
- * konteks;tour memakai `querySelectorAll` + pengukuranvisibility sehingga
- * hanya elemen yang terlihat yang disorot.
+ * The `data-tour="portfolio"` prop is intentionally placed on the outer element
+ * in both contexts: the tour uses `querySelectorAll` + visibility measurements
+ * so only the visible element is highlighted.
  */
 export default function PortfolioAllocation({
   goldValue,

@@ -4,9 +4,9 @@ import { Coffee, ShoppingBasket, Utensils } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 /**
- * Preset transaksi cepat. `tone` memberi tiap merchant badge ikon berwarna
- * sendiri (kopi amber, ritel biru, kuliner oranye) supaya daftar tidak
- * monoton seragam hijau dan mudah dibedakan sekilas.
+ * Quick-transaction presets. `tone` gives each merchant a coloured badge icon of its own
+ * (coffee amber, retail blue, food orange) so the list is not a monotonous slab of green
+ * and can be told apart instantly.
  */
 export interface QuickPreset {
   id: string;
@@ -45,15 +45,16 @@ export const QUICK_PRESETS: readonly QuickPreset[] = [
 ];
 
 /**
- * Kartu "Transaksi Cepat".
+ * "Transaksi Cepat" card.
  *
- * MOBILE: deretan chip aksi yang bisa digeser horizontal — tinggi baris tetap
- * ringkas sehingga tidak menambah panjang feed utama.
- * DESKTOP: daftar vertikal karena kolom kanannya hanya 5 dari 12 kolom,
- * sehingga chip tersusun ke bawah, bukan tiga kolom sempit.
+ * MOBILE: a horizontally scrollable row of action chips — the row height stays
+ * compact so it does not lengthen the main feed.
+ * DESKTOP: a vertical list, because its column is only 5 of the 12 columns,
+ * so the chips stack downwards instead of becoming three narrow columns.
  *
- * Label tombol Coming dari `actionLabel` ('Tabung' di Beranda, 'Bayar' di tab
- * Scan) — memakai teks saja, tanpa panah literal `->` maupun `→`.
+ * The button label comes from `actionLabel` ('Tabung' on the Beranda tab,
+ * 'Bayar' on the Scan tab) — text only, with neither a literal `->` nor `→`
+ * arrow.
  */
 export default function QuickTransactions({
   title = 'Transaksi Cepat',

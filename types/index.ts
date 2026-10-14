@@ -8,13 +8,13 @@ export interface Transaction {
   date: string;
 }
 
-// Progres misi harian (daily quests). Reset otomatis saat tanggal berganti.
+// Daily quest progress. Auto-resets when the date changes.
 export interface QuestState {
-  date: string; // YYYY-MM-DD kapan quest terakhir di-reset
-  qrisDone: boolean; // sudah melakukan 1x pembulatan QRIS hari ini
+  date: string; // YYYY-MM-DD of when the quest was last reset
+  qrisDone: boolean; // already did 1 QRIS round-up today
   qrisClaimed: boolean;
-  depositClaimed: boolean; // depositDone diturunkan dari todaySavings >= 5000
-  greetCount: number; // jumlah tap maskot hari ini
+  depositClaimed: boolean; // depositDone is derived from todaySavings >= 5000
+  greetCount: number; // number of mascot taps today
   greetClaimed: boolean;
 }
 
@@ -23,13 +23,13 @@ export interface SavingsState {
   dailyCap: number;
   todaySavings: number;
   history: Transaction[];
-  // Saldo dompet utama (simulasi bank/e-wallet) untuk pembayaran QRIS
+  // Main wallet balance (simulated bank/e-wallet) used for QRIS payments
   walletBalance: number;
-  // Gamifikasi: streak harian & tanggal aktivitas terakhir
+  // Gamification: daily streak & last activity date
   streak: number;
   lastActiveDate: string;
-  // Misi harian
+  // Daily quests
   quests: QuestState;
-  // Snapshot nilai portofolio (maks 7 entri terakhir) untuk grafik pertumbuhan
+  // Snapshot of portfolio values (max 7 latest entries) for the growth chart
   growth: number[];
 }

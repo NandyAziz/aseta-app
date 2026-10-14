@@ -116,6 +116,18 @@
       "skillPath": "skills/misc/migrate-to-shoehorn/SKILL.md",
       "computedHash": "7d31e494a384d1a5b88d1dec6e1f50e673ef1a60f7b0b6e92babfbb242f79b62"
     },
+    "mobile-ui-checker": {
+      "source": "aseta-app",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/mobile-ui-checker/SKILL.md",
+      "computedHash": "7a85e3c43fd6c771ce71dea8bf31e8190427a7b07904ea2457cfb0af2d2630de"
+    },
+    "nextjs-app-router": {
+      "source": "aseta-app",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/nextjs-app-router/SKILL.md",
+      "computedHash": "b91535077e1be9b19c4a9e2e3fb57930d6b7dc2c3ead5c663d49e6bf723c90cd"
+    },
     "pr": {
       "source": "mattpocock/skills",
       "sourceType": "github",

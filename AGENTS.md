@@ -8,37 +8,48 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-## Ringkasan Proyek
+## Project Summary
 
-ASETA — aplikasi fintech gamified (Auto Round-Up Investment) berbasis Next.js 16
-App Router: kembalian pembulatan QRIS "ditabung" ke portofolio Emas 60% /
-Reksadana 40% sambil maskot naga berevolusi lewat XP. Simulasi frontend murni —
-tanpa backend, tanpa uang asli.
+ASETA — a gamified fintech app (Auto Round-Up Investment) built on Next.js 16
+App Router: the change from QRIS transaction round-ups is "saved" into a 60%
+Gold / 40% Mutual Fund portfolio while a dragon mascot evolves through XP. A
+pure frontend simulation — no backend, no real money.
 
-## Struktur Proyek
+## Project Structure
 
-- `app/` — landing (`page.tsx`) + dashboard penuh (`dashboard/page.tsx`, masih aktif).
-- `components/` — `HeroMascot3D` (Spline opsional, fallback telur) & `QrisRoundUpSimulator`.
-- `utils/aseta.ts` — logika murni round-up, level, progress XP. `types/index.ts` — tipe state.
-- `public/` — 3 gif maskot dipakai; SVG bawaan template tidak terpakai.
-- Detail lengkap: baca **docs/architecture.md** (peta file, data model, konstanta domain).
+- `app/` — landing (`page.tsx`) + the full dashboard (`dashboard/page.tsx`,
+  still in use).
+- `components/` — `HeroMascot3D` (optional Spline, egg fallback) &
+  `QrisRoundUpSimulator`.
+- `utils/aseta.ts` — pure round-up, level, and XP-progress logic.
+  `types/index.ts` — state types.
+- `public/` — 3 mascot gifs in use; the leftover template SVGs are unused.
+- Full detail: read **docs/architecture.md** (file map, data model, domain
+  constants).
 
-## Perintah (package manager: npm)
+## Commands (package manager: npm)
 
-- `npm run dev` — server dev.
-- `npm run check` — typecheck + lint + build (jalankan sebelum selesai).
+- `npm run dev` — dev server.
+- `npm run check` — typecheck + lint + build (run before finishing).
 
-## Larangan Penting
+## Important Prohibitions
 
-- Menambah library baru (termasuk devDependency) **butuh izin user**.
-- Jangan hapus fallback telur / `SplineErrorBoundary` di `HeroMascot3D`; scene Spline
-  aktif hanya via `NEXT_PUBLIC_SPLINE_SCENE_URL` (default kosong/nonaktif).
-- Jangan edit lockfile (`package-lock.json`).
-- Jangan sentuh blok `<!-- BEGIN:nextjs-agent-rules -->` … `<!-- END -->` di atas.
+- Adding a new library (including a devDependency) **requires user permission**.
+- Do not delete the egg fallback / `SplineErrorBoundary` in `HeroMascot3D`; the
+  Spline scene is only active via `NEXT_PUBLIC_SPLINE_SCENE_URL` (empty/disabled
+  by default).
+- Do not edit the lockfile (`package-lock.json`).
+- Do not touch the `<!-- BEGIN:nextjs-agent-rules -->` … `<!-- END -->` block
+  above.
+- Do not read, display, copy, or commit secret files (`.env*`, keys,
+  credentials) — even on explicit request. See §11 of the coding standards.
 
-## Dokumen Konteks
+## Context Documents
 
-- `.clinerules` — standar gaya & aturan pengkodean wajib.
-- `docs/architecture.md` — arsitektur, state, konstanta domain (baca sebelum
-  mengubah struktur/state/konstanta).
-- `PROJECT_STATE.md` — progres fitur & roadmap.
+- **`.agents/rules/aseta-coding-standards.md` — the PRIMARY source of truth for
+  coding standards, style, and rules.** (The historical `.clinerules` file no
+  longer exists; its content was merged and deduplicated into this file.)
+- `docs/architecture.md` — architecture, state, and domain constants (read before
+  changing structure/state/constants).
+- `PROJECT_STATE.md` — feature progress & roadmap.
+- `skills-lock.json` — the agent skill registry.

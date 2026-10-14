@@ -7,17 +7,17 @@ import { MAX_LEVEL, mascotInfoForLevel, cumulativeXpForLevel } from '@/utils/ase
 import { MascotStage } from '@/components/MascotAura';
 
 /**
- * Pratinjau evolusi interaktif (Level 1 → 10).
+ * Interactive evolution preview (Level 1 → 10).
  *
- * Semua data maskot berasal dari `mascotInfoForLevel()` di `utils/aseta.ts`,
- * jadi GIF, nama tahap, rank, dan aura tidak mungkin melenceng dari domain
- * logic — sumber yang sama dengan kartu maskot di tab Beranda.
+ * All mascot data comes from `mascotInfoForLevel()` in `utils/aseta.ts`, so the
+ * GIF, stage name, rank, and aura can never drift from the domain logic — the
+ * same source the mascot card on the Beranda tab uses.
  *
- * purely read-only: level pratinjau TIDAK menyentuh state keuangan maupun
- * localStorage. Memindahkannya tidak akan mengubah aset pengguna sungguhan.
+ * purely read-only: the preview level does NOT touch financial state or
+ * localStorage. Moving it will not change real user assets.
  */
 
-/** Rentang level per tahap — untuk label ringkas di bawah slider. */
+/** Level range per stage — for the compact label under the slider. */
 const STAGE_RANGES = [
   { min: 1, max: 3, label: 'Telur' },
   { min: 4, max: 6, label: 'Bayi Naga' },
@@ -50,13 +50,13 @@ const FEATURES = [
 const LEVELS = Array.from({ length: MAX_LEVEL }, (_, i) => i + 1);
 
 /**
- * Kartu slider + panggung maskot. `className` dipakai pemanggil untuk
- * mengatur lebar kolom di dalam grid dashboard.
+ * Slider card + mascot stage. `className` is used by the caller to set the
+ * column width inside the dashboard grid.
  */
 function LevelShowcase({ className = '' }: { className?: string }) {
   const [level, setLevel] = useState(1);
 
-  // Satu panggilan → GIF + nama tahap + rank sekaligus, dijamin konsisten.
+  // One call → GIF + stage name + rank at once, guaranteed consistent.
   const info = mascotInfoForLevel(level);
   const stage = STAGE_RANGES.find((s) => level >= s.min && level <= s.max);
   const xpNeeded = cumulativeXpForLevel(level);
@@ -75,7 +75,7 @@ function LevelShowcase({ className = '' }: { className?: string }) {
       </div>
       <p className="text-xs text-muted">Geser untuk melihat bentuk maskot di setiap level.</p>
 
-      {/* Slider 1-10 dengan tick mark yang bisa diklik */}
+      {/* 1-10 slider with clickable tick marks */}
       <div className="mt-4">
         <input
           id="evolve-level-slider"
@@ -89,7 +89,7 @@ function LevelShowcase({ className = '' }: { className?: string }) {
           aria-valuetext={`Level ${level}, ${info.name}, ${info.title}`}
           className="h-11 w-full cursor-pointer accent-brand sm:h-5"
         />
-        {/* Tick mark — posisinya evenly sejajar dengan thumb slider. */}
+        {/* Tick mark — positioned evenly aligned with the slider thumb. */}
         <div className="flex justify-between px-0.5">
           {LEVELS.map(n => {
             const active = n === level;
@@ -116,7 +116,7 @@ function LevelShowcase({ className = '' }: { className?: string }) {
         </div>
       </div>
 
-      {/* Panggung: aura + partikel + GIF, semua dari level yang dipilih. */}
+      {/* Stage: aura + particles + GIF, all from the selected level. */}
       <div className="relative mt-3 flex flex-1 flex-col items-center justify-center rounded-2xl border border-line bg-ivory/60 py-5">
         <MascotStage
           gif={info.gif}
@@ -125,7 +125,7 @@ function LevelShowcase({ className = '' }: { className?: string }) {
           imgClassName="h-32 w-32 sm:h-40 sm:w-40"
         />
 
-        {/* Nama & rank berganti halus tiap level berubah. */}
+        {/* Name & rank transition smoothly whenever the level changes. */}
         <div className="mt-2 text-center">
           <motion.h3
             key={info.name}
@@ -166,7 +166,7 @@ function LevelShowcase({ className = '' }: { className?: string }) {
           </div>
         </dl>
 
-        {/* Progress tipis sebagai penanda posisi level pada 1-10. */}
+        {/* Thin progress bar as a marker of level position on the 1-10 scale. */}
         <div className="mt-3 h-1 w-full max-w-sm overflow-hidden rounded-full bg-slate-100">
           <div
             className="h-full rounded-full bg-brand transition-all duration-300 ease-out"
@@ -179,14 +179,14 @@ function LevelShowcase({ className = '' }: { className?: string }) {
 }
 
 /**
- * View "Evolusi & Panduan" — pratinjau level interaktif + misi harian + walkthrough fitur.
- * Dipakai sebagai tab `evolve` di dalam dashboard (sidebar & header tetap).
+ * "Evolusi & Panduan" view — interactive level preview + daily missions + feature walkthrough.
+ * Used as the `evolve` tab inside the dashboard (sidebar & header stay).
  *
- * `missions` adalah slot (`ReactNode`) berisi kartu "Misi Hari Ini" yang dirakit
- * di `app/dashboard/page.tsx`: view ini tetap presentasional dan tidak menyentuh
- * state keuangan. Slot hanya dipakai pada MOBILE (`lg:hidden`) — diletakkan
- * tepat di bawah kartu evolusi. Pada desktop misi sudah tampil di kolom kanan
- * feed Beranda, sehingga slot ini sengaja disembunyikan agar tidak dobel.
+ * `missions` is a slot (`ReactNode`) holding the "Misi Hari Ini" card assembled
+ * in `app/dashboard/page.tsx`: this view stays presentational and never touches
+ * financial state. The slot is only used on MOBILE (`lg:hidden`) — placed
+ * right below the evolution card. On desktop missions already show in the right
+ * Beranda feed column, so this slot is hidden on purpose to avoid duplication.
  */
 export default function EvolveGuideView({ missions }: { missions?: ReactNode }) {
   return (
@@ -201,16 +201,16 @@ export default function EvolveGuideView({ missions }: { missions?: ReactNode }) 
       </div>
 
       <div className="grid flex-1 grid-cols-1 items-start gap-6 lg:grid-cols-12">
-        {/* Kolom kiri (desktop): status & progres evolusi maskot. */}
+        {/* Left column (desktop): mascot evolution status & progress. */}
         <LevelShowcase className="lg:col-span-5" />
 
-        {/* Misi harian — KHUSUS MOBILE (`lg:hidden`), tepat di bawah kartu
-            evolusi sesuai urutan dokumen. Di desktop kartu ini sudah tampil
-            di kolom kanan Beranda, jadi sini disembunyikan. */}
+        {/* Daily missions — MOBILE ONLY (`lg:hidden`), right below the evolution
+            card per document order. On desktop this card already shows in the
+            right Beranda column, so it is hidden here. */}
         {missions && <div className="lg:hidden">{missions}</div>}
 
-        {/* Walkthrough fitur — 4 kartu di kolom sisa (desktop), melebar penuh
-            di bawah pada mobile. */}
+        {/* Feature walkthrough — 4 cards in the remaining column (desktop), full
+            width below on mobile. */}
         <section className="lg:col-span-7">
           <div className="mb-3">
             <h2 className="text-base font-bold text-forest">Cara Kerja Aseta</h2>

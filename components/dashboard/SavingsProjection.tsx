@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { TrendingUp } from 'lucide-react';
 
 // ============================================================
-// Proyeksi tabungan (bunga majemuk harian) — konstanta & fungsi murni
+// Savings projection (daily compound interest) — constants & pure functions
 // ============================================================
 export const ANNUAL_RETURN = 0.042; // 4,2% p.a — sama dengan label imbal hasil
 export const DAYS_PER_YEAR = 365;
@@ -15,10 +15,10 @@ export const PROJECTION_DEFAULT = 10000;
 export const PROJECTION_HORIZONS = [1, 3, 5] as const;
 
 /**
- * Estimasi total aset setelah `years` tahun bila menyetor `daily` rupiah tiap
- * hari dengan bunga `rate` p.a. Setoran dianggap terjadi di awal setiap hari
- * (annuity due), sehingga hasil sedikit lebih tinggi daripada asumsi sederhana.
- * Fungsi murni: aman dipanggil saat render.
+ * Estimated total assets after `years` years when depositing `daily` rupiah every
+ * day at the given `rate` p.a. Deposits are assumed at the start of each day
+ * (annuity due), which makes the result slightly higher than with a simpler
+ * assumption. A pure function: safe to call during render.
  */
 export function projectSavings(daily: number, years: number, rate: number = ANNUAL_RETURN): number {
   const safeDaily = Math.max(0, Number.isFinite(daily) ? daily : 0);
@@ -31,11 +31,12 @@ export function projectSavings(daily: number, years: number, rate: number = ANNU
 }
 
 /**
- * Total setoran penuh untuk sebuah horizon — `daily × 365 × years`.
+ * Full contribution amount for a horizon — `daily × 365 × years`.
  *
- * Faktor `years` wajib ikut: tanpa itu, subteks "hasil" untuk horizon 3 dan 5
- * tahun akan menghitung setoran 1 tahun saja sehingga `total - contribution`
- * negatif lalu di-clamp ke 0 dan hasil bunga lenyap dari tampilan.
+ * The `years` factor MUST be included: without it, the "hasil" subtext for the 3-
+ * and 5-year horizons would use a 1-year contribution, so `total - contribution`
+ * would go negative, be clamped to 0, and the earnings would disappear from the
+ * UI.
  */
 export function projectContribution(daily: number, years: number): number {
   const safeDaily = Math.max(0, Number.isFinite(daily) ? daily : 0);
@@ -43,14 +44,15 @@ export function projectContribution(daily: number, years: number): number {
 }
 
 /**
- * Widget "Proyeksi Tabungan" — kalkulator bunga majemuk sederhana.
+ * "Proyeksi Tabungan" widget — a simple compound-interest calculator.
  *
- * State lokal slider saja (tidak menyentuh state keuangan aplikasi), nilai
- * awal berasal dari konstanta sehingga render server & klien identik.
+ * Local state holds only the slider value (it never touches application
+ * finance state); the initial value comes from a constant, so server and
+ * client render identically.
  *
- * `bare` dipakai widget analitik gabungan (tab "Proyeksi") agar chrome kartu
- * tidak bersarang: header ikon + judul disembunyikan karena label tab sudah
- * menyebut nama widgetnya.
+ * `bare` is used by the analytics widget (the "Proyeksi" tab) so the card
+ * chrome is not nested: the icon header + title are hidden because the tab
+ * label already names the widget.
  */
 export default function SavingsProjection({
   bare = false,
@@ -68,7 +70,7 @@ export default function SavingsProjection({
   return (
     <section className={`${shellClass} ${className}`}>
       {!bare && (
-        /* Header: ikon gradien emerald→teal + pill imbal hasil. */
+        /* Header: emerald→teal gradient icon + return pill. */
         <div className="mb-3 flex items-center gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 p-2.5 text-white shadow-sm shadow-emerald-500/20">
             <TrendingUp className="h-4.5 w-4.5" aria-hidden />

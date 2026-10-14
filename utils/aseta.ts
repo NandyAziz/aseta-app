@@ -1,27 +1,27 @@
 export type MascotExpression = 'idle' | 'tap' | 'celebrate';
 
 export function calculateRoundUp(amount: number): number {
-  // Guard terhadap NaN/Infinity/pecahan agar tidak pernah membocorkan
-  // nilai tak-terdefinisi ke balance (dibulatkan ke bawah → selalu bilangan bulat).
+  // Guard against NaN/Infinity/fractions so undefined values never leak
+  // into balance (floored → always an integer).
   if (!Number.isFinite(amount) || amount <= 0) return 0;
   const remainder = Math.floor(amount) % 5000;
   return remainder === 0 ? 0 : 5000 - remainder;
 }
 
 /**
- * Plafon atas batas harian yang boleh disetel pengguna: Rp10.000.000.
- * Nilai di atas ini tidak realistis untuk simulasi round-up harian dan membuat
- * angka pada kartu "Batas Harian" meluber keluar batas kartu.
+ * Ceiling for the user-settable daily cap: Rp10,000,000.
+ * Anything above this is unrealistic for a daily round-up simulation and
+ * pushes the numbers on the "Batas Harian" card past the card edge.
  */
 export const MAX_DAILY_CAP = 10_000_000;
 
 /**
- * Mengubah nominal menjadi teks rupiah format Indonesia dengan penjaga:
- * nilai tidak valid (NaN/Infinity/bolong) menjadi "0", nilai negatif dijepit
- * ke 0, dan nominal sangat besar (≥ 1 triliun) ditulis ringkas
- * (contoh: "Rp1,2 T") agar tidak pernah memanjangkan teks di UI.
+ * Formats an amount as Indonesian rupiah text with guards:
+ * invalid values (NaN/Infinity/blank) become "0", negative values are
+ * clamped to 0, and very large amounts (≥ 1 trillion) are written in
+ * compact form (e.g. "Rp1,2 T") so text never overflows the UI.
  *
- * Dipakai seluruh tampilan nominal — termasuk kartu "Batas Harian".
+ * Used by every amount display — including the "Batas Harian" card.
  */
 export function formatRupiah(value: number): string {
   if (!Number.isFinite(value)) return '0';
@@ -36,9 +36,9 @@ export function formatRupiah(value: number): string {
 }
 
 /**
- * Menjepit nilai input batas harian ke rentang [0, MAX_DAILY_CAP] dan
- * membulatkan ke bilangan bulat. Satu-satunya pintu masuk untuk nilai
- * `dailyCap` dari UI maupun state tersimpan.
+ * Clamps a daily-cap input to [0, MAX_DAILY_CAP] and rounds it to an
+ * integer. The single entry point for `dailyCap` values coming from the
+ * UI or from persisted state.
  */
 export function clampDailyCap(value: number): number {
   if (!Number.isFinite(value)) return 0;
@@ -46,15 +46,15 @@ export function clampDailyCap(value: number): number {
 }
 
 // ============================================================
-// Sistem level eksponensial Aseta — 10 level (multiplier 2x).
-// Target XP per level: Lv1 5.000 → Lv10 2.560.000 (MAX).
-// Aset gambar yang tersedia: Telur (Lv 1-3), Bayi Naga (Lv 4-6),
-// Naga Dewasa (Lv 7-10).
+// Aseta's exponential level system — 10 levels (2x multiplier).
+// XP target per level: Lv1 5,000 → Lv10 2,560,000 (MAX).
+// Available image assets: Egg (Lv 1-3), Baby Dragon (Lv 4-6),
+// Adult Dragon (Lv 7-10).
 // ============================================================
 
 export const MAX_LEVEL = 10;
 
-// XP yang dibutuhkan untuk MENYELESAIKAN tiap level (indeks 0 = Lv 1).
+// XP required to COMPLETE each level (index 0 = Lv 1).
 export const LEVEL_TARGETS = [
   5000, 10000, 20000, 40000, 80000, 160000, 320000, 640000, 1280000, 2560000,
 ] as const;
@@ -73,18 +73,18 @@ export const LEVEL_TITLES = [
 ] as const;
 
 /**
- * Batas tap maskot per hari untuk misi "Sapa Aseta (Tap Maskot 3x)".
- * Setelah batas ini tercapai, tap tetap memberi reaksi visual (getar +
- * balasan lisan) tetapi TIDAK lagi memutar animasi "+50 XP".
+ * Daily mascot tap limit for the "Sapa Aseta (Tap Maskot 3x)" quest.
+ * Once this limit is reached, taps still give a visual reaction (shake +
+ * spoken reply) but no longer play the "+50 XP" animation.
  *
- * XP 50 untuk misi ini tetap diberikan satu kali lewat `claimQuest('greet')`
- * di dashboard — bukan tiap tap. Partikel "+50 XP" hanya penanda progres
- * menuju klaim tersebut, bukan penambahan saldo.
+ * The 50 XP for this quest is still granted once via
+ * `claimQuest('greet')` in the dashboard — not on every tap. The "+50 XP"
+ * particles only mark progress toward that claim, not a balance increase.
  */
 export const GREET_TAP_TARGET = 3;
 
-// Ambang kumulatif: total XP agar NAIK dari level tersebut.
-// Contoh: butuh 5.000 XP untuk lulus Lv 1, 15.000 total untuk lulus Lv 2.
+// Cumulative thresholds: total XP needed to GO UP from that level.
+// Example: 5,000 XP to clear Lv 1, 15,000 total to clear Lv 2.
 const LEVEL_CUMULATIVE: number[] = (() => {
   const cum: number[] = [];
   let total = 0;
@@ -109,15 +109,17 @@ function stageForLevel(level: number): { name: string; gif: string } {
 }
 
 /**
- * Resolusi `MascotInfo` dari SUATU level — dipakai `getMascotLevel()` di bawah
- * dan tab "Evolusi & Panduan" di dashboard untuk memamerkan evolusi Lv 1-10.
+ * Resolves `MascotInfo` for a SINGLE level — used by `getMascotLevel()`
+ * below and by the dashboard's "Evolusi & Panduan" tab to showcase the
+ * Lv 1-10 evolution.
  *
- * Dipisah agar tidak ada lagi salinan `stageForLevel()` / `LEVEL_TITLES[]` di
- * luar modul ini: GIF, nama tahap, dan rank dijamin berasal dari satu sumber.
+ * Split out so there are no more copies of `stageForLevel()` /
+ * `LEVEL_TITLES[]` outside this module: GIF, stage name, and rank are
+ * guaranteed to come from one source.
  *
- * Level di-clamp ke rentang 1..MAX_LEVEL supaya input di luar jangkauan
- * (mis. slider di halaman panduan atau data localStorage rusak) tidak pernah
- * menyentuh indeks array yang tidak ada.
+ * The level is clamped to 1..MAX_LEVEL so out-of-range input
+ * (e.g. a slider on the guide page or corrupted localStorage data) never
+ * touches a non-existent array index.
  */
 export function mascotInfoForLevel(level: number): MascotInfo {
   const clamped = Math.min(MAX_LEVEL, Math.max(1, Math.floor(level) || 1));
@@ -131,8 +133,8 @@ export function mascotInfoForLevel(level: number): MascotInfo {
 }
 
 /**
- * Total XP kumulatif yang dibutuhkan untuk mencapai `level` (indeks 0 = Lv 1).
- * Untuk level di luar rentang, nilai dikembalikan apa adanya.
+ * Total cumulative XP needed to reach `level` (index 0 = Lv 1).
+ * For levels outside the range, the value is returned as-is.
  */
 export function cumulativeXpForLevel(level: number): number {
   const idx = Math.min(MAX_LEVEL, Math.max(1, Math.floor(level) || 1)) - 1;
