@@ -103,6 +103,27 @@
       data berubah — semuanya CSS murni (aman SSR, tanpa hydration mismatch)
       dengan `prefers-reduced-motion` guard. `id` gradient pakai `useId()`
       karena 2 instans aktif bersamaan di DOM.
+- [x] **Titik grafik interaktif** — tiap titik `growthSeries` bisa diklik/di-tap
+      (state lokal `selectedIndex`). Hit-area berupa **kolom `rect` setinggi
+      penuh** (bukan lingkaran kecil): zona ketuk dibagi di batas tengah antar
+      titik sehingga tidak tumpang tindih, dan tetap ≥ acuan 44×44 di viewport
+      320px (terukur 36.7×75.4px ≈ 2770px² setelah memperhitungkan padding
+      `px-4` + `p-5` + `p-3`). Kartu detail menampilkan periode, nominal persis
+      (`Rp…`), dan perubahan %/Rp dari periode sebelumnya; memakai alur normal
+      (bukan `absolute` di atas grafik) sehingga mustahil ter-clip di layar
+      sempit, dengan dentum penunjuk di-clamp ke titik aktif. Dukungan
+      keyboard: `←/→/Home/End` pindah titik, `Esc` menutup; grup satu tab stop
+      saja dengan `role="status" aria-live="polite"` pada kartunya.
+      SVG **tidak** memakai `role="img"` (agar titik interaktif tidak
+      disembunyikan pembaca layar); lapisan dekoratif memakai `aria-hidden`.
+- [x] **Catatan data `growth`** — `growth` diisi **per transaksi**
+      (`page.tsx` `handleQuickSave`/quest/liquidate), bukan per hari, dan
+      tidak menyimpan timestamp. Karena itu label titik bawaan memakai
+      "Periode N", **bukan tanggal**. `GrowthChart` menerima prop opsional
+      `labels?: readonly string[]` untuk memasok tanggal asli di masa depan
+      tanpa mengubah komponen. Header "Pertumbuhan Aset · 7 Hari" di
+      `PortfolioAllocation` masih memakai kata "Hari" — perlu diselaraskan
+      bila mau akurat.
 - [x] **Transaksi Cepat dipindah ke tab "Scan"** — kartu ini DIHAPUS dari feed
       **Beranda** di semua breakpoint (mobile & desktop) agar kolom kanan fokus
       pada misi, proyeksi, dan batas harian. Aksi nabung cepat tetap tersedia
