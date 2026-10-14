@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { QrCode, ShieldCheck, Sparkles, Wallet } from 'lucide-react';
 import { MAX_LEVEL, mascotInfoForLevel, cumulativeXpForLevel } from '@/utils/aseta';
@@ -179,10 +179,15 @@ function LevelShowcase({ className = '' }: { className?: string }) {
 }
 
 /**
- * View "Evolusi & Panduan" — pratinjau level interaktif + walkthrough fitur.
+ * View "Evolusi & Panduan" — pratinjau level interaktif + misi harian + walkthrough fitur.
  * Dipakai sebagai tab `evolve` di dalam dashboard (sidebar & header tetap).
+ *
+ * `missions` adalah slot (`ReactNode`) berisi kartu "Misi Hari Ini" yang dirakit
+ * di `app/dashboard/page.tsx`: view ini tetap presentasional dan tidak menyentuh
+ * state keuangan. Slot diletakkan di bawah kartu evolusi pada mobile, dan
+ * menyeimbangkannya menjadi kolom kedua pada desktop `lg:`.
  */
-export default function EvolveGuideView() {
+export default function EvolveGuideView({ missions }: { missions?: ReactNode }) {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 pb-28 pt-6 sm:px-6 md:pb-10 lg:px-8">
       <div className="mb-5">
@@ -194,16 +199,21 @@ export default function EvolveGuideView() {
         </p>
       </div>
 
-      <div className="grid flex-1 grid-cols-1 gap-6 lg:grid-cols-12">
+      <div className="grid flex-1 grid-cols-1 items-start gap-6 lg:grid-cols-12">
+        {/* Kolom kiri (desktop): status & progres evolusi maskot. */}
         <LevelShowcase className="lg:col-span-5" />
 
-        {/* Walkthrough fitur — 4 kartu di kolom sisa. */}
-        <section className="lg:col-span-7">
+        {/* Kolom kanan (desktop): misi harian — sejajar dengan kartu evolusi.
+            Pada mobile mengikuti urutan dokumen, tepat di bawahnya. */}
+        {missions && <div className="lg:col-span-7">{missions}</div>}
+
+        {/* Walkthrough fitur — 4 kartu melebar penuh di baris berikutnya. */}
+        <section className="lg:col-span-12">
           <div className="mb-3">
             <h2 className="text-base font-bold text-forest">Cara Kerja Aseta</h2>
             <p className="text-xs text-muted">Empat konsep inti, singkat dan tanpa jargon.</p>
           </div>
-          <ul className="grid gap-3 sm:grid-cols-2">
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {FEATURES.map(({ Icon, title, body }) => (
               <li
                 key={title}

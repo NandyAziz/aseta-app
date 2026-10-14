@@ -1,6 +1,10 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "instructions": ["AGENTS.md", "docs/architecture.md"],
+  "instructions": [
+    "AGENTS.md",
+    "docs/architecture.md",
+    ".agents/rules/aseta-coding-standards.md"
+  ],
   "permissions": {
     "read": "allow",
     "write": "allow",

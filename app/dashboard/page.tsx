@@ -58,6 +58,10 @@ const PET_LINES = [
 
 const GOLD_GRAM_PRICE = 1_200_000; // simulasi harga emas Rp/gram
 
+// Jumlah misi harian yang ditampilkan (harus sinkron dengan `DailyMissions`).
+// Dipakai untuk pembilang chip "Misi Harian (n/3)".
+const QUEST_TOTAL = 3;
+
 // --- Parameter loop pemindaian QR ---
 // Decoding dibatasi ~6 fps: cukup untuk menangkap QR yang dipegang statis,
 // tapi tidak mengunci CPU saat kamera menyala.
@@ -899,6 +903,10 @@ export default function AsetaApp() {
   const greetClaimed = isMounted && state.quests.greetClaimed;
   // Progress tap hari ini (dibatasi batas harian) — ditampilkan di judul misi.
   const greetTapsUsed = isMounted ? Math.min(state.quests.greetCount, GREET_TAP_TARGET) : 0;
+  // Jumlah misi yang SUDAH diklaim (0..QUEST_TOTAL). Dipakai untuk chip
+  // "Misi Harian (n/3)" pada kartu hero maskot di tab Beranda.
+  const missionsClaimed =
+    [qrisClaimed, depositClaimed, greetClaimed].filter(Boolean).length;
   const xpLabel = mascot.level >= MAX_LEVEL
     ? 'Level Maksimal 🏆'
     : `${xp.current.toLocaleString('id-ID')} / ${xp.next.toLocaleString('id-ID')} XP`;
@@ -1020,8 +1028,10 @@ export default function AsetaApp() {
 
         {/* --- Grid utama: dua kolom pada desktop (kiri 7 dari 12, kanan 5
             dari 12). Pada mobile semuanya menjadi satu kolom dengan urutan:
-            hero → analitik gabungan → transaksi cepat → misi harian →
-            batas harian (akordeon tertutup). --- */}
+            hero (berisi chip pintasan Misi Harian) → analitik gabungan →
+            transaksi cepat → batas harian (akordeon tertutup). Kartu
+            "Misi Hari Ini" penuh tidak lagi ada di sini — sudah pindah ke
+            tab "Evolusi". --- */}
       <div className="grid flex-1 grid-cols-1 items-start gap-6 lg:grid-cols-12">
         {/* ===== Kolom kiri (desktop): hero maskot, total aset, alokasi ===== */}
         <div className="flex flex-col gap-6 lg:col-span-7">
@@ -1187,6 +1197,29 @@ export default function AsetaApp() {
               {xpHint}
             </p>
           </div>
+
+          {/* Chip Misi Harian — pintasan ke tab "Evolusi" tempat seluruh
+              daftar misi + tombol klaim XP-nya berada (feed Beranda tidak
+              lagi memuat kartu misi). Angka_progress = misi yang SUDAH
+              diklaim, diturunkan dari status misi yang sudah di-guard
+              `isMounted` sehingga bebas mismatch hydration. */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('evolve')}
+            aria-label={`Misi Harian: ${missionsClaimed} dari ${QUEST_TOTAL} misi sudah diklaim. Buka tab Evolusi untuk klaim XP`}
+            className="flex w-full min-h-11 items-center justify-between gap-2 rounded-xl border border-line bg-ivory/70 px-3 py-2 text-xs font-semibold text-forest transition-colors hover:border-emerald-200 hover:bg-emerald-50 active:scale-[0.99] sm:min-h-0"
+          >
+            <span className="flex min-w-0 items-center gap-1.5">
+              <span aria-hidden>🎯</span>
+              <span className="truncate">Misi Harian</span>
+              <span className="tabular-nums text-muted">
+                ({missionsClaimed}/{QUEST_TOTAL})
+              </span>
+            </span>
+            <span className="shrink-0 text-brand" aria-hidden>
+              →
+            </span>
+          </button>
             </div>
           </div>
         </section>
@@ -1226,16 +1259,10 @@ export default function AsetaApp() {
           {/* Deretan chip aksi yang bisa digeser horizontal di mobile. */}
           <QuickTransactions onSave={handleQuickSave} />
 
-          <DailyMissions
-            qrisDone={qrisDone}
-            qrisClaimed={qrisClaimed}
-            depositDone={depositDone}
-            depositClaimed={depositClaimed}
-            greetDone={greetDone}
-            greetClaimed={greetClaimed}
-            greetTapsUsed={greetTapsUsed}
-            onClaim={claimQuest}
-          />
+          {/* Misi Hari Ini TIDAK lagi berada di feed Beranda — dipindah ke tab
+              "Evolusi" (lihat <EvolveGuideView missions={...} />) supaya
+              feed utama tidak memanjang. Di Beranda hanya ada chip pintasan
+              di dalam kartu hero maskot. */}
 
           {/* Proyeksi Tabungan sebagai kartu penuh — hanya desktop. */}
           <div className="hidden lg:block">
@@ -1512,8 +1539,26 @@ export default function AsetaApp() {
         </main>
       )}
 
-      {/* ===== Tab Evolusi & Panduan — pratinjau level 1-10 + walkthrough fitur ===== */}
-      {activeTab === 'evolve' && <EvolveGuideView />}
+      {/* ===== Tab Evolusi & Panduan — pratinjau level 1-10 + misi harian + walkthrough fitur =====
+          Kartu "Misi Hari Ini" PHYSIONYA ada di dalam tab ini: pada mobile
+          langsung di bawah kartu evolusi, pada desktop menyeimbangkan kolom
+          evolusi di grid 2 kolom. */}
+      {activeTab === 'evolve' && (
+        <EvolveGuideView
+          missions={
+            <DailyMissions
+              qrisDone={qrisDone}
+              qrisClaimed={qrisClaimed}
+              depositDone={depositDone}
+              depositClaimed={depositClaimed}
+              greetDone={greetDone}
+              greetClaimed={greetClaimed}
+              greetTapsUsed={greetTapsUsed}
+              onClaim={claimQuest}
+            />
+          }
+        />
+      )}
 
       {/* ===== Bottom Navigation — Mobile (md:hidden) ===== */}
       <nav

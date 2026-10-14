@@ -19,7 +19,7 @@ aseta-app/
 ├── components/
 │   ├── HeroMascot3D.tsx     # Panggung hero 3D: Telur Aseta (fallback) + Spline opsional
 │   ├── QrisRoundUpSimulator.tsx  # Simulator round-up interaktif di landing
-│   ├── EvolveGuideView.tsx  # Tab "Evolusi & Panduan" (pratinjau Lv 1–10)
+│   ├── EvolveGuideView.tsx  # Tab "Evolusi & Panduan" (pratinjau Lv 1–10 + slot misi harian)
 │   ├── MascotAura.tsx       # Peta aura/glow maskot per level + partikel evolusi
 │   └── dashboard/           # Kartu presentasional tab Beranda (murni props)
 │       ├── TotalAssetsSummary.tsx   # Blok "Total Aset Saya" + breakdown 3 baris
@@ -123,7 +123,7 @@ murni dari props → aman terhadap hydration mismatch):
 | `SavingsProjection` | slider setoran harian + estimasi 1/3/5 tahun | kolom kanan (desktop, kartu penuh) **dan** tab "Proyeksi" (`bare`) |
 | `AnalyticsTabs` | widget 2-tab khusus mobile | hanya mobile (`lg:hidden`) |
 | `QuickTransactions` | chip aksi preset + `QUICK_PRESETS` | tab Beranda (label "Tabung") & tab Scan (label "Bayar") |
-| `DailyMissions` | 3 misi harian + `QuestRow` | kolom kanan |
+| `DailyMissions` | 3 misi harian + `QuestRow` | tab "Evolusi" (di bawah kartu evolusi · sejajar pada `lg:`) |
 | `DailyLimit` | progres, sisa kuota, input batas harian | kolom kanan (desktop penuh · mobile akordeon) |
 | `GrowthChart` | grafik garis SVG 7 hari | dipakai `PortfolioAllocation` |
 
@@ -141,8 +141,26 @@ mengikuti isinya sendiri dan tidak ada celah putih menggantung:
 
 | | Mobile (satu kolom) | Desktop `lg:` |
 |---|---|---|
-| Kolom kiri (`lg:col-span-7`) | kartu hero maskot (panggung maskot → total aset → XP bar), lalu widget analitik 2-tab | kartu hero maskot (badan kartu dibagi 2 kolom internal: panggung maskot \| ringkasan aset + XP), lalu Alokasi Portofolio |
-| Kolom kanan (`lg:col-span-5`) | Transaksi Cepat (chip geser horizontal) → Misi Hari Ini → Batas Harian (akordeon tertutup) | Transaksi Cepat (daftar vertikal) → Misi Hari Ini → Proyeksi Tabungan → Batas Harian (terbuka penuh) |
+| Kolom kiri (`lg:col-span-7`) | kartu hero maskot (panggung maskot → total aset → XP bar → chip "Misi Harian (n/3)"), lalu widget analitik 2-tab | kartu hero maskot (badan kartu dibagi 2 kolom internal: panggung maskot \| ringkasan aset + XP + chip misi), lalu Alokasi Portofolio |
+| Kolom kanan (`lg:col-span-5`) | Transaksi Cepat (chip geser horizontal) → Batas Harian (akordeon tertutup) | Transaksi Cepat (daftar vertikal) → Proyeksi Tabungan → Batas Harian (terbuka penuh) |
+
+Kartu **Misi Hari Ini** tidak lagi ada di feed Beranda. Yang tersisa hanyalah
+chip interaktif `🎯 Misi Harian (n/3) →` di bawah XP bar pada kartu hero maskot;
+menekan chip tersebut memanggil `setActiveTab('evolve')` sehingga pengguna langsung
+melompat ke daftar misi di tab "Evolusi" untuk klaim XP. Pembilang `n` menghitung
+misi yang **sudah diklaim** dari status misi ber-guard `isMounted`.
+
+### Layout tab Evolusi & Panduan (`components/EvolveGuideView.tsx`)
+
+Grid `grid grid-cols-1 items-start gap-6 lg:grid-cols-12`. Kartu "Misi Hari Ini"
+dimasukkan lewat **slot `missions?: ReactNode`** dari `app/dashboard/page.tsx`,
+sehingga view ini tetap presentasional dan tidak menyentuh state:
+
+| | Mobile | Desktop `lg:` |
+|---|---|---|
+| Kartu evolusi (`LevelShowcase`) | baris 1 | kolom kiri `lg:col-span-5` |
+| Kartu Misi Hari Ini (slot `missions`) | baris 2, tepat di bawah kartu evolusi | kolom kanan `lg:col-span-7` (sejajar, seimbang) |
+| Walkthrough "Cara Kerja Aseta" | baris 3 | baris penuh `lg:col-span-12`, kartu `sm:grid-cols-2 lg:grid-cols-4` |
 
 Kartu khusus per breakpoint dibungkus `<div className="hidden lg:block">` /
 `lg:hidden`, bukan menumpuk `hidden` dengan `flex` pada elemen yang sama.
