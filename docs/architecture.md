@@ -122,7 +122,7 @@ murni dari props → aman terhadap hydration mismatch):
 | `PortfolioAllocation` | split bar 60/40, dua kartu porsi, grafik 7 hari, tombol "Cairkan Aset" | kolom kiri (desktop, kartu penuh) **dan** tab "Portofolio" (`bare`) |
 | `SavingsProjection` | slider setoran harian + estimasi 1/3/5 tahun | kolom kanan (desktop, kartu penuh) **dan** tab "Proyeksi" (`bare`) |
 | `AnalyticsTabs` | widget 2-tab khusus mobile | hanya mobile (`lg:hidden`) |
-| `QuickTransactions` | chip aksi preset + `QUICK_PRESETS` | tab Beranda (label "Tabung", `hidden lg:block` = desktop saja) & tab Scan (label "Bayar") |
+| `QuickTransactions` | chip aksi preset + `QUICK_PRESETS` | tab "Scan" saja (label "Bayar") — sudah dihapus dari feed Beranda |
 | `DailyMissions` | 3 misi harian + `QuestRow` | kolom kanan Beranda (`hidden lg:block`) **dan** tab "Evolusi" (`lg:hidden`) |
 | `DailyLimit` | progres, sisa kuota, input batas harian | kolom kanan (desktop penuh · mobile akordeon) |
 | `GrowthChart` | grafik garis SVG 7 hari | dipakai `PortfolioAllocation` |
@@ -151,12 +151,14 @@ nominalnya di bawah `lg`. Nominal berasal dari `totalWealth` yang sama, jadi
 mobile dan desktop tidak pernah menampilkan angka berbeda. Pada `lg:` header
 mobile tidak dirender sama sekali (sidebar `md:flex` yang mengambil alih) dan
 kartu hero kembali menampilkan nominal utama apa adanya.
-| Kolom kanan (`lg:col-span-5`) | ~~Transaksi Cepat~~ (disembunyikan `hidden lg:block`) → Batas Harian (akordeon tertutup) | Transaksi Cepat (daftar vertikal) → **Misi Hari Ini** (`hidden lg:block`) → Proyeksi Tabungan → Batas Harian (terbuka penuh) |
+| Kolom kanan (`lg:col-span-5`) | Misi Hari Ini (`hidden lg:block`) → Batas Harian (akordeon tertutup) | Misi Hari Ini (`hidden lg:block`) → Proyeksi Tabungan → Batas Harian (terbuka penuh) |
 
-Kartu **Transaksi Cepat** juga hanya tampil di desktop (`hidden lg:block`) pada
-feed Beranda. Di mobile aksi nabung cepat tetap tersedia di tab "Scan", yang
-memakai `QuickTransactions` dengan label "Bayar" — jadi `handleQuickSave()` dan
-`QUICK_PRESETS` tetap terpakai di kedua tempat.
+Kartu **Transaksi Cepat** telah dihapus sepenuhnya dari feed Beranda pada
+semua ukuran layar (mobile & desktop); kolom kanan kini fokus pada misi,
+proyeksi, dan batas harian. Aksi nabung cepat tetap tersedia di tab "Scan",
+yang memakai `QuickTransactions` dengan label "Bayar" — jadi `handleQuickSave()`
+dan `QUICK_PRESETS` tetap terpakai dan komponen tersebut tidak di-import
+yang sia-sia.
 
 Relokasi **Misi Hari Ini** bersifat khusus mobile (`< lg`):
 

@@ -1268,18 +1268,15 @@ export default function AsetaApp() {
         />
         </div>
 
-        {/* ===== Kolom kanan: transaksi cepat, misi harian, proyeksi, dan
-            batas harian. Pada mobile kolom ini tampil setelah widget
-            analitik gabungan. ===== */}
+        {/* ===== Kolom kanan: misi harian, proyeksi, dan batas harian. Pada
+            mobile kolom ini tampil setelah widget analitik gabungan. ===== */}
         <div className="flex flex-col gap-6 lg:col-span-5">
-          {/* Transaksi Cepat — KHUSUS DESKTOP (`hidden lg:block`). Di mobile feed
-              Beranda tidak lagi memuatnya supaya tetap ringkas; aksi nabung
-              cepat tetap tersedia di tab "Scan" (QuickTransactions dengan
-              label "Bayar") — jadi `handleQuickSave` & `QUICK_PRESETS` tetap
-              terpakai dan tidak ada pemanggilan yang menggantung. */}
-          <div className="hidden lg:block">
-            <QuickTransactions onSave={handleQuickSave} />
-          </div>
+          {/* Catatan: kartu "Transaksi Cepat" sengaja dihapus dari feed Beranda
+              (mobile & desktop) agar kolom kanan fokus pada misi, proyeksi,
+              dan batas harian. Aksi nabung cepat tetap tersedia di tab "Scan"
+              (QuickTransactions dengan label "Bayar") — jadi `handleQuickSave`
+              & `QUICK_PRESETS` tetap terpakai dan tidak ada pemanggilan yang
+              menggantung. */}
 
           {/* Misi Hari Ini — KHUSUS DESKTOP (`hidden lg:block`), kembali ke kolom
               kanan feed Beranda. Pada mobile disembunyikan supaya feed utama

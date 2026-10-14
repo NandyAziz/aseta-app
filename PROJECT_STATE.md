@@ -81,7 +81,7 @@
 
 ### Layout Responsif (Terbaru)
 - [x] **Grid desktop 2 kolom** — `lg:grid-cols-12`: kolom kiri 7 (kartu hero
-      maskot + total aset + Alokasi Portofolio), kolom kanan 5 (Transaksi Cepat
+      maskot + total aset + Alokasi Portofolio), kolom kanan 5 (Misi Hari Ini
       → Proyeksi Tabungan → Batas Harian). Misi Hari Ini hanya di kolom
       kanan pada `lg:` (mobile: pindah ke tab "Evolusi" + chip pintasan).
 - [x] **Kartu-kartu diekstrak ke `components/dashboard/`** —
@@ -91,10 +91,11 @@
       animasi maskot, kamera/QR, modal, dan tour.
 - [x] **Widget analitik 2-tab (mobile)** — "Portofolio" dan "Proyeksi" digabung
       ke satu kartu tab agar feed utama tidak perlu digulir jauh.
-- [x] **Transaksi Cepat ringkas** — chip aksi geser horizontal, label
-      "Tabung" / "Bayar" tanpa panah teks. Di feed **Beranda** kartu ini
-      kini desktop-saja (`hidden lg:block`); di mobile aksi nabung
-      cepat diambil lewat tab "Scan" (label "Bayar").
+- [x] **Transaksi Cepat dipindah ke tab "Scan"** — kartu ini DIHAPUS dari feed
+      **Beranda** di semua breakpoint (mobile & desktop) agar kolom kanan fokus
+      pada misi, proyeksi, dan batas harian. Aksi nabung cepat tetap tersedia
+      di tab "Scan" (`QuickTransactions`, label "Bayar"), jadi `handleQuickSave`
+      dan `QUICK_PRESETS` tetap terpakai.
 - [x] **Batas Harian jadi akordeon di mobile** — tertutup secara default,
       ringkasan pemakaian tetap terlihat di header.
 - [x] **Input batas harian tervalidasi** — `maxLength={8}`, hanya digit,

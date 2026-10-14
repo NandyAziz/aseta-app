@@ -36,15 +36,17 @@ Simulasi frontend murni — tanpa backend, tanpa uang asli.
 - Grid memakai `items-start` supaya tinggi tiap kolom mengikuti isinya sendiri.
 - Isi kolom:
   - Kiri: kartu hero maskot (panggung + total aset + XP bar), Alokasi Portofolio.
-  - Kanan: Transaksi Cepat, Misi Hari Ini, Proyeksi Tabungan, Batas Harian.
+  - Kanan: Misi Hari Ini, Proyeksi Tabungan, Batas Harian.
+    ("Transaksi Cepat" SUDAH dihapus dari feed Beranda di semua breakpoint —
+    jangan dikembalikan; aksi nabung cepat hanya di tab "Scan".)
 - Kartu seragam: `rounded-2xl border border-line bg-white p-4 sm:p-5`.
 - DILARANG ada elemen yang "melayang" di luar kartu atau whitespace putih
   menggantung di dasar kolom.
 - Konten yang hanya untuk satu breakpoint dibungkus `<div className="hidden lg:block">`
   atau `lg:hidden` — jangan menumpuk `hidden` dengan `flex` pada elemen yang sama
   (urutan CSS utility tidak bisa diprediksi).
-- Mobile: analitik digabung jadi widget 2-tab (`AnalyticsTabs`), transaksi cepat
-  jadi chip geser horizontal, batas harian jadi akordeon tertutup.
+- Mobile: analitik digabung jadi widget 2-tab (`AnalyticsTabs`), batas harian
+  jadi akordeon tertutup.
 - Kartu presentasional tinggal di `components/dashboard/` (murni props), bukan
   dikembalikan ke `page.tsx`.
 
