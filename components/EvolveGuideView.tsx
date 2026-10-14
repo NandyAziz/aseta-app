@@ -47,7 +47,7 @@ const FEATURES = [
   },
 ] as const;
 
-const LEVELS = Array.from({ length: MAX_LEVEL }, (_, i) => i + 1);
+const LEVELS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 /**
  * Slider card + mascot stage. `className` is used by the caller to set the
@@ -81,7 +81,7 @@ function LevelShowcase({ className = '' }: { className?: string }) {
           id="evolve-level-slider"
           type="range"
           min={1}
-          max={MAX_LEVEL}
+          max={10}
           step={1}
           value={level}
           onChange={e => setLevel(Number(e.target.value))}
