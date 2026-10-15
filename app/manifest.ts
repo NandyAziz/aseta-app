@@ -28,6 +28,23 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "any",
         type: "image/x-icon",
       },
+      // Chrome Android hanya menawar-kan instalasi PWA bila manifest
+      // menyertakan ikon 192px & 512px. keduanya `maskable`: latar hijau
+      // penuh (tanpa sudut transparan) + monogram di dalam safe zone 80%
+      // tengah, sehingga tetap aman saat dipotong jadi lingkaran/squircle
+      // oleh sistem.
+      {
+        src: "/icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "maskable",
+      },
+      {
+        src: "/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
     ],
   };
 }
