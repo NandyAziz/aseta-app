@@ -6,7 +6,7 @@ import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from
 import { CameraOff, HelpCircle, Home, QrCode, History, X, RotateCcw, Sparkles, Search } from "lucide-react";
 import confetti from 'canvas-confetti';
 import jsQR from 'jsqr';
-import { calculateRoundUp, getMascotLevel, getXpProgress, formatRupiah, clampDailyCap, MAX_LEVEL, LEVEL_TARGETS, GREET_TAP_TARGET } from '@/utils/aseta';
+import { calculateRoundUp, getMascotLevel, getXpProgress, formatRupiah, clampDailyCap, MAX_LEVEL, GREET_TAP_TARGET } from '@/utils/aseta';
 import { playTapSound, playCoinSound, playLevelUpSound, playLimitSound } from '@/utils/sound';
 import { parseQrPayload } from '@/utils/qris';
 import type { MascotExpression } from '@/utils/aseta';
@@ -912,11 +912,18 @@ export default function AsetaApp() {
   const xpLabel = mascot.level >= MAX_LEVEL
     ? 'Level Maksimal 🏆'
     : `${xp.current.toLocaleString('id-ID')} / ${xp.next.toLocaleString('id-ID')} XP`;
+  // Sisa XP untuk naik ke level berikutnya. Diturunkan dari `xp` (sumber
+  // tunggal yang sama dengan label & bar), BUKAN mengindeks ulang
+  // LEVEL_TARGETS: `LEVEL_TARGETS[level-1]` adalah target untuk menyelesaikan
+  // level SEKARANG (= 5.000 saat Lv 1), sedangkan `LEVEL_TARGETS[level]`
+  // adalah target level BERIKUTNYA (= 10.000) — memakai indeks yang salah
+  // membuat label "0 / 5.000 XP" bertentangan dengan hint "10.000 XP lagi".
+  const xpRemaining = Math.max(0, xp.next - xp.current);
   // Rank sudah tampil di bawah ilustrasi maskot, jadi baris petunjuk XP
   // menampilkan target level BERIKUTNYA — bukan mengulang rank yang sama.
   const xpHint = mascot.level >= MAX_LEVEL
     ? 'Aseta telah mencapai evolusi terakhir'
-    : `${LEVEL_TARGETS[mascot.level].toLocaleString('id-ID')} XP lagi ke Lv. ${mascot.level + 1}`;
+    : `${xpRemaining.toLocaleString('id-ID')} XP lagi ke Lv. ${mascot.level + 1}`;
   const aura = mascotAura(mascot.level);
 
   // --- Breakdown "Total Aset": Tabungan (portofolio) + Saldo Dompet + imbal hasil bulan ini ---
@@ -1014,7 +1021,7 @@ export default function AsetaApp() {
           (4 dari 12 kolom), sementara Alokasi + Proyeksi memakai 2 dari 3
           kolom visual (8 dari 12 kolom). */}
       {activeTab === 'home' && (
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 pb-28 pt-6 sm:px-6 md:pb-10 lg:px-8">
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 pb-28 pt-6 sm:px-6 md:pb-10 lg:px-8">
         {/* --- Kepala dashboard: salam + utilitas (Reset Data dipindah ke
             sini dari bar bawah agar tidak lagi terbaca sebagai tombol
             giants yang "terlempar" sendirian di dasar halaman). --- */}

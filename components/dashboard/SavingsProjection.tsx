@@ -113,20 +113,35 @@ export default function SavingsProjection({
         <span>Rp{PROJECTION_MAX.toLocaleString('id-ID')}</span>
       </div>
 
-      <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 sm:gap-3">
+      {/* Grid 1/2/3 kolom: kartu ini pernah berada di sidebar-feed Beranda
+          (`lg:col-span-5`, kolom sempit) DAN di tab "Proyeksi" AnalyticsTabs,
+          jadi padding/gap sengaja rapat agar nominal panjang tetap muat. */}
+      <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {PROJECTION_HORIZONS.map(years => {
           const total = projectSavings(daily, years);
           const gain = Math.max(0, total - projectContribution(daily, years));
           return (
             <li
               key={years}
-              className="flex min-w-0 flex-col items-center justify-center overflow-hidden rounded-xl border border-emerald-100 bg-emerald-50/60 px-3 py-3 sm:px-3 sm:py-4 card-elevate transition-all duration-200"
+              className="flex min-w-0 flex-col items-center justify-center rounded-xl border border-emerald-100 bg-emerald-50/60 px-2 py-2.5 card-elevate transition-all duration-200"
             >
               <p className="text-[10px] font-bold uppercase tracking-wide text-muted">{years} Tahun</p>
-              <p className="mt-0.5 text-[11px] font-extrabold tracking-tight tabular-nums text-emerald-800 leading-tight sm:text-sm lg:text-base min-w-0 break-words overflow-hidden text-ellipsis">
+              {/* Nominal terburuk = "Rp101.543.888" (13 karakter) saat setoran
+                  maksimum & horizon 5 tahun. `tabular-nums` menjaga lebar
+                  digit tetap, `break-words` menjadi jaring pengaman: bila
+                  kolom benar-benar sempit (Lv tablet), angka membungkus ke
+                  dua baris alih-alih terpotong.
+
+                  Catatan: `text-ellipsis` TIDAK dipakai di sini — ellipsis
+                  hanya bekerja bila `white-space: nowrap`, sedangkan baris ini
+                  sengaja boleh membungkus. */}
+              <p className="mt-0.5 min-w-0 break-words text-[13px] font-extrabold leading-tight tracking-tight tabular-nums text-emerald-800 sm:text-[14px]">
                 Rp{total.toLocaleString('id-ID')}
               </p>
-              <p className="mt-0.5 text-[10px] font-semibold tabular-nums text-muted sm:text-xs">
+              {/* Baris "hasil" justru lebih panjang dari nominal (17 karakter,
+                  mis. "+10.293.888 hasil"), jadi tipografinya satu tingkat
+                  lebih kecil dari nominal. */}
+              <p className="mt-0.5 break-words text-[10px] font-semibold leading-tight tabular-nums text-muted sm:text-[11px]">
                 +{gain.toLocaleString('id-ID')} hasil
               </p>
             </li>
