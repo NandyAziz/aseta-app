@@ -19,44 +19,48 @@ import { MAX_LEVEL } from '@/utils/aseta';
 export function mascotAura(level: number): {
   glow: string;
   glowAnim: string;
+  /** Extra scale applied to the backlight circle so it tracks a grown mascot. */
+  glowScale: string;
   ring: string;
   scale: string;
   breathe: string;
   imgShadow: string;
 } {
   // Lv 10 — Sultan Aseta: layered gold + cyan aura, pulse, maximum backlight.
-  // Scale 1.35 compensates for wide transparent canvas padding in mascot10.gif,
-  // so its VISIBLE mascot matches Level 7's apparent size.
+  // Scale 2.0 makes the final form dominate the hero card. The backlight
+  // (`glowScale`) grows with it so the aura never looks smaller than the
+  // dragon — both are pure transforms, so nothing is clipped.
   if (level >= 10) {
     return {
       glow: 'bg-gold/45 blur-2xl shadow-[0_0_46px_10px_rgba(229,180,84,0.45),0_0_90px_22px_rgba(34,211,238,0.28)]',
       glowAnim: 'animate-aura-breathe',
+      glowScale: 'scale-[2]',
       ring: 'ring-2 ring-amber-200/70 ring-offset-2 ring-offset-white',
-      scale: 'scale-[1.35]',
+      scale: 'scale-[2]',
       breathe: '',
       imgShadow: 'drop-shadow-[0_0_22px_rgba(229,180,84,0.55)] drop-shadow-[0_0_10px_rgba(34,211,238,0.35)]',
     };
   }
   // Lv 9 — Aseta Legend: bright gold + cyan accents, active pulse.
-  // Scale 1.25 keeps the adult dragon visibly larger than young levels.
   if (level >= 9) {
     return {
       glow: 'bg-gold/38 blur-2xl shadow-[0_0_38px_8px_rgba(229,180,84,0.38),0_0_72px_16px_rgba(34,211,238,0.22)]',
       glowAnim: 'animate-aura-breathe',
+      glowScale: 'scale-[2]',
       ring: 'ring-2 ring-amber-200/60 ring-offset-2 ring-offset-white',
-      scale: 'scale-[1.25]',
+      scale: 'scale-[2]',
       breathe: '',
       imgShadow: 'drop-shadow-[0_0_18px_rgba(229,180,84,0.45)] drop-shadow-[0_0_8px_rgba(34,211,238,0.28)]',
     };
   }
   // Lv 8 — matured Naga Dewasa: deep gold, strong layered backlight.
-  // Scale 1.25 keeps the adult dragon visibly larger than young levels.
   if (level >= 8) {
     return {
       glow: 'bg-gold/32 blur-xl shadow-[0_0_30px_6px_rgba(229,180,84,0.32)]',
       glowAnim: 'animate-aura-breathe',
+      glowScale: 'scale-[2]',
       ring: 'ring-1 ring-amber-200/55 ring-offset-2 ring-offset-white',
-      scale: 'scale-[1.25]',
+      scale: 'scale-[2]',
       breathe: '',
       imgShadow: 'drop-shadow-[0_0_14px_rgba(229,180,84,0.34)]',
     };
@@ -66,6 +70,7 @@ export function mascotAura(level: number): {
     return {
       glow: 'bg-amber-400/28 blur-xl shadow-[0_0_22px_4px_rgba(245,158,11,0.28)]',
       glowAnim: '',
+      glowScale: '',
       ring: 'ring-1 ring-amber-200/50 ring-offset-2 ring-offset-white',
       scale: 'scale-[1.25]',
       breathe: '',
@@ -77,6 +82,7 @@ export function mascotAura(level: number): {
     return {
       glow: 'bg-emerald-400/30 blur-lg shadow-[0_0_20px_4px_rgba(52,211,153,0.26)]',
       glowAnim: '',
+      glowScale: '',
       ring: 'ring-1 ring-emerald-200/55 ring-offset-2 ring-offset-white',
       scale: 'scale-[1.05]',
       breathe: '',
@@ -88,6 +94,7 @@ export function mascotAura(level: number): {
     return {
       glow: 'bg-brand/30 blur-lg shadow-[0_0_16px_3px_rgba(4,120,87,0.24)]',
       glowAnim: '',
+      glowScale: '',
       ring: 'ring-1 ring-emerald-200/50 ring-offset-2 ring-offset-white',
       scale: 'scale-[1.05]',
       breathe: '',
@@ -99,6 +106,7 @@ export function mascotAura(level: number): {
     return {
       glow: 'bg-brand/22 blur-lg',
       glowAnim: '',
+      glowScale: '',
       ring: 'ring-1 ring-emerald-200/45 ring-offset-2 ring-offset-white',
       scale: 'scale-[1.05]',
       breathe: '',
@@ -110,6 +118,7 @@ export function mascotAura(level: number): {
     return {
       glow: 'bg-sage/28 blur-lg',
       glowAnim: '',
+      glowScale: '',
       ring: 'ring-1 ring-slate-200/60 ring-offset-2 ring-offset-white',
       scale: 'scale-[0.95]',
       breathe: 'animate-egg-breathe',
@@ -121,6 +130,7 @@ export function mascotAura(level: number): {
     return {
       glow: 'bg-sage/18 blur-xl',
       glowAnim: '',
+      glowScale: '',
       ring: 'ring-1 ring-line ring-offset-2 ring-offset-white',
       scale: 'scale-[0.95]',
       breathe: 'animate-egg-breathe',
@@ -131,6 +141,7 @@ export function mascotAura(level: number): {
   return {
     glow: 'bg-slate-50/50 blur-xl',
     glowAnim: '',
+    glowScale: '',
     ring: 'ring-1 ring-line ring-offset-2 ring-offset-white',
     scale: 'scale-[0.95]',
     breathe: '',
@@ -308,12 +319,17 @@ export function MascotStage({
 }) {
   const aura = mascotAura(level);
   return (
-    <div className="relative flex justify-center py-1">
+    <div className="relative flex justify-center overflow-visible py-1">
+      {/* `overflow-visible` is deliberate: at Lv 8-10 the mascot is scaled 2x
+          (e.g. 128px → 256px on mobile), so its wings and aura extend well past
+          the 144px box. `scale` is a pure transform and does not affect layout,
+          so an overflow-clipping ancestor here would crop the artwork. */}
       {/* Backlight aura: blur + pulse, colour & intensity follow the level.
-          Smooth transitions between levels via CSS transition on the glow div. */}
+          Smooth transitions between levels via CSS transition on the glow div.
+          `glowScale` keeps the circle in step with the enlarged Lv 8-10 image. */}
       <div
         aria-hidden
-        className={`absolute top-1/2 h-28 w-28 -translate-y-1/2 rounded-full sm:h-32 sm:w-32 transition-all duration-500 ease-out ${aura.glow} ${aura.glowAnim}`}
+        className={`absolute top-1/2 h-28 w-28 -translate-y-1/2 rounded-full sm:h-32 sm:w-32 transition-all duration-500 ease-out ${aura.glow} ${aura.glowAnim} ${aura.glowScale}`}
       />
       <motion.div
         animate={{ y: [0, -8, 0] }}

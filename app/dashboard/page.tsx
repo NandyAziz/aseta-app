@@ -1082,10 +1082,12 @@ export default function AsetaApp() {
             onMouseMove={handleTiltMove}
             onMouseLeave={handleTiltLeave}
           >
-            {/* Backlight aura: blur + denyut, warna & intensitas mengikuti level. */}
+            {/* Backlight aura: blur + denyut, warna & intensitas mengikuti level.
+                `aura.glowScale` membuat lingkaran backlight ikut membesar
+                seiring maskot Lv 8-10 yang kini lebih besar. */}
             <div
               aria-hidden
-              className={`absolute top-1/2 h-28 w-28 -translate-y-1/2 rounded-full sm:h-32 sm:w-32 ${aura.glow} ${aura.glowAnim}`}
+              className={`absolute top-1/2 h-28 w-28 -translate-y-1/2 rounded-full sm:h-32 sm:w-32 ${aura.glow} ${aura.glowAnim} ${aura.glowScale}`}
             />
             <AnimatePresence>
               {mascotSpeech && (
