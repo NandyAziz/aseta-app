@@ -12,6 +12,26 @@ build` succeeds (static `/`)
 
 ## ✅ Completed Features
 
+### Claimable-Mission Visibility Loop (design-critique round 1, 2026-11-12)
+- [x] **Mobile claim loop** — the "Misi Harian (n/3)" hero chip now counts
+      *done* missions (`missionsDone`, done-or-claimed) instead of claimed-only,
+      and lights up gold with a `✨ n siap diklaim` pill when XP is waiting
+      (`missionsClaimable`). A gold pulse dot (`.quest-dot-pulse`, respects
+      `prefers-reduced-motion`) marks the "Evolusi" item on the mobile bottom
+      nav and the desktop sidebar. The first round-up of the day points at the
+      claim via the success toast ("… misi ☕ siap diklaim di tab Evolusi").
+- [x] **Desktop hero hierarchy** — `TotalAssetsSummary` lost its fake hover
+      states (static rows must not imply affordances), the inner panel is
+      flattened at `lg:`, the total figure steps up to `lg:text-4xl`, breakdown
+      figures demote to `text-muted` at `lg:`, and the hero card body splits
+      `lg:grid-cols-[3fr_2fr]` (mascot gets the bigger share; gif is
+      `lg:h-36`). The chip's literal `→` was replaced with a `ChevronRight`
+      icon (per the coding standard).
+- [x] **Missions never dead-end** — `DailyMissions` gained an optional
+      `onNavigate` prop; unfinished rows become "Belum selesai · Buka Scan" /
+      "· Sapa Aseta" action buttons (touch-target standard kept, full
+      `aria-label`/`title`). Wired via `setActiveTab` in both usages.
+
 ### Application Core
 - [x] **Auto Round-Up** — rounds transactions up to the nearest thousand and
       saves the difference.

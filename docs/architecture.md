@@ -130,7 +130,7 @@ presentational, pure from props → safe against hydration mismatches):
 | `SavingsProjection` | daily-deposit slider + 1/3/5-year estimate | right column (desktop, full card) **and** the "Proyeksi" tab (`bare`) |
 | `AnalyticsTabs` | 2-tab mobile-only widget | mobile only (`lg:hidden`) |
 | `QuickTransactions` | preset action chips + `QUICK_PRESETS` | "Scan" tab only (label "Bayar") — already removed from the Beranda feed |
-| `DailyMissions` | 3 daily quests + `QuestRow` | Beranda right column (`hidden lg:block`) **and** the "Evolusi" tab (`lg:hidden`) |
+| `DailyMissions` | 3 daily quests + `QuestRow` (optional `onNavigate` prop turns unfinished rows into "Buka Scan"/"Sapa Aseta" action buttons) | Beranda right column (`hidden lg:block`) **and** the "Evolusi" tab (`lg:hidden`) |
 | `DailyLimit` | progress, remaining quota, daily-limit input | right column (full on desktop · accordion on mobile) |
 | `GrowthChart` | SVG line chart (Catmull-Rom curve, relative domain + 18% headroom, `viewBox` 320×104 + `preserveAspectRatio="xMidYMid meet"`, axis labels in HTML, **data points are tappable** → detail card with amount + change %) | used by `PortfolioAllocation` (desktop + mobile "Portofolio" tab, so 2 instances are live at once → gradient `id` via `useId()`) |
 
@@ -148,7 +148,7 @@ content and no dangling whitespace appears:
 
 | | Mobile (single column) | Desktop `lg:` |
 |---|---|---|
-| Left column (`lg:col-span-7`) | mascot hero card (mascot stage → asset breakdown (the primary figure lives in the header badge) → XP bar → "Misi Harian (n/3)" chip `lg:hidden`), then the 2-tab analytics widget | mascot hero card (card body split into 2 inner columns: mascot stage \| asset summary + XP, no chip), then Portfolio Allocation |
+| Left column (`lg:col-span-7`) | mascot hero card (mascot stage → asset breakdown (the primary figure lives in the header badge) → XP bar → "Misi Harian (n/3)" chip `lg:hidden`), then the 2-tab analytics widget | mascot hero card (card body split into 2 inner columns **weighted `lg:grid-cols-[3fr_2fr]`**: mascot stage (with the gif at `lg:h-36`) \| asset summary + XP, no chip), then Portfolio Allocation |
 
 The mobile bar (`header` `md:hidden`) carries the logo + "ASETA" on the left
 and the **Total Aset** badge on the right (`text-[10px] text-muted` label above
@@ -172,13 +172,32 @@ The **Misi Hari Ini** relocation is mobile-specific (`< lg`):
 
 - **Mobile** — the quest card is hidden from the Beranda feed
   (`hidden lg:block`), moves to the "Evolusi" tab, and is reached via the
-  interactive chip `🎯 Misi Harian (n/3) →` below the XP bar in the mascot hero
+  interactive chip `🎯 Misi Harian (n/3)` below the XP bar in the mascot hero
   card. Pressing the chip calls `setActiveTab('evolve')` so the user jumps
-  straight to the quest list to claim XP. The `n` counter counts quests that are
-  **already claimed**, derived from quest status guarded by `isMounted`.
+  straight to the quest list to claim XP. The `n` counter counts quests that
+  are **done (whether claimed or not)** — `missionsDone` — while a separate
+  `missionsClaimable` derivation (done but unclaimed) lights the chip up in
+  gold (`border-gold/60 bg-gold/10`) and swaps the `ChevronRight` icon for a
+  gold pill `✨ n siap diklaim`. Both derive from quest status guarded by
+  `isMounted`. When a quest is claimable, a small **gold pulse dot**
+  (`.quest-dot-pulse` keyframe in `globals.css`, disabled under
+  `prefers-reduced-motion`) also appears on the "Evolusi" item in the mobile
+  bottom nav and the desktop sidebar. The first successful round-up of the
+  day additionally points at the claim via the success toast:
+  "Berhasil! +Rp… — misi ☕ siap diklaim di tab Evolusi".
 - **Desktop `lg:`** — the original layout is preserved: the quest card stays
   visible in the Beranda right column, the chip is hidden (`lg:hidden`), and the
   quest slot in the "Evolusi" tab is hidden too so nothing is duplicated.
+
+### Mission rows are never dead ends
+
+`DailyMissions` accepts an optional **`onNavigate?: (tab: 'scan' | 'home') => void`**
+(the page passes `setActiveTab`). While a quest is not done, its passive
+"Belum selesai" pill becomes a compact action button — "Belum selesai ·
+Buka Scan" for the ☕ QRIS and 🪙 deposit quests (`onNavigate('scan')`), and
+"Belum selesai · Sapa Aseta" for the 🐉 greet quest (`onNavigate('home')`).
+Buttons keep the `min-h-11 sm:min-h-0` touch-target standard and carry a full
+`aria-label`/`title` describing where the action leads.
 
 ### "Evolusi & Panduan" tab layout (`components/EvolveGuideView.tsx`)
 

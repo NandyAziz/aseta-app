@@ -5,6 +5,11 @@ import { GREET_TAP_TARGET } from '@/utils/aseta';
 /**
  * A single daily mission row with a checkbox & XP claim button.
  * Purely derived from props → safe from hydration mismatch.
+ *
+ * When the mission is NOT done and an `action` is provided, the passive
+ * "Belum selesai" pill becomes a compact action button ("Belum selesai ·
+ * Buka Scan") so the row never dead-ends — the user always sees WHERE to
+ * complete the mission instead of having to recall it.
  */
 function QuestRow({
   emoji,
@@ -13,6 +18,7 @@ function QuestRow({
   done,
   claimed,
   onClaim,
+  action,
 }: {
   emoji: string;
   title: string;
@@ -20,6 +26,8 @@ function QuestRow({
   done: boolean;
   claimed: boolean;
   onClaim: () => void;
+  /** Optional "where to complete this" action, shown only while `!done`. */
+  action?: { label: string; hint: string; onClick: () => void };
 }) {
   return (
     <li className="flex items-center gap-3 rounded-xl border border-line bg-white p-3 card-elevate transition-all duration-200">
@@ -38,9 +46,19 @@ function QuestRow({
         <button
           type="button"
           onClick={onClaim}
-          className="min-h-11 shrink-0 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-all duration-200 btn-press hover:bg-brand-dark focus-visible-ring"
+          className="min-h-11 shrink-0 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-all duration-200 btn-press hover:bg-brand-dark focus-visible-ring sm:min-h-0"
         >
           Klaim XP
+        </button>
+      ) : action ? (
+        <button
+          type="button"
+          onClick={action.onClick}
+          title={action.hint}
+          aria-label={`${title} masih belum selesai. ${action.hint}`}
+          className="inline-flex min-h-11 shrink-0 items-center rounded-full border border-line bg-ivory px-3 py-1.5 text-[11px] font-semibold text-brand transition-colors duration-200 hover:border-emerald-200 hover:bg-emerald-50 focus-visible-ring sm:min-h-0"
+        >
+          Belum selesai · {action.label}
         </button>
       ) : (
         <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-medium text-muted">
@@ -55,7 +73,9 @@ function QuestRow({
  * "Misi Hari Ini" card — three daily missions + XP claims.
  *
  * All mission state is already derived in the page (guarded by `isMounted`),
- * so this component is pure presentation + `onClaim` action forwarding.
+ * so this component is pure presentation + `onClaim`/`onNavigate` forwarding.
+ * `onNavigate` wires the not-done rows to the tab that completes them
+ * (Scan for QRIS/deposit, Beranda for greeting the mascot).
  */
 export default function DailyMissions({
   qrisDone,
@@ -66,6 +86,7 @@ export default function DailyMissions({
   greetClaimed,
   greetTapsUsed,
   onClaim,
+  onNavigate,
   className = '',
 }: {
   qrisDone: boolean;
@@ -76,6 +97,8 @@ export default function DailyMissions({
   greetClaimed: boolean;
   greetTapsUsed: number;
   onClaim: (kind: 'qris' | 'deposit' | 'greet') => void;
+  /** Optional tab navigation so unfinished missions link to their fix. */
+  onNavigate?: (tab: 'scan' | 'home') => void;
   className?: string;
 }) {
   return (
@@ -94,6 +117,11 @@ export default function DailyMissions({
           done={qrisDone}
           claimed={qrisClaimed}
           onClaim={() => onClaim('qris')}
+          action={
+            onNavigate
+              ? { label: 'Buka Scan', hint: 'Buka tab Scan untuk mencatat transaksi QRIS', onClick: () => onNavigate('scan') }
+              : undefined
+          }
         />
         <QuestRow
           emoji="🪙"
@@ -102,6 +130,11 @@ export default function DailyMissions({
           done={depositDone}
           claimed={depositClaimed}
           onClaim={() => onClaim('deposit')}
+          action={
+            onNavigate
+              ? { label: 'Buka Scan', hint: 'Buka tab Scan untuk menabung minimal Rp5.000', onClick: () => onNavigate('scan') }
+              : undefined
+          }
         />
         <QuestRow
           emoji="🐉"
@@ -110,6 +143,11 @@ export default function DailyMissions({
           done={greetDone}
           claimed={greetClaimed}
           onClaim={() => onClaim('greet')}
+          action={
+            onNavigate
+              ? { label: 'Sapa Aseta', hint: 'Buka tab Beranda lalu tap maskot untuk menyapa', onClick: () => onNavigate('home') }
+              : undefined
+          }
         />
       </ul>
     </section>

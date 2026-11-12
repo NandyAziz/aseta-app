@@ -3,7 +3,7 @@
 import { useState, useSyncExternalStore, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { CameraOff, HelpCircle, Home, QrCode, History, X, RotateCcw, Sparkles, Search } from "lucide-react";
+import { CameraOff, HelpCircle, Home, QrCode, History, X, RotateCcw, Sparkles, Search, ChevronRight } from "lucide-react";
 import confetti from 'canvas-confetti';
 import jsQR from 'jsqr';
 import { calculateRoundUp, getMascotLevel, getXpProgress, formatRupiah, clampDailyCap, MAX_LEVEL, GREET_TAP_TARGET } from '@/utils/aseta';
@@ -605,7 +605,15 @@ export default function AsetaApp() {
       setMascotSpeech('Yeay! Aku berevolusi! 🐉✨');
       showToast(`Level ${nextLevel}! ${getMascotLevel(nextBalance).name} menetas!`);
     } else {
-      showToast(`Berhasil! Tabungan +Rp${roundUp.toLocaleString('id-ID')}`);
+      // The first successful round-up of the day flips `qrisDone` on — point
+      // the user straight at the claimable mission instead of letting the
+      // reward state go unnoticed (the old toast looked identical either way).
+      const qrisMissionReady = !state.quests.qrisDone;
+      showToast(
+        qrisMissionReady
+          ? `Berhasil! +Rp${roundUp.toLocaleString('id-ID')} — misi ☕ siap diklaim di tab Evolusi`
+          : `Berhasil! Tabungan +Rp${roundUp.toLocaleString('id-ID')}`
+      );
     }
     return true;
   }
@@ -905,10 +913,19 @@ export default function AsetaApp() {
   const greetClaimed = isMounted && state.quests.greetClaimed;
   // Progress tap hari ini (dibatasi batas harian) — ditampilkan di judul misi.
   const greetTapsUsed = isMounted ? Math.min(state.quests.greetCount, GREET_TAP_TARGET) : 0;
-  // Jumlah misi yang SUDAH diklaim (0..QUEST_TOTAL). Dipakai untuk chip
-  // "Misi Harian (n/3)" pada kartu hero maskot di tab Beranda.
-  const missionsClaimed =
-    [qrisClaimed, depositClaimed, greetClaimed].filter(Boolean).length;
+  // Completed missions (done OR already claimed) and missions with XP ready
+  // to claim (done but not yet claimed). Both derive from guarded quest
+  // state, so the chip counter and nav dot stay hydration-safe.
+  const missionsDone = [
+    qrisDone || qrisClaimed,
+    depositDone || depositClaimed,
+    greetDone || greetClaimed,
+  ].filter(Boolean).length;
+  const missionsClaimable = [
+    qrisDone && !qrisClaimed,
+    depositDone && !depositClaimed,
+    greetDone && !greetClaimed,
+  ].filter(Boolean).length;
   const xpLabel = mascot.level >= MAX_LEVEL
     ? 'Level Maksimal 🏆'
     : `${xp.current.toLocaleString('id-ID')} / ${xp.next.toLocaleString('id-ID')} XP`;
@@ -971,6 +988,10 @@ export default function AsetaApp() {
               className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-colors ${isTourActive && tourStep === 3 && item.id === 'scan' ? 'relative z-50 ring-4 ring-emerald-400 ring-offset-2 rounded-2xl bg-white' : ''} ${activeTab === item.id ? 'bg-emerald-50 text-brand' : 'text-muted hover:bg-ivory hover:text-forest'}`}
             >
               <item.Icon className="h-4.5 w-4.5" aria-hidden /> {item.label}
+              {/* Same claimable-mission dot as the mobile bottom nav. */}
+              {item.id === 'evolve' && missionsClaimable > 0 && (
+                <span aria-hidden className="ml-auto h-2 w-2 rounded-full bg-gold quest-dot-pulse" />
+              )}
             </button>
           ))}
         </nav>
@@ -1076,10 +1097,12 @@ export default function AsetaApp() {
             </span>
           </div>
 
-          {/* Badan kartu: dua kolom internal pada desktop. Pada mobile tetap
+          {/* Badan kartu: dua kolom internal pada desktop — panggung maskot
+              mendapat porsi lebih besar (3fr vs 2fr) supaya maskot tetap jadi
+              fokus visual, bukan pelengkap ringkasan aset. Pada mobile tetap
               satu kolom sehingga maskot → total aset → XP tetap berurutan
               vertikal dan fokus utama ada di paling atas. */}
-          <div className="flex flex-col gap-3 lg:grid lg:grid-cols-2 lg:items-center lg:gap-6">
+          <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[3fr_2fr] lg:items-center lg:gap-6">
             <div className="flex flex-col items-center gap-2">
           {/* Panggung maskot 3D interaktif: tilt mengikuti kursor + melayang
               lembut. Aura glow & ring berubah progresif sesuai level. */}
@@ -1094,7 +1117,7 @@ export default function AsetaApp() {
                 seiring maskot Lv 8-10 yang kini lebih besar. */}
             <div
               aria-hidden
-              className={`absolute top-1/2 h-28 w-28 -translate-y-1/2 rounded-full sm:h-32 sm:w-32 ${aura.glow} ${aura.glowAnim} ${aura.glowScale}`}
+              className={`absolute top-1/2 h-28 w-28 -translate-y-1/2 rounded-full sm:h-32 sm:w-32 lg:h-36 lg:w-36 ${aura.glow} ${aura.glowAnim} ${aura.glowScale}`}
             />
             <AnimatePresence>
               {mascotSpeech && (
@@ -1144,7 +1167,7 @@ export default function AsetaApp() {
                     height={144}
                     unoptimized
                     priority
-                    className={`relative block h-28 w-28 object-contain sm:h-32 sm:w-32 ${aura.scale} ${aura.imgShadow} ${mascotMood !== 'idle' ? 'animate-mascot-tap' : ''}`}
+                    className={`relative block h-28 w-28 object-contain sm:h-32 sm:w-32 lg:h-36 lg:w-36 ${aura.scale} ${aura.imgShadow} ${mascotMood !== 'idle' ? 'animate-mascot-tap' : ''}`}
                   />
                 </span>
               </motion.button>
@@ -1226,25 +1249,32 @@ export default function AsetaApp() {
               mobile kartu misi penuh disembunyikan (ada di tab "Evolusi"),
               jadi chip inilah pintasannya. Di desktop chip ini disembunyikan
               karena kartu "Misi Hari Ini" tetap tampil di kolom kanan Beranda.
-              Angka = misi yang SUDAH diklaim, diturunkan dari status misi
-              ber-guard `isMounted` sehingga bebas mismatch hydration. */}
+              Counter = misi yang SELESAI (done atau sudah diklaim); saat ada
+              XP yang belum diklaim, chip menyala emas dan menampilkan pill
+              "n siap diklaim" supaya state reward tidak pernah terlihat
+              sebagai "tidak terjadi apa-apa". Turunan dari state ber-guard
+              `isMounted` sehingga bebas mismatch hydration. */}
           <div className="lg:hidden">
             <button
               type="button"
               onClick={() => setActiveTab('evolve')}
-              aria-label={`Misi Harian: ${missionsClaimed} dari ${QUEST_TOTAL} misi sudah diklaim. Buka tab Evolusi untuk klaim XP`}
-              className="flex w-full min-h-11 items-center justify-between gap-2 rounded-xl border border-line bg-ivory/70 px-3 py-2 text-xs font-semibold text-forest transition-colors hover:border-emerald-200 hover:bg-emerald-50 active:scale-[0.99] sm:min-h-0"
+              aria-label={`Misi Harian: ${missionsDone} dari ${QUEST_TOTAL} misi selesai${missionsClaimable > 0 ? `, ${missionsClaimable} siap diklaim` : ''}. Buka tab Evolusi untuk klaim XP`}
+              className={`flex w-full min-h-11 items-center justify-between gap-2 rounded-xl border px-3 py-2 text-xs font-semibold text-forest transition-colors active:scale-[0.99] sm:min-h-0 ${missionsClaimable > 0 ? 'border-gold/60 bg-gold/10 hover:border-gold hover:bg-gold/20' : 'border-line bg-ivory/70 hover:border-emerald-200 hover:bg-emerald-50'}`}
             >
               <span className="flex min-w-0 items-center gap-1.5">
                 <span aria-hidden>🎯</span>
                 <span className="truncate">Misi Harian</span>
                 <span className="tabular-nums text-muted">
-                  ({missionsClaimed}/{QUEST_TOTAL})
+                  ({missionsDone}/{QUEST_TOTAL})
                 </span>
               </span>
-              <span className="shrink-0 text-brand" aria-hidden>
-                →
-              </span>
+              {missionsClaimable > 0 ? (
+                <span className="shrink-0 rounded-full bg-gold px-2 py-0.5 text-[11px] font-bold whitespace-nowrap text-forest">
+                  ✨ {missionsClaimable} siap diklaim
+                </span>
+              ) : (
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted" aria-hidden />
+              )}
             </button>
           </div>
             </div>
@@ -1304,6 +1334,7 @@ export default function AsetaApp() {
               greetClaimed={greetClaimed}
               greetTapsUsed={greetTapsUsed}
               onClaim={claimQuest}
+              onNavigate={setActiveTab}
             />
           </div>
 
@@ -1599,6 +1630,7 @@ export default function AsetaApp() {
               greetClaimed={greetClaimed}
               greetTapsUsed={greetTapsUsed}
               onClaim={claimQuest}
+              onNavigate={setActiveTab}
             />
           }
         />
@@ -1642,10 +1674,18 @@ export default function AsetaApp() {
             type="button"
             onClick={() => setActiveTab('evolve')}
             aria-current={activeTab === 'evolve' ? 'page' : undefined}
-            className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[11px] font-semibold transition-colors ${activeTab === 'evolve' ? 'bg-emerald-50 text-brand' : 'text-muted'}`}
+            className={`relative flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[11px] font-semibold transition-colors ${activeTab === 'evolve' ? 'bg-emerald-50 text-brand' : 'text-muted'}`}
           >
             <Sparkles className="h-5 w-5" aria-hidden />
             Evolusi
+            {/* Decorative pulse dot — the accessible signal lives in the hero
+                chip label & post-transaction toast; the dot only draws the eye. */}
+            {missionsClaimable > 0 && (
+              <span
+                aria-hidden
+                className="absolute left-1/2 top-1 ml-2.5 h-2 w-2 rounded-full bg-gold quest-dot-pulse"
+              />
+            )}
           </button>
         </div>
       </nav>

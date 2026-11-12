@@ -217,6 +217,17 @@
   animation: badge-pulse 2s ease-out infinite;
 }
 
+/* Gold pulse dot on the nav "Evolusi" item — signals claimable daily-mission
+   XP. Uses the same low-key ring pattern as badge-pulse, in the gold token
+   color, so attention is drawn without a harsh blink. */
+@keyframes quest-dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(229, 180, 84, 0.5); }
+  50% { box-shadow: 0 0 0 5px rgba(229, 180, 84, 0); }
+}
+.quest-dot-pulse {
+  animation: quest-dot-pulse 2s ease-out infinite;
+}
+
 /* Chart tooltip/card smooth entry */
 @keyframes chart-card-in {
   from { opacity: 0; transform: translateY(6px) scale(0.98); }
@@ -441,7 +452,8 @@ input[type="range"]::-moz-range-thumb:hover {
   .animate-mascot-shake,
   .tab-panel,
   .progress-bar-smooth,
-  .badge-complete {
+  .badge-complete,
+  .quest-dot-pulse {
     animation: none !important;
     transition: none !important;
   }
