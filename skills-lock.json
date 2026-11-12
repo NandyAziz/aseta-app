@@ -13,6 +13,12 @@
       "skillPath": "skills/brainstorming/SKILL.md",
       "computedHash": "9c462616182917fb389d7d630c59000cff31ed18081baaa644ff148d4c967390"
     },
+    "building-accessible-interfaces": {
+      "source": "osmontero/opencode-skills",
+      "sourceType": "github",
+      "skillPath": "skills/building-accessible-interfaces/SKILL.md",
+      "computedHash": "e27313d3d5122dfa815bef558136bdb539b046fad58e2f173a6398cff3b250f3"
+    },
     "chief-of-staff": {
       "source": "mattpocock/skills",
       "sourceType": "github",
