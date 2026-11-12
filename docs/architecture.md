@@ -36,9 +36,11 @@ aseta-app/
 ├── utils/sound.ts           # Synthetic Web Audio API sound effects (used by dashboard & hero)
 ├── types/index.ts           # Types: Transaction, QuestState, SavingsState
 ├── public/
-│   ├── mascot-egg.gif       # Used — Lv 1–3 stage
-│   ├── mascot-baby.gif      # Used — Lv 4–6 stage
-│   ├── mascot-adult.gif     # Used — Lv 7–10 stage
+│   ├── mascot1.gif … mascot10.gif
+│   │                         # Used — one gif per level (`stageForLevel()`)
+│   │                         #   → Lv 1–3 "Telur Aseta", 4–6 "Aseta Muda",
+│   │                         #     7–9 "Aseta Dewasa", 10 "Aseta Legenda"
+│   ├── icon-192.png · icon-512.png   # PWA icons (manifest.webmanifest)
 │   ├── assets/              # EMPTY folder (contains nothing)
 │   └── file.svg · globe.svg · next.svg · vercel.svg · window.svg
 │                           # Leftover create-next-app templates — not referenced by any
@@ -301,11 +303,13 @@ streak, and growth are **preserved**.
 - Level titles (`LEVEL_TITLES`): "Penabung Pemula" → "Pengumpul Koin" →
   "Perencana Keuangan" → "Pemburu Aset" → "Investor Muda" → "Ahli Portofolio" →
   "Master Finansial" → "Sultan Investasi" → "Aseta Legend" → "Sultan Aseta 🏆".
-- Stage gifs — `stageForLevel()`: Lv 1–3 "Telur Aseta" (`/mascot-egg.gif`);
-  Lv 4–6 "Aseta Muda" (`/mascot-baby.gif`); Lv 7–10 "Aseta Mandiri"
-  (`/mascot-adult.gif`). The dashboard's `EVOLUTION_STAGES` card uses different
-  labels ("Bayi Naga", "Naga Dewasa", range "Lv 7 – 9") — *a fact as-is*;
-  `MAX_LEVEL` is still 10 in both places.
+- Stage gifs — `stageForLevel()` in `utils/aseta.ts` maps **each level to its
+  own gif**: `/mascot{level}.gif` (mascot1.gif … mascot10.gif in `public/`),
+  grouped into name stages: Lv 1–3 "Telur Aseta", Lv 4–6 "Aseta Muda",
+  Lv 7–9 "Aseta Dewasa", Lv 10 "Aseta Legenda" (`MASCOT_NAMES`).
+  `EVOLUTION_STAGES` (also exported from `utils/aseta.ts`) condenses the
+  journey into 4 representative stages (levels 1, 4, 7, 10) for surfaces like
+  the landing-page evolution strip, so no page invents its own gif paths.
 
 ### XP
 

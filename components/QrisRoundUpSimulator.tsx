@@ -189,7 +189,7 @@ export default function QrisRoundUpSimulator() {
             </p>
           </div>
           <div className="rounded-2xl border border-gold/40 bg-gold/10 p-4 card-elevate transition-all duration-200">
-            <p className="flex items-center gap-1.5 text-xs font-bold text-amber-700">
+            <p className="flex items-center gap-1.5 text-xs font-bold text-gold-700">
               <Sparkles className="h-4 w-4" />
               Maskot XP
             </p>
@@ -225,7 +225,7 @@ export default function QrisRoundUpSimulator() {
             aria-label={`Alokasi tabungan: Emas Digital ${formatRp(goldShare)}, Reksadana Pasar Uang ${formatRp(reksaShare)}`}
           >
             <motion.div
-              className="h-full bg-amber-400"
+              className="h-full bg-gold"
               animate={{ width: '60%' }}
               transition={{ duration: 0.5, ease: 'easeOut' }}
             />
@@ -237,8 +237,8 @@ export default function QrisRoundUpSimulator() {
             />
           </div>
           <div className="mt-2 flex items-center justify-between gap-3 text-[11px] font-semibold">
-            <span className="flex items-center gap-1 text-amber-700">
-              <span className="h-2 w-2 shrink-0 rounded-full bg-amber-400" aria-hidden />
+            <span className="flex items-center gap-1 text-gold-700">
+              <span className="h-2 w-2 shrink-0 rounded-full bg-gold" aria-hidden />
               <AnimatedNumber value={formatRp(goldShare)} className="tabular-nums" />
             </span>
             <span className="flex items-center gap-1 text-brand">

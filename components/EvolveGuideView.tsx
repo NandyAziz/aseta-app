@@ -144,7 +144,7 @@ function LevelShowcase({ className = '' }: { className?: string }) {
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.05, ease: 'easeOut' }}
-            className="mt-0.5 text-xs font-bold uppercase tracking-wider text-amber-600"
+            className="mt-0.5 text-xs font-bold uppercase tracking-wider text-gold-700"
           >
             {info.title}
           </motion.p>
@@ -200,7 +200,7 @@ export default function EvolveGuideView({ missions }: { missions?: ReactNode }) 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 pb-28 pt-6 sm:px-6 md:pb-10 lg:px-8">
       <div className="mb-5">
-        <h1 className="text-lg font-black tracking-tight text-forest sm:text-2xl">
+        <h1 className="text-lg font-black tracking-tight text-forest sm:text-xl">
           Evolusi &amp; Panduan
         </h1>
         <p className="mt-0.5 text-xs text-muted sm:text-sm">

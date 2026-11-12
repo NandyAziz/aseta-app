@@ -5,8 +5,9 @@ import type { LucideIcon } from 'lucide-react';
 
 /**
  * Quick-transaction presets. `tone` gives each merchant a coloured badge icon of its own
- * (coffee amber, retail blue, food orange) so the list is not a monotonous slab of green
- * and can be told apart instantly.
+ * (coffee gold, retail sage, food emerald) so the list is not a monotonous slab of green
+ * and can be told apart instantly. All three tones come from the @theme token families
+ * (gold / sage / brand) — no stray palette hues.
  */
 export interface QuickPreset {
   id: string;
@@ -24,7 +25,7 @@ export const QUICK_PRESETS: readonly QuickPreset[] = [
     merchant: 'Kopi Kenangan',
     amount: 18200,
     Icon: Coffee,
-    tone: 'bg-amber-100 text-amber-800 border border-amber-200/60 shadow-2xs',
+    tone: 'bg-gold-100 text-gold-700 border border-gold-200/60 shadow-2xs',
   },
   {
     id: 'indomaret',
@@ -32,7 +33,7 @@ export const QUICK_PRESETS: readonly QuickPreset[] = [
     merchant: 'Indomaret',
     amount: 43500,
     Icon: ShoppingBasket,
-    tone: 'bg-blue-100 text-blue-700 border border-blue-200/60 shadow-2xs',
+    tone: 'bg-sage/20 text-forest border border-sage/40 shadow-2xs',
   },
   {
     id: 'makan',
@@ -40,7 +41,7 @@ export const QUICK_PRESETS: readonly QuickPreset[] = [
     merchant: 'Makan Siang',
     amount: 12100,
     Icon: Utensils,
-    tone: 'bg-orange-100 text-orange-700 border border-orange-200/60 shadow-2xs',
+    tone: 'bg-emerald-50 text-brand border border-emerald-200/60 shadow-2xs',
   },
 ];
 

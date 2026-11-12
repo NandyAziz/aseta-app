@@ -148,6 +148,29 @@ export function mascotInfoForLevel(level: number): MascotInfo {
 }
 
 /**
+ * The evolution stages as name groups (Lv 1–3, 4–6, 7–9, 10), each with the
+ * representative gif of the group's first level. Exported for surfaces that
+ * present the whole journey (landing page evolution strip) so they reuse the
+ * same `mascotInfoForLevel()` source instead of inventing their own paths.
+ */
+const STAGE_STARTS = [1, 4, 7, 10] as const;
+export const EVOLUTION_STAGES: readonly {
+  fromLevel: number;
+  toLevel: number;
+  name: string;
+  gif: string;
+}[] = STAGE_STARTS.map((level, i) => {
+  const next = STAGE_STARTS[i + 1];
+  const info = mascotInfoForLevel(level);
+  return {
+    fromLevel: level,
+    toLevel: next !== undefined ? next - 1 : MAX_LEVEL,
+    name: info.name,
+    gif: info.gif,
+  };
+});
+
+/**
  * Total cumulative XP needed to reach `level` (index 0 = Lv 1).
  * For levels outside the range, the value is returned as-is.
  */

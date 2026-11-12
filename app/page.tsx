@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { QrCode, Rocket, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react';
+import { EVOLUTION_STAGES } from '@/utils/aseta';
 import HeroMascot3D from '@/components/HeroMascot3D';
 import QrisRoundUpSimulator from '@/components/QrisRoundUpSimulator';
 
@@ -26,6 +28,14 @@ const LANGKAH = [
       'Setiap kembalian memberi XP. Kumpulkan terus sampai Aseta menetas jadi naga dewasa.',
   },
 ];
+
+/** Per-stage one-liners for the evolution strip (keyed by stage name). */
+const EVOLUSI_BLURB: Record<string, string> = {
+  'Telur Aseta': 'Masih malu-malu. Sesekali goyang kalau diketuk.',
+  'Aseta Muda': 'Menetas! Koin-koin receh mulai menumpuk di sekitarnya.',
+  'Aseta Dewasa': 'Naga dewasa — aura emas mulai menyala.',
+  'Aseta Legenda': 'Level maksimal. Portofolio 60/40-mu sudah jadi kebiasaan.',
+};
 
 /**
  * Landing page ASETA — memperkenalkan konsep auto round-up QRIS
@@ -120,6 +130,42 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Strip evolusi — telusuri 3 tahap Aseta dari telur sampai dewasa.
+            Sebelumnya landing tidak pernah menampilkan maskot yang sudah
+            evolve, padahal "Cara kerja" langkah 03 menjanjikannya. */}
+        <section className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-xs font-black uppercase tracking-widest text-brand">
+              Perjalanan evolusi
+            </p>
+            <h2 className="mt-2 text-2xl font-black text-forest sm:text-3xl">
+              Semakin rajin nabung, semakin besar nagamu
+            </h2>
+          </div>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {EVOLUTION_STAGES.map(({ fromLevel, toLevel, name, gif }) => (
+              <div
+                key={name}
+                className="flex flex-col items-center rounded-3xl border border-line bg-white p-5 text-center shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
+              >
+                <span className="inline-flex items-center rounded-full bg-gold-50 px-3 py-1 text-[11px] font-bold text-gold-700 ring-1 ring-gold-200">
+                  {fromLevel === toLevel ? `Lv ${fromLevel}` : `Lv ${fromLevel} – ${toLevel}`}
+                </span>
+                <Image
+                  src={gif}
+                  alt={`Maskot tahap ${name}`}
+                  width={96}
+                  height={96}
+                  className="mt-3 h-24 w-24 object-contain"
+                  unoptimized
+                />
+                <h3 className="mt-3 text-base font-black text-forest">{name}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-muted">{EVOLUSI_BLURB[name]}</p>
+              </div>
+            ))}
           </div>
         </section>
 

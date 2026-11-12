@@ -58,6 +58,18 @@ const PET_LINES = [
 
 const GOLD_GRAM_PRICE = 1_200_000; // simulated gold price in Rp/gram
 
+// Toast severity tones. 'success' is the default; 'error' marks rejected
+// actions (daily cap, invalid input, empty wallet), 'info' neutral notices.
+type ToastTone = 'success' | 'info' | 'error';
+
+// Per-tone dot colour for the toast pill. Success keeps the emerald cue,
+// info uses the gold accent, error uses the --color-danger token.
+const TOAST_DOT: Record<ToastTone, string> = {
+  success: 'bg-emerald-400',
+  info: 'bg-gold',
+  error: 'bg-danger',
+};
+
 // Number of daily missions displayed (must stay in sync with `DailyMissions`).
 // Used for the "Misi Harian (n/3)" chip counter.
 const QUEST_TOTAL = 3;
@@ -119,20 +131,6 @@ function daysBetween(aKey: string, bKey: string): number {
   const a = new Date(`${aKey}T00:00:00`);
   const b = new Date(`${bKey}T00:00:00`);
   return Math.round((b.getTime() - a.getTime()) / 86_400_000);
-}
-
-// 7-day portfolio growth snapshot (deterministic simulation based on balance)
-function buildGrowthSeries(balance: number): number[] {
-  const pts = 7;
-  const base = Math.max(0, balance);
-  // Gentle rising curve towards the current balance (gradient ~ +1.1%/day)
-  const series: number[] = [];
-  for (let i = 0; i < pts; i++) {
-    const factor = 1 - (pts - 1 - i) * 0.011;
-    series.push(Math.max(0, Math.round(base * factor)));
-  }
-  series[pts - 1] = base;
-  return series;
 }
 
 // Normalize state read from localStorage (migrates new fields safely)
@@ -240,7 +238,7 @@ export default function AsetaApp() {
   const [nowTs, setNowTs] = useState<number>(0); // "now" timestamp for the history filter (filled via effect)
   const [amountInput, setAmountInput] = useState<string>('');
   const [merchantInput, setMerchantInput] = useState<string>('');
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; tone: ToastTone } | null>(null);
   const [dailyCapDraft, setDailyCapDraft] = useState<number>(INITIAL_STATE.dailyCap);
   const [showResetModal, setShowResetModal] = useState<boolean>(false);
   const [mascotMood, setMascotMood] = useState<MascotExpression>('idle');
@@ -351,7 +349,7 @@ export default function AsetaApp() {
     if (limitReached) {
       setMascotShakeId(prev => prev + 1);
       playLimitSound();
-      showToast(`Batas sapa harian sudah tercapai! (${GREET_TAP_TARGET}/${GREET_TAP_TARGET})`);
+      showToast(`Batas sapa harian sudah tercapai! (${GREET_TAP_TARGET}/${GREET_TAP_TARGET})`, 'info');
       return;
     }
 
@@ -541,27 +539,33 @@ export default function AsetaApp() {
   // ============================================================
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  function showToast(message: string) {
-    setToastMessage(message);
+  /**
+   * Show a transient toast. Three tones: 'success' (default — money in,
+   * claims, saves), 'error' (rejected actions: caps, invalid input, empty
+   * wallet), 'info' (neutral notices like demo mode). The tone drives the
+   * dot colour so success is never styled like a failure.
+   */
+  function showToast(message: string, tone: ToastTone = 'success') {
+    setToast({ message, tone });
     if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToastMessage(null), 3000);
+    toastTimer.current = setTimeout(() => setToast(null), 3000);
   }
 
   // Core round-up transaction: add assets, debit the wallet, streak, quest & growth.
   function commitSavings(merchant: string, originalAmount: number): boolean {
     const roundUp = calculateRoundUp(originalAmount);
     if (roundUp <= 0) {
-      showToast('Nominal sudah kelipatan Rp5.000 — tidak ada receh untuk ditabung.');
+      showToast(`Nominal sudah kelipatan Rp5.000 — tidak ada receh untuk ditabung.`, 'error');
       return false;
     }
     if (state.todaySavings + roundUp > state.dailyCap) {
-      showToast(`Batas harian Rp${state.dailyCap.toLocaleString('id-ID')} terlampaui. Besok lagi ya!`);
+      showToast(`Batas harian Rp${state.dailyCap.toLocaleString('id-ID')} terlampaui. Besok lagi ya!`, 'error');
       return false;
     }
     // Keep the wallet balance from ever going negative (leak-proof) — the
     // round-up is only debited when the wallet can still cover it.
     if (roundUp > state.walletBalance) {
-      showToast('Saldo dompet tidak cukup untuk menutup round-up ini.');
+      showToast('Saldo dompet tidak cukup untuk menutup round-up ini.', 'error');
       return false;
     }
     const today = todayKey();
@@ -626,7 +630,7 @@ export default function AsetaApp() {
   function handleSave() {
     const amount = parseInt(amountInput, 10) || 0;
     if (amount <= 0) {
-      showToast('Masukkan nominal transaksi yang valid.');
+      showToast('Masukkan nominal transaksi yang valid.', 'error');
       return;
     }
     const merchant = merchantInput.trim() || 'Transaksi Manual';
@@ -792,7 +796,7 @@ export default function AsetaApp() {
     stopCamera();
     setCameraState('idle');
     setCameraError('');
-    showToast('Mode demo — strut tiruan terbaca. Pilih preset untuk menabung.');
+    showToast('Mode demo — strut tiruan terbaca. Pilih preset untuk menabung.', 'info');
   }
 
   // Klaim hadiah misi harian → tambah XP ke balance (maskot).
@@ -839,11 +843,11 @@ export default function AsetaApp() {
       : liquidateTarget === 'reksadana' ? reksaPart
       : state.balance;
     if (amount <= 0) {
-      showToast('Masukkan nominal pencairan yang valid.');
+      showToast('Masukkan nominal pencairan yang valid.', 'error');
       return;
     }
     if (amount > available) {
-      showToast(`Maksimal Rp${available.toLocaleString('id-ID')} untuk pilihan ini.`);
+      showToast(`Maksimal Rp${available.toLocaleString('id-ID')} untuk pilihan ini.`, 'error');
       return;
     }
     setState(prev => ({
@@ -904,7 +908,10 @@ export default function AsetaApp() {
   const reksaValue = displayBalance - goldValue;
   const goldGrams = goldValue / GOLD_GRAM_PRICE;
   const monthlyReturn = Math.round((displayBalance * 0.042) / 12);
-  const growthSeries = isMounted && state.growth.length >= 2 ? state.growth : buildGrowthSeries(displayBalance);
+  // Real snapshots only (max 7, index 0 = oldest) — no fabricated series.
+  // GrowthChart shows an honest empty state while there are fewer than 2
+  // snapshots, so the chart never invents growth that did not happen.
+  const growthSeries = isMounted ? state.growth.slice(-7) : [];
   const qrisDone = isMounted && state.quests.qrisDone;
   const depositDone = isMounted && state.todaySavings >= 5000;
   const greetDone = isMounted && state.quests.greetCount >= GREET_TAP_TARGET;
@@ -1048,7 +1055,7 @@ export default function AsetaApp() {
             giants yang "terlempar" sendirian di dasar halaman). --- */}
         <div className="mb-5 flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-base sm:text-xl font-bold tracking-tight text-forest">
+            <h1 className="text-lg font-black tracking-tight text-forest sm:text-xl">
               Halo, Aseta menunggumu 👋
             </h1>
             <p className="text-xs sm:text-sm text-muted">
@@ -1085,12 +1092,12 @@ export default function AsetaApp() {
         >
           {/* Header: streak + badge level */}
           <div className="flex items-center justify-between gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200/70 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
+            <span className="inline-flex items-center gap-1 rounded-full border border-gold-200/70 bg-gold-50 px-2.5 py-1 text-xs font-bold text-gold-700">
               🔥 {displayStreak} Hari
             </span>
             {/* Badges level */}
             <span
-              className="inline-flex items-center gap-1 rounded-full border border-amber-300/60 bg-gold px-2.5 py-1 text-xs font-black text-forest"
+              className="inline-flex items-center gap-1 rounded-full border border-gold-300/60 bg-gold px-2.5 py-1 text-xs font-black text-forest"
               title={mascot.title}
             >
               Lv. {mascot.level}
@@ -1198,7 +1205,7 @@ export default function AsetaApp() {
             <h2 className="text-lg font-black tracking-tight text-forest">
               {mascot.name}
             </h2>
-            <p className="text-xs font-bold tracking-wider text-amber-600 uppercase mt-0.5">
+            <p className="text-xs font-bold tracking-wider text-gold-700 uppercase mt-0.5">
               {mascot.title}
             </p>
             {/* Level Maksimal Lv 10 — label teks polos, bukan pill bergradien. */}
@@ -1381,7 +1388,7 @@ export default function AsetaApp() {
       {activeTab === 'scan' && (
         <main className="mx-auto w-full min-w-0 max-w-2xl px-4 py-6 pb-28 sm:px-6 md:pb-10">
           <div className="rounded-2xl border border-line bg-white p-5">
-            <h2 className="text-base font-bold text-forest">Scan QRIS</h2>
+            <h2 className="text-lg font-black tracking-tight text-forest sm:text-xl">Scan QRIS</h2>
             <p className="text-xs text-muted">
               Arahkan kamera ke struk QRIS merchant.
             </p>
@@ -1535,7 +1542,7 @@ export default function AsetaApp() {
           <div className="rounded-2xl border border-line bg-white p-5">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-base font-bold text-forest">Riwayat Transaksi</h2>
+                <h2 className="text-lg font-black tracking-tight text-forest sm:text-xl">Riwayat Transaksi</h2>
                 <p className="text-xs text-muted">
                   {filteredHistory.length} dari {displayHistory.length} transaksi
                 </p>
@@ -1692,19 +1699,19 @@ export default function AsetaApp() {
 
       {/* ===== Toast — fixed di atas layar, hilang otomatis 3 detik ===== */}
       <AnimatePresence>
-        {toastMessage && (
+        {toast && (
           <motion.div
-            key={toastMessage}
+            key={`${toast.tone}-${toast.message}`}
             role="status"
-            aria-live="polite"
+            aria-live={toast.tone === 'error' ? 'assertive' : 'polite'}
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-            className="fixed left-1/2 top-5 z-50 flex max-w-[90vw] -translate-x-1/2 items-center gap-2 rounded-2xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm"
+            className={`fixed left-1/2 top-5 z-50 flex max-w-[90vw] -translate-x-1/2 items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold text-white shadow-sm ${toast.tone === 'error' ? 'border-danger/50 bg-slate-900' : 'border-slate-700 bg-slate-900'}`}
           >
-            <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400" aria-hidden />
-            <span className="truncate">{toastMessage}</span>
+            <span className={`h-2 w-2 shrink-0 rounded-full ${TOAST_DOT[toast.tone]}`} aria-hidden />
+            <span className="truncate">{toast.message}</span>
           </motion.div>
         )}
       </AnimatePresence>

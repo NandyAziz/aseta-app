@@ -70,9 +70,9 @@ export default function SavingsProjection({
   return (
     <section className={`${shellClass} ${className}`}>
       {!bare && (
-        /* Header: emerald→teal gradient icon + return pill. */
+        /* Header: brand→brand-dark gradient icon + return pill. */
         <div className="mb-3 flex items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 p-2.5 text-white shadow-sm shadow-emerald-500/20 touch-target">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-brand to-brand-dark p-2.5 text-white shadow-sm shadow-brand/20 touch-target">
             <TrendingUp className="h-4.5 w-4.5" aria-hidden />
           </span>
           <div className="min-w-0">

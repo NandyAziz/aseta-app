@@ -27,6 +27,21 @@
   --color-gold: #e5b454;
   --color-muted: #475569;
   --color-line: #e2e8f0;
+
+  /* Gold ramp derived from --color-gold (same 41° hue) so every gold accent
+     in the UI uses one family — no more drift between amber-* and bg-gold. */
+  --color-gold-50: #faf5e9;
+  --color-gold-100: #f4e8cd;
+  --color-gold-200: #eedda9;
+  --color-gold-300: #eac886;
+  --color-gold-600: #b98a2e;
+  --color-gold-700: #94691f;
+
+  /* Error/danger accents (toast error variant). red-700 keeps white-on-it
+     and it-on-white both WCAG AA, like --color-brand does. */
+  --color-danger: #b91c1c;
+  --color-danger-soft: #fef2f2;
+  --color-danger-line: #fecaca;
 }
 
 @keyframes breathe {
@@ -253,14 +268,16 @@
   animation: modal-content-in 280ms cubic-bezier(0.16, 1, 0.3, 1) 1 both;
 }
 
-/* Input focus ring - consistent across all inputs */
+/* Input focus ring - consistent across all inputs.
+   Brand (emerald-700) clears the 3:1 focus-visibility contrast floor, which
+   emerald-500 #10b981 (2.3:1 on white) did not. */
 .input-focus {
   transition: border-color 150ms ease-out, box-shadow 150ms ease-out, background-color 150ms ease-out;
 }
 .input-focus:focus {
   outline: none;
-  border-color: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.15);
 }
 
 /* Slider thumb styling for touch */
@@ -312,12 +329,13 @@ input[type="range"]::-moz-range-thumb:hover {
   transform: scale(1.15);
 }
 
-/* Focus visible for keyboard navigation */
+/* Focus visible for keyboard navigation.
+   The old rules used Tailwind-only `ring`/`ring-offset`/`ring-color`
+   declarations, which are NOT valid plain CSS — the ring never rendered.
+   An outline is the reliable, standard way to draw a keyboard focus ring. */
 .focus-visible-ring:focus-visible {
-  outline: none;
-  ring: 2px;
-  ring-offset: 2px;
-  ring-color: #10b981;
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
 }
 
 /* Scrollbar styling for content areas */

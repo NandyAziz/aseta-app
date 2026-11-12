@@ -51,14 +51,14 @@ export default function PortfolioAllocation({
         role="img"
         aria-label="Alokasi aset: Emas Digital 60 persen, Reksadana Pasar Uang 40 persen"
       >
-        <div className="h-full bg-amber-400" style={{ width: '60%' }} />
+        <div className="h-full bg-gold" style={{ width: '60%' }} />
         <div className="h-full w-0.5 bg-white" />
         <div className="h-full flex-1 bg-emerald-500" />
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-2">
-        <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-3 card-elevate transition-all duration-200">
-          <p className="text-xs font-bold text-amber-700">Emas Digital · 60%</p>
+        <div className="rounded-xl border border-gold-200 bg-gold-50/60 p-3 card-elevate transition-all duration-200">
+          <p className="text-xs font-bold text-gold-700">Emas Digital · 60%</p>
           <p className="mt-0.5 text-base font-black tabular-nums wrap-break-word text-forest transition-colors duration-300">
             Rp{goldValue.toLocaleString('id-ID')}
           </p>

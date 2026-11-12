@@ -16,9 +16,10 @@ a gamified fintech app (Auto Round-Up Investment) built on Next.js.
 - The mascot is a **dragon** that evolves with XP — not a decorative element.
   Every mascot interaction (tap, level evolution, "+50 XP" particles, `PET_LINES`
   dialogue) is part of the gamification loop, not an accessory.
-- Evolution stages (from `utils/aseta.ts` → `stageForLevel()`):
-  Lv 1–3 "Telur Aseta" (`/mascot-egg.gif`) · Lv 4–6 "Aseta Muda"
-  (`/mascot-baby.gif`) · Lv 7–10 "Aseta Mandiri" (`/mascot-adult.gif`).
+- Evolution stages (from `utils/aseta.ts` → `stageForLevel()`): one gif per
+  level, `/mascot{level}.gif`, grouped as Lv 1–3 "Telur Aseta", Lv 4–6
+  "Aseta Muda", Lv 7–9 "Aseta Dewasa", Lv 10 "Aseta Legenda".
+  `EVOLUTION_STAGES` exports the 4 representative stages for overview surfaces.
   Changing the stages means inventing a level system.
 - Product tone: friendly and mobile-first; all dialogue, toasts, and empty states
   are written in natural Bahasa Indonesia. Agent-facing prose is English — see

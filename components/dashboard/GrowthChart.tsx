@@ -1,6 +1,7 @@
 'use client';
 
 import { useId, useState, type KeyboardEvent } from 'react';
+import { TrendingUp } from 'lucide-react';
 
 /* ============================================================================
  * GrowthChart — SVG line chart of portfolio growth (last 7 snapshots)
@@ -190,6 +191,25 @@ export default function GrowthChart({
     }
   }
 
+  // Honest empty state: without at least 2 real snapshots there is nothing to
+  // chart. The old fallback fabricated a "+1.1%/day" series that pretended
+  // growth which never happened — state that plainly instead. (All hooks are
+  // already called above, so this early return keeps hook order stable.)
+  if (series.length < 2) {
+    return (
+      <div
+        className="flex w-full min-w-0 flex-col items-center justify-center gap-1.5 rounded-lg bg-ivory/60 px-4 py-6 text-center"
+        style={{ minHeight: 96 }}
+      >
+        <TrendingUp className="h-5 w-5 text-sage" aria-hidden />
+        <p className="text-xs font-semibold text-forest">Grafik pertumbuhan</p>
+        <p className="max-w-[240px] text-[11px] text-muted">
+          Belum ada data pertumbuhan. Setelah 2x tabungan, grafiknya muncul di sini.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div
       className="w-full min-w-0 max-w-full outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 rounded-lg"
@@ -216,8 +236,8 @@ export default function GrowthChart({
           {/* A single, very subtle transparent emerald tone — no layered/mesh
               gradient, so the trend stays readable without standing out. */}
           <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#10b981" stopOpacity="0.22" />
-            <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+            <stop offset="0%" stopColor="var(--color-brand)" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="var(--color-brand)" stopOpacity="0" />
           </linearGradient>
         </defs>
 
@@ -261,7 +281,7 @@ export default function GrowthChart({
           <path
             d={linePath}
             fill="none"
-            stroke="#0d9488"
+            stroke="var(--color-brand)"
             strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -308,8 +328,8 @@ export default function GrowthChart({
                   cx={r2(p.x)}
                   cy={r2(p.y)}
                   r={isActive ? 5 : isLast ? 3.5 : 2.75}
-                  fill={isActive || isLast ? '#0d9488' : '#ffffff'}
-                  stroke={isActive ? '#ffffff' : '#0d9488'}
+                  fill={isActive || isLast ? 'var(--color-brand)' : '#ffffff'}
+                  stroke={isActive ? '#ffffff' : 'var(--color-brand)'}
                   strokeWidth={isActive ? 2 : 1.5}
                   vectorEffect="non-scaling-stroke"
                   className="chart-anim"

@@ -12,6 +12,34 @@ build` succeeds (static `/`)
 
 ## ✅ Completed Features
 
+### Design Batch 2 — Color Consolidation & Honesty (design-critique round 2, 2026-11-12)
+- [x] **Color token consolidation** — a full gold ramp (`--color-gold-50/100/
+      200/300/600/700`, same 41° hue as `--color-gold`) now backs every gold
+      accent; all `amber-*`, `sky-*`, `blue-*`, `teal-*`, and `orange-*`
+      usages were remapped: aura rings/glows (`MascotAura`), level & streak
+      badges, gold share bars (dashboard + landing simulator), "Hari Ini"
+      icon (gold), wallet icon (sage), preset chips (gold/sage/emerald
+      families), chart line & dots (`var(--color-brand)`, no more #0d9488).
+- [x] **Toast severity tones** — `showToast(message, tone)` with 'success' /
+      'info' / 'error'; the dot colour + border differ per tone and error
+      toasts announce with `aria-live="assertive"`.
+- [x] **Focus-ring CSS fixed** — `.focus-visible-ring` used Tailwind-only
+      `ring`/`ring-color` declarations (invalid plain CSS, ring never
+      rendered); replaced with a real `outline`, and both focus styles now
+      use `--color-brand` (clears the 3:1 focus-visibility floor that
+      #10b981 missed).
+- [x] **Honest growth chart** — `buildGrowthSeries()` (fabricated
+      "+1.1%/day" curve) deleted; `GrowthChart` shows an explicit empty
+      state until ≥2 real `growth` snapshots exist.
+- [x] **Evolution strip on landing** — new "Perjalanan Evolusi" section with
+      the 4 representative stages, sourced from a new `EVOLUTION_STAGES`
+      export in `utils/aseta.ts` (docs previously claimed 3 non-existent
+      gifs; the real system is one gif per level, `/mascot{level}.gif`).
+- [x] **Uniform tab-title scale** — Beranda/Scan/Riwayat/Evolusi page titles
+      all use `text-lg font-black tracking-tight sm:text-xl`.
+- Verified visually via Playwright MCP (landing + dashboard at 320px and
+  1024px; evolution gifs load, no horizontal overflow).
+
 ### Claimable-Mission Visibility Loop (design-critique round 1, 2026-11-12)
 - [x] **Mobile claim loop** — the "Misi Harian (n/3)" hero chip now counts
       *done* missions (`missionsDone`, done-or-claimed) instead of claimed-only,

@@ -35,7 +35,7 @@ export function mascotAura(level: number): {
       glow: 'bg-gold/45 blur-2xl shadow-[0_0_46px_10px_rgba(229,180,84,0.45),0_0_90px_22px_rgba(34,211,238,0.28)]',
       glowAnim: 'animate-aura-breathe',
       glowScale: 'scale-[2]',
-      ring: 'ring-2 ring-amber-200/70 ring-offset-2 ring-offset-white',
+      ring: 'ring-2 ring-gold-200/70 ring-offset-2 ring-offset-white',
       scale: 'scale-[2]',
       breathe: '',
       imgShadow: 'drop-shadow-[0_0_22px_rgba(229,180,84,0.55)] drop-shadow-[0_0_10px_rgba(34,211,238,0.35)]',
@@ -47,7 +47,7 @@ export function mascotAura(level: number): {
       glow: 'bg-gold/38 blur-2xl shadow-[0_0_38px_8px_rgba(229,180,84,0.38),0_0_72px_16px_rgba(34,211,238,0.22)]',
       glowAnim: 'animate-aura-breathe',
       glowScale: 'scale-[2]',
-      ring: 'ring-2 ring-amber-200/60 ring-offset-2 ring-offset-white',
+      ring: 'ring-2 ring-gold-200/60 ring-offset-2 ring-offset-white',
       scale: 'scale-[2]',
       breathe: '',
       imgShadow: 'drop-shadow-[0_0_18px_rgba(229,180,84,0.45)] drop-shadow-[0_0_8px_rgba(34,211,238,0.28)]',
@@ -59,7 +59,7 @@ export function mascotAura(level: number): {
       glow: 'bg-gold/32 blur-xl shadow-[0_0_30px_6px_rgba(229,180,84,0.32)]',
       glowAnim: 'animate-aura-breathe',
       glowScale: 'scale-[2]',
-      ring: 'ring-1 ring-amber-200/55 ring-offset-2 ring-offset-white',
+      ring: 'ring-1 ring-gold-200/55 ring-offset-2 ring-offset-white',
       scale: 'scale-[2]',
       breathe: '',
       imgShadow: 'drop-shadow-[0_0_14px_rgba(229,180,84,0.34)]',
@@ -68,13 +68,13 @@ export function mascotAura(level: number): {
   // Lv 7 — Naga Dewasa: gold arrives, the multi-layer effect just starts to show.
   if (level >= 7) {
     return {
-      glow: 'bg-amber-400/28 blur-xl shadow-[0_0_22px_4px_rgba(245,158,11,0.28)]',
+      glow: 'bg-gold/28 blur-xl shadow-[0_0_22px_4px_rgba(229,180,84,0.28)]',
       glowAnim: '',
       glowScale: '',
-      ring: 'ring-1 ring-amber-200/50 ring-offset-2 ring-offset-white',
+      ring: 'ring-1 ring-gold-200/50 ring-offset-2 ring-offset-white',
       scale: 'scale-[1.25]',
       breathe: '',
-      imgShadow: 'drop-shadow-[0_0_12px_rgba(245,158,11,0.28)]',
+      imgShadow: 'drop-shadow-[0_0_12px_rgba(229,180,84,0.28)]',
     };
   }
   // Lv 6 — Bayi Naga emerges: strong emerald, wider aura, higher scale.
@@ -243,7 +243,7 @@ export function MascotEvolutionMotes({ level }: { level: number }) {
   const dotColor =
     tone === 'cyan' ? 'bg-cyan-300'
     : tone === 'emerald' ? 'bg-emerald-500'
-    : tone === 'gold' ? 'bg-amber-400'
+    : tone === 'gold' ? 'bg-gold'
     : 'bg-sage';
   const glow =
     tone === 'cyan'
@@ -251,7 +251,7 @@ export function MascotEvolutionMotes({ level }: { level: number }) {
       : tone === 'emerald'
         ? '0 0 5px 1px rgba(16,185,129,0.25)'
         : tone === 'gold'
-          ? '0 0 5px 1px rgba(251,191,36,0.25)'
+          ? '0 0 5px 1px rgba(229,180,84,0.25)'
           : '0 0 5px 1px rgba(163,181,138,0.25)';
 
   const dust = AURA_DUST.slice(0, profile.count);

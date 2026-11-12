@@ -71,8 +71,8 @@ export default function TotalAssetsSummary({
         </li>
         <li className="flex items-center justify-between gap-3 rounded-xl bg-white/70 px-3 py-2.5 lg:rounded-none lg:bg-transparent lg:p-0">
           <span className="flex min-w-0 items-center gap-3 text-sm font-medium text-forest lg:gap-2 lg:text-xs lg:text-muted">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50 lg:h-6 lg:w-6 lg:rounded-md touch-target">
-              <Wallet className="h-4.5 w-4.5 text-sky-500 lg:h-3.5 lg:w-3.5" aria-hidden />
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sage/15 lg:h-6 lg:w-6 lg:rounded-md touch-target">
+              <Wallet className="h-4.5 w-4.5 text-sage lg:h-3.5 lg:w-3.5" aria-hidden />
             </span>
             <span className="truncate">Saldo Dompet</span>
           </span>
@@ -82,8 +82,8 @@ export default function TotalAssetsSummary({
         </li>
         <li className="flex items-center justify-between gap-3 rounded-xl bg-white/70 px-3 py-2.5 lg:rounded-none lg:bg-transparent lg:p-0">
           <span className="flex min-w-0 items-center gap-3 text-sm font-medium text-forest lg:gap-2 lg:text-xs lg:text-muted">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-50 lg:h-6 lg:w-6 lg:rounded-md touch-target">
-              <Sparkles className="h-4.5 w-4.5 text-amber-500 lg:h-3.5 lg:w-3.5" aria-hidden />
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gold-50 lg:h-6 lg:w-6 lg:rounded-md touch-target">
+              <Sparkles className="h-4.5 w-4.5 text-gold-600 lg:h-3.5 lg:w-3.5" aria-hidden />
             </span>
             <span className="truncate">Hari Ini</span>
           </span>
